@@ -1,0 +1,28 @@
+
+SSCEP Release history
+========================================
+
+Release 20081211
+* Patch from Leo Koutikas: set signerkey correctly in pkcs7.c
+
+
+Release 20071227
+* Patch from Bas ten Berge: OpenSSL-related fix + ability to use cert
+  serial number as hex
+
+Release 20040325
+* Fixed a bug in mkrequest. Thanks for Scott Moynes pointing it out.
+
+Release 20030417
+* Modifications from Fiel Cabral ensure that the URL encoded Base64
+  PKCS7 is NUL-terminated.
+* Manuel Gil Perez pointed out that not all CA's define the
+  certificate usage. Do not exit if such a thing happens, just warn.
+* Changed the misleading error message for missing CA cert (-c) if
+  method "getca" is used.
+
+
+First public release was around Jan 25 2003, I guess that would make it
+a release 20030125.
+
+

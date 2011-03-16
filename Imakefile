@@ -1,0 +1,12 @@
+# From: Fiel Cabral
+# Run xmkmf then run make.
+
+PROGRAM = sscep
+OBJS    = sscep.o init.o net.o sceputils.o pkcs7.o ias.o
+fileutils.o
+
+LOCAL_LIBS = -lcrypto
+
+SingleProgramTarget($(PROGRAM),$(OBJS),$(LOCAL_LIBS),NullParameter)
+AllTarget($(PROGRAM))
+
