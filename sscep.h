@@ -20,8 +20,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include <unistd.h> 
-#include <errno.h> 
+#include <unistd.h>
+#include <errno.h>
 #include <openssl/evp.h>
 #include <openssl/crypto.h>
 #include <openssl/buffer.h>
@@ -46,10 +46,13 @@ int operation_flag;
 #define	SCEP_OPERATION_ENROLL	3
 #define	SCEP_OPERATION_GETCERT	5
 #define	SCEP_OPERATION_GETCRL	7
+#define SCEP_OPERATION_GETNEXTCA 15
 
 /* SCEP MIME headers */
 #define MIME_GETCA	"application/x-x509-ca-cert"
 #define MIME_GETCA_RA	"application/x-x509-ca-ra-cert"
+#define MIME_GETNEXTCA "application/x-x509-next-ca-cert"
+
 /* Entrust VPN connector uses different MIME types */
 #define MIME_PKI	"x-pki-message"
 #define MIME_GETCA_RA_ENTRUST	"application/x-x509-ra-ca-certs"
@@ -58,6 +61,7 @@ int operation_flag;
 #define	SCEP_MIME_GETCA		1
 #define	SCEP_MIME_GETCA_RA	3
 #define	SCEP_MIME_PKI		5
+#define	SCEP_MIME_GETNEXTCA	7
 
 /* SCEP request types */
 #define	SCEP_REQUEST_NONE		0
@@ -103,7 +107,7 @@ int operation_flag;
 	"Integrity check failed"
 #define SCEP_FAILINFO_BADREQ		2
 #define SCEP_FAILINFO_BADREQ_STR	\
-	"Transaction not permitted or supported" 
+	"Transaction not permitted or supported"
 #define SCEP_FAILINFO_BADTIME		3
 #define SCEP_FAILINFO_BADTIME_STR	\
 	"Message time field was not sufficiently close to the system time"
@@ -213,7 +217,7 @@ struct scep {
 
 	/* Request */
 	PKCS7 *request_p7;
-	unsigned char *request_payload;	
+	unsigned char *request_payload;
 	int request_len;
 	pkcs7_issuer_and_subject *ias_getcertinit;
 	PKCS7_ISSUER_AND_SERIAL *ias_getcert;
@@ -221,7 +225,7 @@ struct scep {
 
 	/* Reply */
 	PKCS7 *reply_p7;
-	unsigned char *reply_payload;	
+	unsigned char *reply_payload;
 	int reply_len;
 
 };
@@ -302,6 +306,9 @@ int get_attribute(STACK_OF(X509_ATTRIBUTE) *, int, ASN1_TYPE **);
 
 /* URL-endcode */
 char *url_encode (char *, size_t);
+
+/*PKCS#7 decode message without SCEP attribute verification*/
+int pkcs7_varify_unwrap(struct scep *s, char * cachainfile );
 
 /* End of Functions */
 

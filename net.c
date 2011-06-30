@@ -58,7 +58,7 @@ send_msg(struct http_reply *http,char *msg,char *host,int port,int operation) {
 		return (1);
 	}
 
-	/* send data */ 
+	/* send data */
 	alarm(timeout);
 	rc = send(sd, msg, sizeof(char) * strlen(msg), 0);
 	alarm(0);
@@ -82,7 +82,7 @@ send_msg(struct http_reply *http,char *msg,char *host,int port,int operation) {
 	/* Fetch the status code: */
 	sscanf(buf, "%s %d ", tmp, &http->status);
 	if (v_flag)
-		fprintf(stdout, "%s: server returned status code %d\n", 
+		fprintf(stdout, "%s: server returned status code %d\n",
 			pname, http->status);
 
 	/* Set SCEP reply type */
@@ -102,7 +102,20 @@ send_msg(struct http_reply *http,char *msg,char *host,int port,int operation) {
 			} else {
 				if (v_flag)
 					printf("%s: mime_err: %s\n", pname,buf);
-				
+
+				goto mime_err;
+			}
+			break;
+		case SCEP_OPERATION_GETNEXTCA:
+			if (strstr(buf, MIME_GETNEXTCA)) {
+				http->type = SCEP_MIME_GETNEXTCA;
+				if (v_flag)
+					printf("%s: MIME header: %s\n",
+						pname, MIME_GETNEXTCA);
+			}else {
+				if (v_flag)
+					printf("%s: mime_err: %s\n", pname,buf);
+
 				goto mime_err;
 			}
 			break;
@@ -135,7 +148,7 @@ send_msg(struct http_reply *http,char *msg,char *host,int port,int operation) {
 	}
 	http->bytes = used - (http->payload - p);
 	if (http->payload == NULL) {
-		/* This is not necessarily error... 
+		/* This is not necessarily error...
 		 * XXXXXXXXXXXXXXXX check */
 		fprintf(stderr, "%s: cannot find data from http reply\n",pname);
 	}
@@ -158,12 +171,12 @@ char * url_encode(char *s, size_t n) {
 
 	/* Allocate 2 times bigger space than the original string */
 	len = 2 * n;
-	r = (char *)malloc(len);	
+	r = (char *)malloc(len);
 	if (r == NULL) {
 		return NULL;
 	}
 	strcpy(r, "");
-	
+
 	/* Copy data */
 	for (i = 0; i < n; i++) {
 		switch (*(s+i)) {
