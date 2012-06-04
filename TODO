@@ -1,0 +1,15 @@
+
+TODO list for SSCEP
+===================
+
+o Automatic verify for CA/RA cert bundle (write_ca_re(), fileutils.c)
+	* Identify self-signed cert and verify against it
+
+o Automatic verify for issued certificate
+
+o Add meaningful exit status instead of SCEP_PKISTATUS_ERROR in some places
+
+o Fetch CRL via CA cert HTTP distribution point (not really a SCEP thing,
+  but nice feature anyway..)
+
+
