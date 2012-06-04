@@ -245,7 +245,11 @@ key_fingerprint(X509_REQ *req) {
 
 	/* Copy as ASCII string and return: */
 	for (c = 0; c < MD5_DIGEST_LENGTH; c++, str += 2) {
+		#ifdef WIN32
+		sprintf_s((char *)str, sizeof(str), "%02X", md[c]);
+		#else
 		sprintf((char *)str, "%02X", md[c]);
+		#endif
 
 	}
 	*(str+2) = '\0';
