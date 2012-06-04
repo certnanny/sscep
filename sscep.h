@@ -16,13 +16,32 @@
 #include <ctype.h>
 #include <signal.h>
 #include <setjmp.h>
+#include "getopt.h"
+
+#ifdef WIN32
+
+#include <winsock.h>
+#include <io.h>
+
+#define snprintf _snprintf
+#define close _close
+#define sleep(t_num) Sleep((t_num)*1000)
+#pragma comment(lib, "crypt32.lib")
+
+#else
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h> 
 #include <errno.h> 
+
+#endif
+
 #include <openssl/evp.h>
+#include <openssl/bio.h>
+#include <openssl/engine.h>
 #include <openssl/crypto.h>
 #include <openssl/buffer.h>
 #include <openssl/asn1.h>
@@ -35,7 +54,7 @@
 #include <openssl/md5.h>
 #include <openssl/objects.h>
 #include <openssl/asn1_mac.h>
-
+#include <openssl/ssl.h>
 /* Global defines */
 
 #define	VERSION	"20081211"
@@ -110,6 +129,9 @@ int operation_flag;
 #define SCEP_FAILINFO_BADCERTID		4
 #define SCEP_FAILINFO_BADCERTID_STR 	\
 	"No certificate could be identified matching"
+
+//define encoding for capi engine support
+#define MY_ENCODING_TYPE  (PKCS_7_ASN_ENCODING | X509_ASN_ENCODING)
 
 /* End of Global defines */
 
@@ -254,11 +276,17 @@ int init_scep(void);
 /* Read RSA private key file */
 void read_key(EVP_PKEY** key, char* filename);
 
+/* Read RSA private key using hwcrhk */
+void read_key_Engine(EVP_PKEY** key, char* filename, ENGINE *e);
+
 /* Read CA certificate file */
 void read_ca_cert(void);
 
 /* Read local certificate file */
 void read_cert(X509** cert, char* filename);
+
+/* Read certificate from engine */
+/*void read_cert_Engine(X509** cert, char* id, ENGINE *e, char* filename);*/
 
 /* Read certificate request and private key */
 void read_request(void);

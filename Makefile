@@ -7,14 +7,18 @@ MANDIR = /usr/local/man/man8
 
 CC	= gcc
 #WITH_DEBUG   = -g
-CFLAGS	= -Wall -O $(WITH_DEBUG)
+OPENSSL = /c/Users/tob130/Downloads/openssl-mingw
+CFLAGS	= -Wall -O $(WITH_DEBUG) -I $(OPENSSL)/include
+
+LDFLAGS = -L$(OPENSSL)/lib
+LDLIBS = -lcrypto -lws2_32 -lgdi32
 
 MAN	= sscep.8
 PROG	= sscep
 OBJS    = sscep.o init.o net.o sceputils.o pkcs7.o ias.o fileutils.o
 
 $(PROG): $(OBJS)
-	$(CC) $(CFLAGS) -lcrypto -o $(PROG) $(OBJS) 
+	$(CC) $(CFLAGS) -o $(PROG) $(OBJS) $(LDLIBS) $(LDFLAGS)
 
 clean:
 	rm -f $(PROG) $(OBJS) $(MAN) core

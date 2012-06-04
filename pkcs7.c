@@ -675,9 +675,9 @@ get_signed_attribute(STACK_OF(X509_ATTRIBUTE) *attribs, int nid,
 	} else if (v_flag)
 		printf("%s: allocating %d bytes for attribute\n", pname, len);
 	if (type == V_ASN1_PRINTABLESTRING) {
-		*buffer = (unsigned char *)malloc(len + 1);
+		*buffer = ( char *)malloc(len + 1);
 	} else {
-		*buffer = (unsigned char *)malloc(len);
+		*buffer = ( char *)malloc(len);
 	}
 	if (*buffer == NULL) {
 		fprintf(stderr, "%s: cannot malloc space for attribute\n",
