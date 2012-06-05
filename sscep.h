@@ -17,6 +17,7 @@
 #include <signal.h>
 #include <setjmp.h>
 #include "getopt.h"
+#include "fileutils_capi.h"
 
 #ifdef WIN32
 
