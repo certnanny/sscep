@@ -318,6 +318,10 @@ main(int argc, char **argv) {
 			} else if(v_flag)
 				printf("Added %s to list of engines.\n", g_char);
 
+			/*if(!ENGINE_ctrl(e, (ENGINE_CMD_BASE + 12), 0, (void*)"REQUEST", NULL)) {
+			} else if(v_flag)
+				printf("Altered storename to %s\n", "REQUEST");*/
+
 			//Finally we load the engine.
 			if(ENGINE_ctrl_cmd_string(e, "LOAD", NULL, 0) == 0) {
 				ERR_load_crypto_strings();
@@ -347,6 +351,22 @@ main(int argc, char **argv) {
 			exit (SCEP_PKISTATUS_ERROR);
 		} else if(v_flag)
 			printf("Engine %s initialized\n", g_char);
+
+		if(v_flag) {
+			if(!ENGINE_ctrl(e, (ENGINE_CMD_BASE + 2), 2, NULL, NULL)) {
+				ERR_load_CRYPTO_strings();
+				fprintf(stderr, "%s: Could not set debug level to %i", pname, 2);
+				ERR_free_strings();
+				exit (SCEP_PKISTATUS_ERROR);
+			}
+
+			if(!ENGINE_ctrl(e, (ENGINE_CMD_BASE + 3), 0, "capi.log", NULL)) {
+				ERR_load_CRYPTO_strings();
+				fprintf(stderr, "%s: Could not set debug file to %s", pname, "capi.log");
+				ERR_free_strings();
+				exit (SCEP_PKISTATUS_ERROR);
+			}
+		}
 		
 		// below is old code. This just kept for reference purposes and will be removed in future releases.
 		// target for a future releas is to make the path dynamically adjustable
@@ -387,7 +407,7 @@ main(int argc, char **argv) {
 	if (operation_flag == SCEP_OPERATION_ENROLL) {
 		if (!k_flag) {
 			fprintf(stderr, "%s: missing private key (-k)\n",pname);
-			//exit (SCEP_PKISTATUS_ERROR);
+			exit (SCEP_PKISTATUS_ERROR);
 		}
 		if (!r_flag) {
 			fprintf(stderr, "%s: missing request (-r)\n",pname);
@@ -647,18 +667,17 @@ main(int argc, char **argv) {
 
 			if (!k_flag) {
 			  fprintf(stderr, "%s: missing private key (-k)\n", pname);
-			  //exit (SCEP_PKISTATUS_FILE);
+			  exit (SCEP_PKISTATUS_FILE);
 			}
-			if (k_flag) {
-				if(!h_flag){
-					read_key(&rsa, k_char);
-				}
-				else{
-					if(v_flag)
-						printf("Loading private key for new key from engine %s\n", g_char);
-					read_key_Engine(&rsa, k_char,e);
-				}
+			if(!h_flag){
+				read_key(&rsa, k_char);
 			}
+			else{
+				if(v_flag)
+					printf("Loading private key for new key from engine %s\n", g_char);
+				read_key_Engine(&rsa, k_char,e);
+			}
+
 			if ((K_flag && !O_flag) || (!K_flag && O_flag)) {
 			  fprintf(stderr, "%s: -O also requires -K (and vice-versa)\n", pname);
 			  exit (SCEP_PKISTATUS_FILE);
