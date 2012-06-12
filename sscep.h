@@ -4,7 +4,8 @@
  * Copyright (c) Jarkko Turkulainen 2003. All rights reserved.
  * See the file COPYRIGHT for licensing information.
  */
-
+#ifndef SSCEP_H
+#define SSCEP_H
 
 #include "conf.h"
 #include "cmd.h"
@@ -18,6 +19,8 @@
 #include <setjmp.h>
 #include "getopt.h"
 #include "fileutils_capi.h"
+#include "configuration.h"
+#include "engine.h"
 
 #ifdef WIN32
 
@@ -335,3 +338,4 @@ char *url_encode (char *, size_t);
 /* End of Functions */
 
 
+#endif /* ifndef SCEP_H*/

@@ -228,10 +228,10 @@ get_string(char *str) {
 	return retstr;
 }
 
-void
+/*void
 error_memory() {
 	fprintf(stderr, "%s: memory allocation failure, errno: %d\n",
 		pname, errno);
 	exit(1);
-}
+}*/
 

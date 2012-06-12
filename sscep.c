@@ -107,6 +107,7 @@ main(int argc, char **argv) {
 	}
 
 #endif
+	
 
 	/* Initialize scep layer */
 	init_scep();
@@ -251,9 +252,11 @@ main(int argc, char **argv) {
 	/* If we debug, include verbose messages also */
 	if (d_flag)
 		v_flag = 1;
-
+	
+	if(f_char)
+		scep_conf_init(f_char);
 	/* Read in the configuration file: */
-	if (f_char) {
+	/*if (f_char) {
 	#ifdef WIN32
 		if ((fopen_s(&fp, f_char, "r")))
 	#else
@@ -264,130 +267,15 @@ main(int argc, char **argv) {
 			init_config(fp);
 			(void)fclose(fp);
 		}
-	}
+	}*/
 	if (v_flag)
 		fprintf(stdout, "%s: starting sscep, version %s\n",
 			pname, VERSION);
 
 	/*enable Engine Support */
 	if (g_flag) {
-
-		ENGINE_load_builtin_engines();
-		ENGINE_load_dynamic();
-	//	ENGINE_ctrl_cmd
-		//if its not dynamic, try to load it directly. If OpenSSL has it already we are good to go!
-		if(strcmp(g_char, "dynamic") != 0)
-		{
-			e = ENGINE_by_id(g_char);
-			if ((e==NULL) && v_flag){
-				printf("Engine %s could not be loaded. Trying to load dynamically...\n", g_char);
-			}
-		}
-
-		if(e == NULL)
-		{
-			//it seems OpenSSL did not already have it. In this case we will try to load it dynamically
-			//currently we can not set a path, so OpenSSL must be able to find the engine
-			e = ENGINE_by_id("dynamic");
-
-			//if we can't even load the dynamic engine, something is seriously wrong. We can't go on from here!
-			if(e == NULL) {
-				ERR_load_crypto_strings();
-				fprintf(stderr, "Engine dynamic could not be loaded, Error message: %s\n", ERR_error_string(ERR_peek_last_error(), NULL));
-				ERR_free_strings();
-				exit (SCEP_PKISTATUS_ERROR);
-			} else if(v_flag)
-				printf("Engine dynamic was loaded\n");
-
-			//To load dynamically we have to tell openssl where to find it.
-			//Currently, we can not provide the path, only the name. May be added in future version
-			if(ENGINE_ctrl_cmd_string(e, "SO_PATH", g_char, 0) == 0) {
-				ERR_load_crypto_strings();
-				fprintf(stderr, "Loading %s did not succeed: %s\n", g_char, ERR_error_string(ERR_peek_last_error(), NULL));
-				ERR_free_strings();
-				exit (SCEP_PKISTATUS_ERROR);
-			} else if (v_flag)
-				printf("%s was found.\n", g_char);
-
-			//engine will be added to the list of available engines. Should be done for complete import.
-			if(ENGINE_ctrl_cmd_string(e, "LIST_ADD", "1", 0) == 0) {
-				ERR_load_crypto_strings();
-				fprintf(stderr, "Executing LIST_ADD did not succeed: %s\n", ERR_error_string(ERR_peek_last_error(), NULL));
-				ERR_free_strings();
-				exit (SCEP_PKISTATUS_ERROR);
-			} else if(v_flag)
-				printf("Added %s to list of engines.\n", g_char);
-
-			/*if(!ENGINE_ctrl(e, (ENGINE_CMD_BASE + 12), 0, (void*)"REQUEST", NULL)) {
-			} else if(v_flag)
-				printf("Altered storename to %s\n", "REQUEST");*/
-
-			//Finally we load the engine.
-			if(ENGINE_ctrl_cmd_string(e, "LOAD", NULL, 0) == 0) {
-				ERR_load_crypto_strings();
-				fprintf(stderr, "Executing LOAD did not succeed: %s\n", ERR_error_string(ERR_peek_last_error(), NULL));
-				ERR_free_strings();
-				exit (SCEP_PKISTATUS_ERROR);
-			} else if(v_flag)
-				printf("Loading engine %s succeeded\n", g_char);
-
-			//all these functions were only needed if we loaded dynamically. Otherwise we could just skip this step.
-		}
-
-		//define this engine as a default for all our crypto operations. This way OpenSSL automatically chooses the right functions
-		if(ENGINE_set_default(e, ENGINE_METHOD_ALL) == 0) {
-				ERR_load_crypto_strings();
-				fprintf(stderr, "Error loading on setting defaults: %s\n", ERR_error_string(ERR_peek_last_error(), NULL));
-				ERR_free_strings();
-				exit (SCEP_PKISTATUS_ERROR);
-		} else if(v_flag)
-			printf("Engine %s made default for all operations\n", g_char);
-
-		//we need a functional reference and as such need to initialize
-		if(ENGINE_init(e) == 0) {
-			ERR_load_crypto_strings();
-			fprintf(stderr, "Engine Init did not work: %s\n", ERR_error_string(ERR_peek_last_error(), NULL));
-			ERR_free_strings();
-			exit (SCEP_PKISTATUS_ERROR);
-		} else if(v_flag)
-			printf("Engine %s initialized\n", g_char);
-
-		if(v_flag) {
-			if(!ENGINE_ctrl(e, (ENGINE_CMD_BASE + 2), 2, NULL, NULL)) {
-				ERR_load_CRYPTO_strings();
-				fprintf(stderr, "%s: Could not set debug level to %i", pname, 2);
-				ERR_free_strings();
-				exit (SCEP_PKISTATUS_ERROR);
-			}
-
-			if(!ENGINE_ctrl(e, (ENGINE_CMD_BASE + 3), 0, "capi.log", NULL)) {
-				ERR_load_CRYPTO_strings();
-				fprintf(stderr, "%s: Could not set debug file to %s", pname, "capi.log");
-				ERR_free_strings();
-				exit (SCEP_PKISTATUS_ERROR);
-			}
-		}
-		
-		// below is old code. This just kept for reference purposes and will be removed in future releases.
-		// target for a future releas is to make the path dynamically adjustable
-		
-		/*if(strcmp(g_char,"dynamic")==0){
-		//TODO attribut draus machen!
-			if(!ENGINE_ctrl_cmd_string(e, "SO_PATH", "/home/rt3130/workspace-cc++/JKnCipher/Debug/libJKnCipher.so", 0)){
-				fprintf(stderr, "Couldn't Initialize shared library\n");
-			}
-			ENGINE_ctrl_cmd_string(e, "LIST_ADD", "1", 0);
-			ENGINE_ctrl_cmd_string(e, "LOAD", NULL, 0);
-		}
-		//else
-		if (!ENGINE_set_default(e, ENGINE_METHOD_ALL)){
-			fprintf(stderr, "Error using Engine %s\n", g_char);
-			exit (SCEP_PKISTATUS_ERROR);
-		}
-		else if (v_flag){
-			fprintf(stdout, "Engine successfully enabled\n");
-		}*/
-
+		e = NULL;
+		scep_engine_init(e);
 	}
 
 	/*
