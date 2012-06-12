@@ -494,21 +494,6 @@ read_key(EVP_PKEY** key, char* filename) {
 	fclose(file);
 }
 
-/* Read private key with hwcrhk id */
-//idea from: http://blog.burghardt.pl/2010/03/ncipher-hsm-with-openssl/
-void
-read_key_Engine(EVP_PKEY** key, char* id, ENGINE *e) {
-//	*key = ENGINE_load_private_key(e, id, NULL, NULL);
-	if(*key == 0) {
-		printf("Could not load private key!\n");
-		//exit(SCEP_PKISTATUS_FILE);
-		printf("I will now try to find it under requests!\n");
-		capi_read_key_Engine(key, id, e, "REQUEST");
-		if(*key == 0)
-			exit(SCEP_PKISTATUS_FILE);
-	}
-}
-
 /* Read PKCS#10 request */
 
 void
