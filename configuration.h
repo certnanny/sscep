@@ -40,6 +40,7 @@
  */
 #define SCEP_CONFIGURATION_PARAM_ENGINE					"engine"
 #define SCEP_CONFIGURATION_ENGINE_ID					"engine_id"
+#define SCEP_CONFIGURATION_ENGINE_USAGE					"engine_usage"
 #define SCEP_CONFIGURATION_ENGINE_CAPI_NEWKEYLOCATION	"new_key_location"
 #define SCEP_CONFIGURATION_ENGINE_DYNPATH				"dynamic_path"
 #define SCEP_CONFIGURATION_ENGINE_MODULEPATH			"MODULE_PATH"
@@ -67,6 +68,10 @@
 #define SCEP_CONFIGURATION_PARAM_VERBOSE				"Verbose"
 #define SCEP_CONFIGURATION_PARAM_RESUME					"Resume"
 
+#define SCEP_CONFIGURATION_PARAM_VALUE_ENGINE_USAGE_BOTH	3
+#define SCEP_CONFIGURATION_PARAM_VALUE_ENGINE_USAGE_NEW		2
+#define SCEP_CONFIGURATION_PARAM_VALUE_ENGINE_USAGE_OLD		1
+
 #ifdef WIN32
 #define SCEP_CONFIGURATION_DEFAULT_DYNAMICPATH_WINDOWS	"%s\\System32\\%s.dll"
 #endif
@@ -88,6 +93,7 @@ struct scep_engine_conf_st{
 	char *new_key_location; // CryptoAPI only option: Which storename to set for the new key, default: REQUEST
 	char *dynamic_path; // where the shared object (.so, .dll) can be found
 	char *module_path; // see OpenSSL ctrl MODULE_PATH for engines (example: PKCS#11)
+	int engine_usage;
 };
 
 SCEP_CONF *scep_conf;

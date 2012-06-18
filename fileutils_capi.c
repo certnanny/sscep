@@ -1,6 +1,6 @@
 #include "sscep.h"
 
-#define CAPI_CMD_STORE_NAME		(ENGINE_CMD_BASE + 12) //this is the basic command to change the storename
+
 
 void capi_read_key_Engine(EVP_PKEY** key, char* id, ENGINE *e, char* storename);
 

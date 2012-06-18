@@ -65,7 +65,7 @@ handle_serial (char * serial)
 
 int
 main(int argc, char **argv) {
-	ENGINE *e;
+	ENGINE *e = NULL;
 	int			c, host_port = 80, count = 1;
 	char			*host_name, *p, *dir_name = NULL;
 	char			http_string[16384];
@@ -274,9 +274,9 @@ main(int argc, char **argv) {
 
 	/*enable Engine Support */
 	if (g_flag) {
-		e = NULL;
-		scep_engine_init(e);
+		e = scep_engine_init(e);
 	}
+	
 
 	/*
 	 * Check argument logic.
@@ -557,13 +557,16 @@ main(int argc, char **argv) {
 			  fprintf(stderr, "%s: missing private key (-k)\n", pname);
 			  exit (SCEP_PKISTATUS_FILE);
 			}
-			if(!h_flag){
+			
+			if(scep_conf->engine) {
+				if(scep_conf->engine->engine_usage == SCEP_CONFIGURATION_PARAM_VALUE_ENGINE_USAGE_BOTH ||
+					scep_conf->engine->engine_usage == SCEP_CONFIGURATION_PARAM_VALUE_ENGINE_USAGE_NEW){
+					sscep_engine_read_key_new(&rsa, k_char, e);
+				} else{
+					read_key(&rsa, k_char);
+				}
+			} else {
 				read_key(&rsa, k_char);
-			}
-			else{
-				if(v_flag)
-					printf("Loading private key for new key from engine %s\n", g_char);
-				read_key_Engine(&rsa, k_char,e);
 			}
 
 			if ((K_flag && !O_flag) || (!K_flag && O_flag)) {
@@ -573,13 +576,16 @@ main(int argc, char **argv) {
 
 			if (K_flag) {
 				//TODO auf hwcrhk prüfen?
-				if(!H_flag){
+				if(scep_conf->engine) {
+					if(scep_conf->engine->engine_usage == SCEP_CONFIGURATION_PARAM_VALUE_ENGINE_USAGE_BOTH ||
+						scep_conf->engine->engine_usage == SCEP_CONFIGURATION_PARAM_VALUE_ENGINE_USAGE_OLD){
+						//read_key_Engine_old(&renewal_key, K_char, e);
+						sscep_engine_read_key_old(&renewal_key, K_char, e);
+					} else{
+						read_key(&renewal_key, K_char);
+					}
+				} else {
 					read_key(&renewal_key, K_char);
-				}
-				else{
-					if(v_flag)
-						printf("Loading old private key for signature from engine %s\n", g_char);
-					read_key_Engine(&renewal_key, K_char,e);
 				}
 			}
 
@@ -599,12 +605,14 @@ main(int argc, char **argv) {
 			new_transaction(&scep_t);
 			if (operation_flag != SCEP_OPERATION_ENROLL)
 				goto not_enroll;
-			if (v_flag)
-				  fprintf(stdout, "%s: generating selfsigned "
-					"certificate\n", pname);
+			
 
-			if (! O_flag)
+			if (! O_flag) {
+				if (v_flag)
+					fprintf(stdout, "%s: generating selfsigned "
+					"certificate\n", pname);
 			  new_selfsigned(&scep_t);
+			}
 			else {
 			  /* Use existing certificate */
 			  scep_t.signercert = renewal_cert;
