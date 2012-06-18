@@ -1,6 +1,6 @@
 #include "engine.h"
 
-void scep_engine_init(ENGINE *e) {
+ENGINE *scep_engine_init(ENGINE *e) {
 	
 
 		ENGINE_load_builtin_engines();
@@ -51,6 +51,9 @@ void scep_engine_init(ENGINE *e) {
 				exit (SCEP_PKISTATUS_ERROR);
 			}
 		}
+
+
+		return e;
 }
 
 ENGINE *scep_engine_load_dynamic(ENGINE *e) {
@@ -102,15 +105,51 @@ ENGINE *scep_engine_load_dynamic(ENGINE *e) {
 
 //idea from: http://blog.burghardt.pl/2010/03/ncipher-hsm-with-openssl/
 void sscep_engine_read_key(EVP_PKEY **key, char *id, ENGINE *e) {
+	BIO *bio;
 	*key = ENGINE_load_private_key(e, id, NULL, NULL);
 	if(*key == 0) {
 		printf("Could not load private key!\n");
 		exit(SCEP_PKISTATUS_FILE);
-		printf("I will now try to find it under requests!\n");
-		capi_read_key_Engine(key, id, e, "REQUEST");
-		if(*key == 0)
-			exit(SCEP_PKISTATUS_FILE);
+	} else if(d_flag) {
+		bio = BIO_new_fp(stdout, BIO_NOCLOSE);
+		//printf("%s: Key id: %i for string %s\n", pname, EVP_PKEY_id(*key), id);
+		EVP_PKEY_print_private(bio, *key, 0, NULL);
+		BIO_flush(bio);
+		BIO_free_all(bio);
 	}
+}
+
+void sscep_engine_read_key_old(EVP_PKEY **key, char *id, ENGINE *e) {
+	if(!strncmp(scep_conf->engine->engine_id, "capi", 4)) {
+		sscep_engine_read_key_capi(key, id, e, "MY");
+	} else {
+		sscep_engine_read_key(key, id, e);
+	}
+	
+}
+
+void sscep_engine_read_key_new(EVP_PKEY **key, char *id, ENGINE *e) {
+	if(!strncmp(scep_conf->engine->engine_id, "capi", 4)) {
+		sscep_engine_read_key_capi(key, id, e, scep_conf->engine->new_key_location);
+	} else {
+		sscep_engine_read_key(key, id, e);
+	}
+}
+
+void sscep_engine_read_key_capi(EVP_PKEY **key, char *id, ENGINE *e, char *storename) {
+	static ENGINE* me;
+	if(me && !e)
+		e = me;
+	if(e)
+		me = e;
+	if(!storename)
+		storename = "MY";
+	if(!ENGINE_ctrl(e, CAPI_CMD_STORE_NAME, 0, (void*)storename, NULL)) {
+		fprintf(stderr, "%s: Executing CAPI_CMD_STORE_NAME did not succeed\n", pname);
+		sscep_engine_report_error();
+		exit(SCEP_PKISTATUS_ERROR);
+	}
+	sscep_engine_read_key(key, id, e);
 }
 
 void sscep_engine_report_error() {

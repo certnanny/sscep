@@ -36,7 +36,7 @@ int pkcs7_wrap(struct scep *s) {
 	s->sender_nonce_len = 16;
 	s->sender_nonce = (unsigned char *)malloc(s->sender_nonce_len); 
 	RAND_bytes(s->sender_nonce, s->sender_nonce_len);
-	
+
 	/* Prepare data payload */
 	switch(s->request_type) {
 		case SCEP_REQUEST_PKCSREQ:
