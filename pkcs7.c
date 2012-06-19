@@ -573,14 +573,16 @@ int pkcs7_unwrap(struct scep *s) {
 		printf("%s: printing PEM fomatted PKCS#7\n", pname);
 		PEM_write_PKCS7(stdout, p7enc);
 	}
-
+	
 	/* Decrypt the data  */
 	outbio = BIO_new(BIO_s_mem());
 	if (v_flag)
 		printf("%s: decrypting inner PKCS#7\n",pname);
 	if (PKCS7_decrypt(p7enc, recipientkey, recipientcert, outbio, 0) == 0) {
 		fprintf(stderr, "%s: error decrypting inner PKCS#7\n", pname);
+		ERR_load_crypto_strings();
 		ERR_print_errors_fp(stderr);
+		ERR_free_strings();
 		exit (SCEP_PKISTATUS_P7);
 	}
 	BIO_flush(outbio);
