@@ -37,7 +37,7 @@ ENGINE *scep_engine_init(ENGINE *e) {
 
 
 		//TODO: remove capi specific part!
-		if(v_flag) {
+		if(v_flag && strncmp(scep_conf->engine->engine_id, "capi", 4) == 0) {
 			// set debug level
 			if(!ENGINE_ctrl(e, (ENGINE_CMD_BASE + 2), 2, NULL, NULL)) {
 				fprintf(stderr, "%s: Could not set debug level to %i", pname, 2);
@@ -106,9 +106,23 @@ ENGINE *scep_engine_load_dynamic(ENGINE *e) {
 //idea from: http://blog.burghardt.pl/2010/03/ncipher-hsm-with-openssl/
 void sscep_engine_read_key(EVP_PKEY **key, char *id, ENGINE *e) {
 	BIO *bio;
-	*key = ENGINE_load_private_key(e, id, NULL, NULL);
+	struct pw_cb_data {
+		const char *prompt_info;
+	} cb_data;
+	cb_data.prompt_info = id;
+	*key = ENGINE_load_private_key(e, id, NULL, &cb_data);
+	
+	if(*key == 0) {
+		if(v_flag)
+			printf("%s: Pivate key %s could not be loaded via engine %s, trying file load\n", pname, id, scep_conf->engine->engine_id);
+		read_key(key, id);
+		if(*key != 0)
+			printf("%s: Found private key %s as file. If the engine can handle it, loading the file\n", pname, id);
+	}
+	
 	if(*key == 0) {
 		printf("Could not load private key!\n");
+		ERR_print_errors_fp(stderr);
 		exit(SCEP_PKISTATUS_FILE);
 	} else if(d_flag) {
 		bio = BIO_new_fp(stdout, BIO_NOCLOSE);
