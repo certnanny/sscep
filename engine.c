@@ -19,6 +19,14 @@ ENGINE *scep_engine_init(ENGINE *e) {
 			e = scep_engine_load_dynamic(e);
 		}
 
+		if(scep_conf->engine->module_path) {
+			if(ENGINE_ctrl_cmd_string(e, "MODULE_PATH", scep_conf->engine->module_path, 0) == 0) {
+				fprintf(stderr, "%s: Adding MODULE PATH %s was not successful!\n", pname, scep_conf->engine->module_path);
+				sscep_engine_report_error();
+				exit (SCEP_PKISTATUS_ERROR);
+			}
+		}
+
 		//define this engine as a default for all our crypto operations. This way OpenSSL automatically chooses the right functions
 		if(ENGINE_set_default(e, ENGINE_METHOD_ALL) == 0) {
 				fprintf(stderr, "%s: Error loading on setting defaults\n", pname);
@@ -106,11 +114,8 @@ ENGINE *scep_engine_load_dynamic(ENGINE *e) {
 //idea from: http://blog.burghardt.pl/2010/03/ncipher-hsm-with-openssl/
 void sscep_engine_read_key(EVP_PKEY **key, char *id, ENGINE *e) {
 	BIO *bio;
-	struct pw_cb_data {
-		const char *prompt_info;
-	} cb_data;
-	cb_data.prompt_info = id;
-	*key = ENGINE_load_private_key(e, id, NULL, &cb_data);
+	*key = ENGINE_load_private_key(e, id, NULL, NULL);
+	//ERR_print_errors_fp(stderr);
 	
 	if(*key == 0) {
 		if(v_flag)

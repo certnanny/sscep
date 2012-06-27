@@ -33,12 +33,9 @@ int new_transaction(struct scep *s) {
 
 	/* Create transaction id */
 	if (operation_flag == SCEP_OPERATION_ENROLL)
-		s->transaction_id = key_fingerprint(request);
+		s->transaction_id = NULL;
 	else
 		s->transaction_id = TRANS_ID_GETCERT;
-	if (v_flag) {
-		printf("%s: transaction id: %s\n", pname, s->transaction_id);
-	}
 	return (0);
 }
 
