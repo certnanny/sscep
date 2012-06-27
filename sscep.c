@@ -65,7 +65,7 @@ handle_serial (char * serial)
 
 int
 main(int argc, char **argv) {
-	ENGINE *e = NULL;
+	//ENGINE *e = NULL;
 	int			c, host_port = 80, count = 1;
 	char			*host_name, *p, *dir_name = NULL;
 	char			http_string[16384];
@@ -272,9 +272,17 @@ main(int argc, char **argv) {
 		fprintf(stdout, "%s: starting sscep, version %s\n",
 			pname, VERSION);
 
+	/*
+	* Create a new SCEP transaction and self-signed
+	* certificate based on cert request
+	*/
+	if (v_flag)
+		fprintf(stdout, "%s: new transaction\n", pname);
+	new_transaction(&scep_t);
+
 	/*enable Engine Support */
 	if (g_flag) {
-		e = scep_engine_init(e);
+		scep_t.e = scep_engine_init(scep_t.e);
 	}
 	
 
@@ -561,7 +569,7 @@ main(int argc, char **argv) {
 			if(scep_conf->engine) {
 				if(scep_conf->engine->engine_usage == SCEP_CONFIGURATION_PARAM_VALUE_ENGINE_USAGE_BOTH ||
 					scep_conf->engine->engine_usage == SCEP_CONFIGURATION_PARAM_VALUE_ENGINE_USAGE_NEW){
-					sscep_engine_read_key_new(&rsa, k_char, e);
+					sscep_engine_read_key_new(&rsa, k_char, scep_t.e);
 				} else{
 					read_key(&rsa, k_char);
 				}
@@ -580,7 +588,7 @@ main(int argc, char **argv) {
 					if(scep_conf->engine->engine_usage == SCEP_CONFIGURATION_PARAM_VALUE_ENGINE_USAGE_BOTH ||
 						scep_conf->engine->engine_usage == SCEP_CONFIGURATION_PARAM_VALUE_ENGINE_USAGE_OLD){
 						//read_key_Engine_old(&renewal_key, K_char, e);
-						sscep_engine_read_key_old(&renewal_key, K_char, e);
+						sscep_engine_read_key_old(&renewal_key, K_char, scep_t.e);
 					} else{
 						read_key(&renewal_key, K_char);
 					}
@@ -593,20 +601,18 @@ main(int argc, char **argv) {
 				read_cert(&renewal_cert, O_char);
 			}
 
-			if (operation_flag == SCEP_OPERATION_ENROLL)
+			if (operation_flag == SCEP_OPERATION_ENROLL) {
 				read_request();
+				scep_t.transaction_id = key_fingerprint(request);			
+				if (v_flag) {
+					printf("%s: transaction id: %s\n", pname, scep_t.transaction_id);
+				}
+			}
 
-			/*
-			 * Create a new SCEP transaction and self-signed
-			 * certificate based on cert request
-			 */
-			if (v_flag)
-				fprintf(stdout, "%s: new transaction\n", pname);
-			new_transaction(&scep_t);
+			
 			if (operation_flag != SCEP_OPERATION_ENROLL)
 				goto not_enroll;
 			
-
 			if (! O_flag) {
 				if (v_flag)
 					fprintf(stdout, "%s: generating selfsigned "

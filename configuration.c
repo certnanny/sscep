@@ -206,6 +206,7 @@ int scep_conf_load(CONF *conf) {
 				printf("%s: Setting module path to %s\n", pname, var);
 			scep_conf->engine->module_path = var;
 		} else {
+			scep_conf->engine->module_path = NULL;
 			if(v_flag)
 				printf("%s: No module path defined, not using/loading any module\n", pname);
 		}
