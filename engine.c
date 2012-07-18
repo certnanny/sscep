@@ -113,7 +113,6 @@ ENGINE *scep_engine_load_dynamic(ENGINE *e) {
 
 //idea from: http://blog.burghardt.pl/2010/03/ncipher-hsm-with-openssl/
 void sscep_engine_read_key(EVP_PKEY **key, char *id, ENGINE *e) {
-	BIO *bio;
 	*key = ENGINE_load_private_key(e, id, NULL, NULL);
 	//ERR_print_errors_fp(stderr);
 	
@@ -127,14 +126,8 @@ void sscep_engine_read_key(EVP_PKEY **key, char *id, ENGINE *e) {
 	
 	if(*key == 0) {
 		printf("Could not load private key!\n");
-		ERR_print_errors_fp(stderr);
+		sscep_engine_report_error();
 		exit(SCEP_PKISTATUS_FILE);
-	} else if(d_flag) {
-		bio = BIO_new_fp(stdout, BIO_NOCLOSE);
-		//printf("%s: Key id: %i for string %s\n", pname, EVP_PKEY_id(*key), id);
-		EVP_PKEY_print_private(bio, *key, 0, NULL);
-		BIO_flush(bio);
-		BIO_free_all(bio);
 	}
 }
 
@@ -163,6 +156,15 @@ void sscep_engine_read_key_capi(EVP_PKEY **key, char *id, ENGINE *e, char *store
 		me = e;
 	if(!storename)
 		storename = "MY";
+
+	if(!ENGINE_ctrl(e, CAPI_CMD_STORE_FLAGS, scep_conf->engine->storelocation, NULL, NULL)) {
+		fprintf(stderr, "%s: Executing CAPI_CMD_STORE_FLAGS did not succeed\n", pname);
+		sscep_engine_report_error();
+		exit(SCEP_PKISTATUS_ERROR);
+	} else {
+		printf("%s: Set storelocation to %i\n", pname, scep_conf->engine->storelocation);
+	}
+
 	if(!ENGINE_ctrl(e, CAPI_CMD_STORE_NAME, 0, (void*)storename, NULL)) {
 		fprintf(stderr, "%s: Executing CAPI_CMD_STORE_NAME did not succeed\n", pname);
 		sscep_engine_report_error();

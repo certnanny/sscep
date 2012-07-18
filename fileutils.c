@@ -483,7 +483,7 @@ read_key(EVP_PKEY** key, char* filename) {
 	if (!(file = fopen(filename, "r")))
 #endif
 	{
-	        fprintf(stderr, "%s: cannot open private key file %s\n", pname, filename);
+	    fprintf(stderr, "%s: cannot open private key file %s\n", pname, filename);
 		exit (SCEP_PKISTATUS_FILE);
 	}
 	if (!PEM_read_PrivateKey(file, key, NULL, NULL)) {
