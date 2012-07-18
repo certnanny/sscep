@@ -41,6 +41,7 @@
 #define SCEP_CONFIGURATION_PARAM_ENGINE					"engine"
 #define SCEP_CONFIGURATION_ENGINE_ID					"engine_id"
 #define SCEP_CONFIGURATION_ENGINE_USAGE					"engine_usage"
+#define SCEP_CONFIGURATION_ENGINE_CAPI_STORELOCATION	"storelocation"
 #define SCEP_CONFIGURATION_ENGINE_CAPI_NEWKEYLOCATION	"new_key_location"
 #define SCEP_CONFIGURATION_ENGINE_DYNPATH				"dynamic_path"
 #define SCEP_CONFIGURATION_ENGINE_MODULEPATH			"MODULE_PATH"
@@ -91,6 +92,7 @@ typedef struct {
 struct scep_engine_conf_st{
 	char *engine_id; // ID of the engine according to OpenSSL (e.g. pkcs11, capi, chil, ...)
 	char *new_key_location; // CryptoAPI only option: Which storename to set for the new key, default: REQUEST
+	int storelocation; // CryptoAPI only option: Which storelocation to use, default: OpenSSL engine default
 	char *dynamic_path; // where the shared object (.so, .dll) can be found
 	char *module_path; // see OpenSSL ctrl MODULE_PATH for engines (example: PKCS#11)
 	int engine_usage;
