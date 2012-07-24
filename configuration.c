@@ -167,6 +167,7 @@ int scep_conf_load(CONF *conf) {
 		}
 
 		//load capi only option
+		//TODO move
 		engine_special_section = (char *) malloc(sizeof(SCEP_CONFIGURATION_SECTION_ENGINE_TEMPLATE) + sizeof(scep_conf->engine->engine_id));
 		sprintf(engine_special_section, SCEP_CONFIGURATION_SECTION_ENGINE_TEMPLATE, scep_conf->engine->engine_id);
 		if(strncmp(scep_conf->engine->engine_id, "capi", 4) == 0) {
@@ -179,6 +180,25 @@ int scep_conf_load(CONF *conf) {
 					printf("%s: No new key location was provided, using default \"REQUEST\"\n", pname);
 				scep_conf->engine->new_key_location = "REQUEST";
 			}
+
+			if(var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_CAPI_STORELOCATION)) {
+				if(v_flag)
+					printf("%s: The store used will be %s\n", pname, var);
+				if(!strncmp(var, "LOCAL_MACHINE", 13)) {
+					scep_conf->engine->storelocation = 1;
+				} else if(!strncmp(var, "CURRENT_USER", 12)) {
+					scep_conf->engine->storelocation = 0;
+				} else {
+					printf("%s: Provided storename unknown (%s). Will use the engines default.\n", pname, var);
+					scep_conf->engine->storelocation = 0;
+				}
+			} else {
+				if(v_flag)
+					printf("%s: No storename was provided. Will use the engines default.\n", pname);
+				scep_conf->engine->new_key_location = 0;
+			}
+
+			
 		}
 
 		//loading dynamic path variable
@@ -206,6 +226,7 @@ int scep_conf_load(CONF *conf) {
 				printf("%s: Setting module path to %s\n", pname, var);
 			scep_conf->engine->module_path = var;
 		} else {
+			scep_conf->engine->module_path = NULL;
 			if(v_flag)
 				printf("%s: No module path defined, not using/loading any module\n", pname);
 		}

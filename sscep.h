@@ -250,6 +250,9 @@ struct scep {
 	unsigned char *reply_payload;	
 	int reply_len;
 
+	/* Engine */
+	ENGINE *e;
+
 };
 /* End of structures */
 
