@@ -99,6 +99,14 @@ dynamic_path = ..\\capi\\capi.dll
 # In case of certreq creating your key, it will be in REQUEST.
 new_key_location = REQUEST
 
+# Which store should be used for all operations.
+# The basic layout is storelocation\storename, e.g.
+# LOCAL_MACHINE\MY and LOCAL_MACHINE\REQUEST
+# The following options are accepted here:
+# CURRENT_USER - default option, user store
+# LOCAL_MACHINE - system store
+storelocation = LOCAL_MACHINE
+
 
 
 [sscep_getca]
