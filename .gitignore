@@ -1,3 +1,4 @@
 *.obj
 *.exe
 *.pdb
+bin
