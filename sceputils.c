@@ -227,7 +227,7 @@ key_fingerprint(X509_REQ *req) {
 	MD5_CTX		ctx;
 	
 	/* Assign space for ASCII presentation of the digest */
-	str = (unsigned char *)malloc(2 * MD5_DIGEST_LENGTH + 1);
+	str = malloc(2 * MD5_DIGEST_LENGTH + 1);
 	ret = str;
 
 	/* Create new memory bio for reading the public key */
@@ -242,14 +242,10 @@ key_fingerprint(X509_REQ *req) {
 
 	/* Copy as ASCII string and return: */
 	for (c = 0; c < MD5_DIGEST_LENGTH; c++, str += 2) {
-		#ifdef WIN32
-		sprintf_s((char *)str, sizeof(str), "%02X", md[c]);
-		#else
 		sprintf((char *)str, "%02X", md[c]);
-		#endif
 
 	}
-	*(str+2) = '\0';
+	*(str) = '\0';
 	return(ret);
 }
 
