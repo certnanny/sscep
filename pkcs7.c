@@ -34,7 +34,7 @@ int pkcs7_wrap(struct scep *s) {
 	/* Create a new sender nonce for all messages 
 	 * XXXXXXXXXXXXXX should it be per transaction? */
 	s->sender_nonce_len = 16;
-	s->sender_nonce = (unsigned char *)malloc(s->sender_nonce_len); 
+	s->sender_nonce = malloc(s->sender_nonce_len); 
 	RAND_bytes(s->sender_nonce, s->sender_nonce_len);
 
 	/* Prepare data payload */
@@ -135,6 +135,7 @@ int pkcs7_wrap(struct scep *s) {
 			BIO_set_flags(databio, BIO_FLAGS_MEM_RDONLY); 
 			break;
 	}
+	printf("After switch\n");
 	/* Below this is the common code for all request_type */
 
 	/* Read in the payload */

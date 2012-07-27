@@ -10,11 +10,8 @@ int scep_conf_init(char *filename) {
 	CONF *conf;
 
 	if(filename == NULL) {
-		if(v_flag) 
-			printf("No configuration filename provided, returning!\n");
 		return 0;
 	}
-
 	conf = NCONF_new(NCONF_default());
 	if(!NCONF_load(conf, filename, &err)) {
 		if(err == 0)
@@ -26,14 +23,12 @@ int scep_conf_init(char *filename) {
 		exit(SCEP_PKISTATUS_FILE);
 	}
 		
-	scep_conf = (SCEP_CONF *) malloc(sizeof(scep_conf));
-	scep_conf->engine = (struct scep_engine_conf_st *) malloc(sizeof(scep_conf->engine));
+	scep_conf = malloc(sizeof(*scep_conf));
+	scep_conf->engine = malloc(sizeof(struct scep_engine_conf_st));
 	scep_conf->engine_str = NULL;
-
 	if(scep_conf_load(conf) == 0 && v_flag) {
 		//report something here?
 	}
-
 	return 0;
 }
 
