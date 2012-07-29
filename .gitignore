@@ -2,5 +2,3 @@
 *.exe
 *.pdb
 bin
-obj
-*.cbp
