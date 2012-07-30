@@ -48,15 +48,26 @@ ENGINE *scep_engine_init(ENGINE *e) {
 		if(v_flag && strncmp(scep_conf->engine->engine_id, "capi", 4) == 0) {
 			// set debug level
 			if(!ENGINE_ctrl(e, (ENGINE_CMD_BASE + 2), 2, NULL, NULL)) {
-				fprintf(stderr, "%s: Could not set debug level to %i", pname, 2);
+				fprintf(stderr, "%s: Could not set debug level to %i\n", pname, 2);
 				sscep_engine_report_error();
 				exit (SCEP_PKISTATUS_ERROR);
 			}
 			// set debug file (log)
 			if(!ENGINE_ctrl(e, (ENGINE_CMD_BASE + 3), 0, "capi.log", NULL)) {
-				fprintf(stderr, "%s: Could not set debug file to %s", pname, "capi.log");
+				fprintf(stderr, "%s: Could not set debug file to %s\n", pname, "capi.log");
 				sscep_engine_report_error();
 				exit (SCEP_PKISTATUS_ERROR);
+			}
+		}
+
+		//TODO: remove pkcs11 specific part!
+		if(strncmp(scep_conf->engine->engine_id, "pkcs11", 6) == 0) {
+			if(scep_conf->engine->pin) {
+				if(!ENGINE_ctrl(e, (ENGINE_CMD_BASE + 2), 0, scep_conf->engine->pin, NULL)) {
+					fprintf(stderr, "%s: Could not defined PIN\n", pname);
+					sscep_engine_report_error();
+					exit (SCEP_PKISTATUS_ERROR);
+				}
 			}
 		}
 
