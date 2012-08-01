@@ -30,7 +30,7 @@ DEBUG_OPT   =  /MD /O2
 CFLAGS	= /W3 /Zi /Yd /nologo -DWIN32 $(DEBUG_OPT) -I. -I"$(OPENSSL_INC)"
 
 PROG	= sscep.exe
-OBJS    = sscep.obj init.obj net.obj sceputils.obj pkcs7.obj ias.obj fileutils.obj getopt.obj engine.obj configuration.obj
+OBJS    = sscep.obj init.obj net.obj sceputils.obj pkcs7.obj ias.obj fileutils.obj getopt.obj engine.obj configuration.obj applink.obj
 PDB = *.pdb
 
 all: $(PROG)
