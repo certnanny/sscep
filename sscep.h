@@ -27,6 +27,10 @@
 #include <winsock.h>
 #include <io.h>
 
+#ifdef _DEBUG
+#include <crtdbg.h>
+#endif
+
 #define snprintf _snprintf
 #define close _close
 #define sleep(t_num) Sleep((t_num)*1000)
