@@ -80,6 +80,7 @@ main(int argc, char **argv) {
 	WORD wVersionRequested;
 	WSADATA wsaData;
 	int err;
+	printf("Starting sscep\n");
        
 	wVersionRequested = MAKEWORD( 2, 2 );
  
@@ -107,7 +108,6 @@ main(int argc, char **argv) {
 	}
 
 #endif
-	
 
 	/* Initialize scep layer */
 	init_scep();

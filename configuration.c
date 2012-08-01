@@ -10,11 +10,8 @@ int scep_conf_init(char *filename) {
 	CONF *conf;
 
 	if(filename == NULL) {
-		if(v_flag) 
-			printf("No configuration filename provided, returning!\n");
 		return 0;
 	}
-
 	conf = NCONF_new(NCONF_default());
 	if(!NCONF_load(conf, filename, &err)) {
 		if(err == 0)
@@ -26,14 +23,12 @@ int scep_conf_init(char *filename) {
 		exit(SCEP_PKISTATUS_FILE);
 	}
 		
-	scep_conf = (SCEP_CONF *) malloc(sizeof(scep_conf));
-	scep_conf->engine = (struct scep_engine_conf_st *) malloc(sizeof(scep_conf->engine));
+	scep_conf = malloc(sizeof(*scep_conf));
+	scep_conf->engine = malloc(sizeof(struct scep_engine_conf_st));
 	scep_conf->engine_str = NULL;
-
 	if(scep_conf_load(conf) == 0 && v_flag) {
 		//report something here?
 	}
-
 	return 0;
 }
 
@@ -166,39 +161,26 @@ int scep_conf_load(CONF *conf) {
 			g_char = strdup(scep_conf->engine->engine_id);
 		}
 
-		//load capi only option
-		//TODO move
+		
 		engine_special_section = (char *) malloc(sizeof(SCEP_CONFIGURATION_SECTION_ENGINE_TEMPLATE) + sizeof(scep_conf->engine->engine_id));
 		sprintf(engine_special_section, SCEP_CONFIGURATION_SECTION_ENGINE_TEMPLATE, scep_conf->engine->engine_id);
+		//load capi only option
+		//TODO move
 		if(strncmp(scep_conf->engine->engine_id, "capi", 4) == 0) {
-			if(var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_CAPI_NEWKEYLOCATION)) {
-				if(v_flag)
-					printf("%s: Location of the new key will be in %s\n", pname, var);
-				scep_conf->engine->new_key_location = var;
-			} else {
-				if(v_flag)
-					printf("%s: No new key location was provided, using default \"REQUEST\"\n", pname);
-				scep_conf->engine->new_key_location = "REQUEST";
-			}
-
-			if(var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_CAPI_STORELOCATION)) {
-				if(v_flag)
-					printf("%s: The store used will be %s\n", pname, var);
-				if(!strncmp(var, "LOCAL_MACHINE", 13)) {
-					scep_conf->engine->storelocation = 1;
-				} else if(!strncmp(var, "CURRENT_USER", 12)) {
-					scep_conf->engine->storelocation = 0;
-				} else {
-					printf("%s: Provided storename unknown (%s). Will use the engines default.\n", pname, var);
-					scep_conf->engine->storelocation = 0;
-				}
-			} else {
-				if(v_flag)
-					printf("%s: No storename was provided. Will use the engines default.\n", pname);
-				scep_conf->engine->new_key_location = 0;
-			}
+			//load from DLL!!
 
 			
+		}
+
+		//load PKCS11 only options
+		//TODO move
+		if(strncmp(scep_conf->engine->engine_id, "pkcs11", 6) == 0) {
+			scep_conf->engine->pin = NULL;
+			if(var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_PKCS11_PIN)) {
+				if(v_flag)
+					printf("%s: Setting PIN to configuration value\n", pname);
+				scep_conf->engine->pin = var;
+			}
 		}
 
 		//loading dynamic path variable
