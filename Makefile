@@ -11,11 +11,11 @@ OPENSSL = /c/Users/tob130/Downloads/openssl-mingw
 CFLAGS	= -Wall -O $(WITH_DEBUG) -I $(OPENSSL)/include
 
 LDFLAGS = -L$(OPENSSL)/lib
-LDLIBS = -lcrypto -lws2_32 -lgdi32
+LDLIBS = -lcrypto
 
 MAN	= sscep.8
 PROG	= sscep
-OBJS    = sscep.o init.o net.o sceputils.o pkcs7.o ias.o fileutils.o
+OBJS    = sscep.o init.o net.o sceputils.o pkcs7.o ias.o fileutils.o configuration.o engine.o
 
 $(PROG): $(OBJS)
 	$(CC) $(CFLAGS) -o $(PROG) $(OBJS) $(LDLIBS) $(LDFLAGS)
