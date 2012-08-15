@@ -41,6 +41,12 @@
 #define SCEP_CONFIGURATION_PARAM_ENGINE					"engine"
 #define SCEP_CONFIGURATION_ENGINE_ID					"engine_id"
 #define SCEP_CONFIGURATION_ENGINE_USAGE					"engine_usage"
+#define SCEP_CONFIGURATION_ENGINE_CAPI_STORELOCATION	"storelocation"
+#define SCEP_CONFIGURATION_ENGINE_CAPI_NEWKEYLOCATION	"new_key_location"
+#define SCEP_CONFIGURATION_ENGINE_JKSENGINE_KEYSTOREPASS "KeyStorePass"
+#define SCEP_CONFIGURATION_ENGINE_JKSENGINE_PROVIDER	"KeyStoreProvider"
+#define SCEP_CONFIGURATION_ENGINE_JKSENGINE_JCONNPATH	"JavaConnectorPath"
+#define SCEP_CONFIGURATION_ENGINE_JKSENGINE_JAVAPATH	"JavaPath"
 #define SCEP_CONFIGURATION_ENGINE_PKCS11_PIN			"PIN"
 #define SCEP_CONFIGURATION_ENGINE_DYNPATH				"dynamic_path"
 #define SCEP_CONFIGURATION_ENGINE_MODULEPATH			"MODULE_PATH"
@@ -93,8 +99,12 @@ struct scep_engine_conf_st{
 	char *new_key_location; // CryptoAPI only option: Which storename to set for the new key, default: REQUEST
 	int storelocation; // CryptoAPI only option: Which storelocation to use, default: OpenSSL engine default
 	char *dynamic_path; // where the shared object (.so, .dll) can be found
+	char *jconnpath; //the JavaConnectorPath variable which needs to be set to use the Java part of JKSEngine
+	char *storepass; // Passphrase for the JKS keystore (JKSEngine)
+	char *provider; // Provider of the keystore (JKSEngine)
+	char *javapath; // Path to Java (JKSEngine)
+	char *pin; //the PIN used for the PKCS11 token, default: will be prompted (pkcs11)
 	char *module_path; // see OpenSSL ctrl MODULE_PATH for engines (example: PKCS#11)
-	char *pin; //the PIN used for the PKCS11 token, default: will be prompted
 	int engine_usage;
 };
 
