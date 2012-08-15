@@ -107,7 +107,7 @@ new_key_location = REQUEST
 # LOCAL_MACHINE - system store
 storelocation = LOCAL_MACHINE
 
-[sscep_engine_JKSEngine]
+[sscep_engine_jksengine]
 # This section defines JKSEngine specific settings
 # Only if engine_id is set to "JKSEngine" this will
 # be loaded, otherwise ignored
