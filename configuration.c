@@ -161,15 +161,69 @@ int scep_conf_load(CONF *conf) {
 			g_char = strdup(scep_conf->engine->engine_id);
 		}
 
-		
+		//load the special section string
 		engine_special_section = (char *) malloc(sizeof(SCEP_CONFIGURATION_SECTION_ENGINE_TEMPLATE) + sizeof(scep_conf->engine->engine_id));
 		sprintf(engine_special_section, SCEP_CONFIGURATION_SECTION_ENGINE_TEMPLATE, scep_conf->engine->engine_id);
+
 		//load capi only option
 		//TODO move
 		if(strncmp(scep_conf->engine->engine_id, "capi", 4) == 0) {
-			//load from DLL!!
+			if(var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_CAPI_NEWKEYLOCATION)) {
+				if(v_flag)
+					printf("%s: Location of the new key will be in %s\n", pname, var);
+				scep_conf->engine->new_key_location = var;
+			} else {
+				if(v_flag)
+					printf("%s: No new key location was provided, using default \"REQUEST\"\n", pname);
+				scep_conf->engine->new_key_location = "REQUEST";
+			}
+
+			if(var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_CAPI_STORELOCATION)) {
+				if(v_flag)
+					printf("%s: The store used will be %s\n", pname, var);
+				if(!strncmp(var, "LOCAL_MACHINE", 13)) {
+					scep_conf->engine->storelocation = 1;
+				} else if(!strncmp(var, "CURRENT_USER", 12)) {
+					scep_conf->engine->storelocation = 0;
+				} else {
+					printf("%s: Provided storename unknown (%s). Will use the engines default.\n", pname, var);
+					scep_conf->engine->storelocation = 0;
+				}
+			} else {
+				if(v_flag)
+					printf("%s: No storename was provided. Will use the engines default.\n", pname);
+				scep_conf->engine->new_key_location = 0;
+			}
 
 			
+		}
+
+		//load JKSEngine only option
+		//TODO move
+		if(strncmp(scep_conf->engine->engine_id, "JKSEngine", 9) == 0) {
+			if(var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_JKSENGINE_KEYSTOREPASS)) {
+				if(v_flag)
+					printf("%s: KeyStorePass will be set to %s\n", pname, var);
+				scep_conf->engine->storepass = var;
+			}
+
+			if(var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_JKSENGINE_JCONNPATH)) {
+				if(v_flag)
+					printf("%s: JavaConnectorPath will be set to %s\n", pname, var);
+				scep_conf->engine->jconnpath = var;
+			}
+
+			if(var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_JKSENGINE_PROVIDER)) {
+				if(v_flag)
+					printf("%s: KeyStoreProvider will be set to %s\n", pname, var);
+				scep_conf->engine->provider = var;
+			}
+
+			if(var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_JKSENGINE_JAVAPATH)) {
+				if(v_flag)
+					printf("%s: JavaPath will be set to %s\n", pname, var);
+				scep_conf->engine->javapath = var;
+			}
 		}
 
 		//load PKCS11 only options
@@ -212,6 +266,7 @@ int scep_conf_load(CONF *conf) {
 			if(v_flag)
 				printf("%s: No module path defined, not using/loading any module\n", pname);
 		}
+
 	}
 
 
