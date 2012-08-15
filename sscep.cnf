@@ -107,6 +107,24 @@ new_key_location = REQUEST
 # LOCAL_MACHINE - system store
 storelocation = LOCAL_MACHINE
 
+[sscep_engine_JKSEngine]
+# This section defines JKSEngine specific settings
+# Only if engine_id is set to "JKSEngine" this will
+# be loaded, otherwise ignored
+
+# Password of Java KeyStore (Default: 123456)
+# See JKSEngine for further documentation
+# KeyStorePass = 
+
+# Path of Java tool (Path to ConnJKSEngine)
+# JavaConnectorPath = 
+
+# Java Cryptography Provider of used Keystore
+# KeyStoreProvider = 
+
+# Path of Java Runtime Environment
+# This is normally not necessary
+# JavaPath = 
 
 
 [sscep_getca]
