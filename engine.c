@@ -62,9 +62,9 @@ ENGINE *scep_engine_init(ENGINE *e) {
 		}
 
 		//TODO: remove JKSEngine specific part!
-		if(strncmp(scep_conf->engine->engine_id, "JKSEngine", 9) == 0) {
+		if(strncmp(scep_conf->engine->engine_id, "jksengine", 9) == 0) {
 			if(scep_conf->engine->storepass) {
-				if(!ENGINE_ctrl_cmd_string(e, SCEP_CONFIGURATION_ENGINE_JKSENGINE_KEYSTOREPASS, scep_conf->engine->storepass, 0)) {
+				if(!ENGINE_ctrl(e, 3, 0, scep_conf->engine->storepass, NULL)) {
 					fprintf(stderr, "%s: Could not set %s\n", pname, SCEP_CONFIGURATION_ENGINE_JKSENGINE_KEYSTOREPASS);
 					sscep_engine_report_error();
 					exit (SCEP_PKISTATUS_ERROR);

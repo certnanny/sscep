@@ -200,7 +200,7 @@ int scep_conf_load(CONF *conf) {
 
 		//load JKSEngine only option
 		//TODO move
-		if(strncmp(scep_conf->engine->engine_id, "JKSEngine", 9) == 0) {
+		if(strncmp(scep_conf->engine->engine_id, "jksengine", 9) == 0) {
 			if(var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_JKSENGINE_KEYSTOREPASS)) {
 				if(v_flag)
 					printf("%s: KeyStorePass will be set to %s\n", pname, var);
