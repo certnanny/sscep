@@ -16,6 +16,7 @@ ENGINE *scep_engine_init(ENGINE *e) {
 
 		if(e == NULL)
 		{
+			ERR_clear_error();
 			e = scep_engine_load_dynamic(e);
 		}
 
