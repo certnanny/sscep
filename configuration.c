@@ -235,7 +235,6 @@ int scep_conf_load(CONF *conf) {
 					printf("%s: Setting PIN to configuration value\n", pname);
 				scep_conf->engine->pin = var;
 			}
-		}
 
 		//loading dynamic path variable
 		if(var = NCONF_get_string(conf, engine_section, SCEP_CONFIGURATION_ENGINE_DYNPATH)) {
