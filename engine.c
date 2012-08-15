@@ -64,7 +64,7 @@ ENGINE *scep_engine_init(ENGINE *e) {
 		//TODO: remove JKSEngine specific part!
 		if(strncmp(scep_conf->engine->engine_id, "jksengine", 9) == 0) {
 			if(scep_conf->engine->storepass) {
-				if(!ENGINE_ctrl(e, 3, 0, scep_conf->engine->storepass, NULL)) {
+				if(!ENGINE_ctrl(e, 2, 0, scep_conf->engine->storepass, NULL)) {
 					fprintf(stderr, "%s: Could not set %s\n", pname, SCEP_CONFIGURATION_ENGINE_JKSENGINE_KEYSTOREPASS);
 					sscep_engine_report_error();
 					exit (SCEP_PKISTATUS_ERROR);
@@ -72,7 +72,7 @@ ENGINE *scep_engine_init(ENGINE *e) {
 			}
 
 			if(scep_conf->engine->jconnpath) {
-				if(!ENGINE_ctrl_cmd_string(e, SCEP_CONFIGURATION_ENGINE_JKSENGINE_JCONNPATH, scep_conf->engine->jconnpath, 0)) {
+				if(!ENGINE_ctrl(e, 3, 0, scep_conf->engine->jconnpath, 0)) {
 					fprintf(stderr, "%s: Could not set %s\n", pname, SCEP_CONFIGURATION_ENGINE_JKSENGINE_JCONNPATH);
 					sscep_engine_report_error();
 					exit (SCEP_PKISTATUS_ERROR);
@@ -80,7 +80,7 @@ ENGINE *scep_engine_init(ENGINE *e) {
 			}
 
 			if(scep_conf->engine->provider) {
-				if(!ENGINE_ctrl_cmd_string(e, SCEP_CONFIGURATION_ENGINE_JKSENGINE_PROVIDER, scep_conf->engine->provider, 0)) {
+				if(!ENGINE_ctrl(e, 4, 0, scep_conf->engine->provider, 0)) {
 					fprintf(stderr, "%s: Could not set %s\n", pname, SCEP_CONFIGURATION_ENGINE_JKSENGINE_PROVIDER);
 					sscep_engine_report_error();
 					exit (SCEP_PKISTATUS_ERROR);
@@ -88,7 +88,7 @@ ENGINE *scep_engine_init(ENGINE *e) {
 			}
 
 			if(scep_conf->engine->javapath) {
-				if(!ENGINE_ctrl_cmd_string(e, SCEP_CONFIGURATION_ENGINE_JKSENGINE_JAVAPATH, scep_conf->engine->javapath, 0)) {
+				if(!ENGINE_ctrl(e, 5, 0, scep_conf->engine->javapath, 0)) {
 					fprintf(stderr, "%s: Could not set %s\n", pname, SCEP_CONFIGURATION_ENGINE_JKSENGINE_JAVAPATH);
 					sscep_engine_report_error();
 					exit (SCEP_PKISTATUS_ERROR);
