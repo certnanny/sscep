@@ -1,4 +1,0 @@
-sscep
-=====
-
-Simple SCEP client

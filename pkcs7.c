@@ -34,7 +34,7 @@ int pkcs7_wrap(struct scep *s) {
 	/* Create a new sender nonce for all messages 
 	 * XXXXXXXXXXXXXX should it be per transaction? */
 	s->sender_nonce_len = 16;
-	s->sender_nonce = (unsigned char *)malloc(s->sender_nonce_len); 
+	s->sender_nonce = malloc(s->sender_nonce_len); 
 	RAND_bytes(s->sender_nonce, s->sender_nonce_len);
 
 	/* Prepare data payload */
@@ -135,6 +135,7 @@ int pkcs7_wrap(struct scep *s) {
 			BIO_set_flags(databio, BIO_FLAGS_MEM_RDONLY); 
 			break;
 	}
+	printf("After switch\n");
 	/* Below this is the common code for all request_type */
 
 	/* Read in the payload */
@@ -675,9 +676,9 @@ get_signed_attribute(STACK_OF(X509_ATTRIBUTE) *attribs, int nid,
 	} else if (v_flag)
 		printf("%s: allocating %d bytes for attribute\n", pname, len);
 	if (type == V_ASN1_PRINTABLESTRING) {
-		*buffer = (unsigned char *)malloc(len + 1);
+		*buffer = ( char *)malloc(len + 1);
 	} else {
-		*buffer = (unsigned char *)malloc(len);
+		*buffer = ( char *)malloc(len);
 	}
 	if (*buffer == NULL) {
 		fprintf(stderr, "%s: cannot malloc space for attribute\n",

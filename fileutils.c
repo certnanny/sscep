@@ -8,6 +8,7 @@
 
 /* Misc. cert/crl manipulation routines */
 
+#include <malloc.h>
 #include "sscep.h"
 
 /* Open the inner, decrypted PKCS7 and try to write CRL.  */ 
@@ -30,7 +31,12 @@ write_crl(struct scep *s) {
 	}
 
 	/* Write PEM-formatted file: */
-	if (!(fp = fopen(w_char, "w"))) {
+#ifdef WIN32
+	if ((fopen_s(&fp, w_char, "w")))
+#else
+	if (!(fp = fopen(w_char, "w")))
+#endif
+	{
 		fprintf(stderr, "%s: cannot open CRL file for writing\n",
 				pname);
 		exit (SCEP_PKISTATUS_FILE);
@@ -52,8 +58,14 @@ write_crl(struct scep *s) {
 static int 
 compare_subject(X509 * cert)
 {
+	char buffer[1024];
 	int rc = X509_NAME_cmp(X509_get_subject_name(cert), X509_REQ_get_subject_name(request));
-	
+	if(d_flag) {
+		fprintf(stderr, "Subject of the returned certificate: %s\n", X509_get_subject_name(cert));
+		fprintf(stderr, "Subject of the request: %s\n",
+				X509_NAME_oneline(X509_REQ_get_subject_name(request), buffer, sizeof(buffer))
+			);
+	}
 	if (rc)
 	{
 		/* X509_NAME_cmp should return 0 when X509_get_subject_name()
@@ -115,14 +127,17 @@ write_local_cert(struct scep *s) {
 			
 			if (v_flag)
 				printf ("CN's of request and certificate matched!\n");
-
-			/* The subject cannot be the issuer (selfsigned) */
-			if (X509_NAME_cmp(X509_get_subject_name(cert),
-				X509_get_issuer_name(cert))) {
-					localcert = cert;
-					break;
-			}
-		}	
+		} else {
+			fprintf(stderr, "%s: Subject of our request does not match that of the returned Certificate!\n", pname);
+			//exit (SCEP_PKISTATUS_FILE);
+		}
+		
+		/* The subject cannot be the issuer (selfsigned) */
+		if (X509_NAME_cmp(X509_get_subject_name(cert),
+			X509_get_issuer_name(cert))) {
+				localcert = cert;
+				break;
+		}
 	}
 	if (localcert == NULL) {
 		fprintf(stderr, "%s: cannot find requested certificate\n",
@@ -131,7 +146,12 @@ write_local_cert(struct scep *s) {
 
 	}
 	/* Write PEM-formatted file: */
-	if (!(fp = fopen(l_char, "w"))) {
+#ifdef WIN32
+	if ((fopen_s(&fp, l_char, "w")))
+#else
+	if (!(fp = fopen(l_char, "w")))
+#endif
+	{
 		fprintf(stderr, "%s: cannot open cert file for writing\n",
 				pname);
 		exit (SCEP_PKISTATUS_FILE);
@@ -192,7 +212,12 @@ write_other_cert(struct scep *s) {
 
 	}
 	/* Write PEM-formatted file: */
-	if (!(fp = fopen(w_char, "w"))) {
+#ifdef WIN32
+	if ((fopen_s(&fp, w_char, "w")))
+#else
+	if (!(fp = fopen(w_char, "w")))
+#endif
+	{
 		fprintf(stderr, "%s: cannot open cert file for writing\n",
 				pname);
 		exit (SCEP_PKISTATUS_FILE);
@@ -297,7 +322,12 @@ write_ca_ra(struct http_reply *s) {
 		}
 
 		/* Write PEM-formatted file: */
-		if (!(fp = fopen(name, "w"))) {
+#ifdef WIN32
+		if ((fopen_s(&fp, name, "w")))
+#else
+		if (!(fp = fopen(name, "w")))
+#endif
+		{
 			fprintf(stderr, "%s: cannot open cert file for "
 				"writing\n", pname);
 			exit (SCEP_PKISTATUS_FILE);
@@ -323,7 +353,14 @@ write_ca_ra(struct http_reply *s) {
 void
 read_ca_cert(void) {
 	/* Read CA cert file */
-	if (!c_flag || !(cafile = fopen(c_char, "r"))) {
+	if (!c_flag || 
+#ifdef WIN32
+		(fopen_s(&cafile, c_char, "r"))
+#else
+		!(cafile = fopen(c_char, "r"))
+#endif
+		)
+	{
 		fprintf(stderr, "%s: cannot open CA cert file\n", pname);
 		exit (SCEP_PKISTATUS_FILE);
 	}
@@ -336,7 +373,12 @@ read_ca_cert(void) {
 
 	/* Read enc CA cert */ 
 	if (e_flag) {
-		if (!(cafile = fopen(e_char, "r"))) {
+#ifdef WIN32
+		if ((fopen_s(&cafile, e_char, "r")))
+#else
+		if (!(cafile = fopen(e_char, "r")))
+#endif
+		{
 			fprintf(stderr, "%s: cannot open enc CA cert file\n",
 				pname);
 			exit (SCEP_PKISTATUS_FILE);
@@ -356,7 +398,12 @@ read_ca_cert(void) {
 void
 read_cert(X509** cert, char* filename) {
         FILE *file;
-	if (!(file = fopen(filename, "r"))) {
+#ifdef WIN32
+	if ((fopen_s(&file, filename, "r")))
+#else
+	if (!(file = fopen(filename, "r")))
+#endif
+	{
 	        fprintf(stderr, "%s: cannot open cert file %s\n", pname, filename);
 		exit (SCEP_PKISTATUS_FILE);
 	}
@@ -367,6 +414,62 @@ read_cert(X509** cert, char* filename) {
 	}
 	fclose(file);
 }
+/*
+void read_cert_Engine(X509** cert, char* id, ENGINE *e, char* filename)
+{
+	BIO *bio, *b64;
+	PCCERT_CONTEXT ctx = NULL;
+	int ret;
+	HCERTSTORE store;
+	DWORD cbSize;
+	LPTSTR pszName;
+	LPSTR str;
+	FILE *certfile;
+	
+	store = CertOpenSystemStore(0, L"MY");
+	
+	ctx = CertFindCertificateInStore(store, MY_ENCODING_TYPE, 0, CERT_FIND_SUBJECT_STR, (LPCSTR) id, NULL);
+	if(!ctx) {
+		while(ctx = CertEnumCertificatesInStore(store, ctx))
+		{
+			cbSize = CertGetNameString(ctx, CERT_NAME_SIMPLE_DISPLAY_TYPE, 0, NULL, NULL, 0);
+			pszName = (LPTSTR)malloc(cbSize * sizeof(TCHAR));
+			CertGetNameString(ctx, CERT_NAME_SIMPLE_DISPLAY_TYPE, 0, NULL, pszName, cbSize);
+			cbSize = WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS | WC_COMPOSITECHECK | WC_DEFAULTCHAR, (LPCWSTR) pszName, -1, NULL, 0, NULL, NULL);
+			str = (LPSTR)malloc(cbSize * sizeof(LPSTR));
+			WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS | WC_COMPOSITECHECK | WC_DEFAULTCHAR, (LPCWSTR) pszName, -1, str, cbSize, NULL, NULL);
+			if(strstr(str, id)) {
+				ret = 0;
+				break;
+			} else {
+				ret = 127;
+			}
+		}
+	}
+	if(!ctx || ret != 0)
+	{
+		fprintf(stderr, "%s: cannot find Certificate with subject %s in store\n", pname, id);
+		exit(SCEP_PKISTATUS_FILE);
+	}
+
+	certfile = fopen(filename, "w");
+	fputs("-----BEGIN CERTIFICATE-----\n", certfile);
+	fclose(certfile);
+
+	b64 = BIO_new(BIO_f_base64());
+	bio = BIO_new_file(filename, "a");
+	bio = BIO_push(b64, bio);
+	ret = BIO_write(bio, ctx->pbCertEncoded, ctx->cbCertEncoded);
+	ret = BIO_flush(bio);
+	BIO_free_all(bio);
+
+	certfile = fopen(filename, "a");
+	fputs("-----END CERTIFICATE-----", certfile);
+	fclose(certfile);
+
+	read_cert(cert, filename);
+}*/
+
 
 /* Read private key */
 
@@ -374,8 +477,13 @@ void
 read_key(EVP_PKEY** key, char* filename) {
         FILE *file;
 	/* Read private key file */
-	if (!(file = fopen(filename, "r"))) {
-	        fprintf(stderr, "%s: cannot open private key file %s\n", pname, filename);
+#ifdef WIN32
+	if ((fopen_s(&file, filename, "r")))
+#else
+	if (!(file = fopen(filename, "r")))
+#endif
+	{
+	    fprintf(stderr, "%s: cannot open private key file %s\n", pname, filename);
 		exit (SCEP_PKISTATUS_FILE);
 	}
 	if (!PEM_read_PrivateKey(file, key, NULL, NULL)) {
@@ -391,7 +499,13 @@ read_key(EVP_PKEY** key, char* filename) {
 void
 read_request(void) {
 	/* Read certificate request file */
-	if (!r_flag || !(reqfile = fopen(r_char, "r"))) {
+	if (!r_flag || 
+#ifdef WIN32BLA
+		(fopen_s(&reqfile, r_char, "r")))
+#else
+		!(reqfile = fopen(r_char, "r")))
+#endif
+	{
 		fprintf(stderr, "%s: cannot open certificate request\n", pname);
 		exit (SCEP_PKISTATUS_FILE);
 	}
