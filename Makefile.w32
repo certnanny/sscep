@@ -1,0 +1,47 @@
+#
+# $Id: Makefile,v 1.0 2003/01/12 13:17:37 jt Exp $
+#
+
+CC = cl
+
+#for dynamically linking against binary OpenSSL distribution
+#http://www.slproweb.com/download/Win32OpenSSL-v0.9.7i.exe
+#works with VC 6.0 but not with VC 7.0
+#OPENSSL_PATH=C:\program files\OpenSSL
+#OPENSSL_LIB=$(OPENSSL_PATH)\lib\VC
+#OPENSSL_INC=$(OPENSSL_PATH)\include
+
+
+#if you compile OpenSSL from source use the following definitions
+OPENSSL_PATH=G:\Arbeit\programs\openssl64
+OPENSSL_LIB=$(OPENSSL_PATH)\lib
+OPENSSL_INC=$(OPENSSL_PATH)\include
+
+#change to your scep URL
+TEST_URL=http://uat-server-ca.tools.intranet.db.com/cgi-bin/scep/scep
+
+LINK=link
+LFLAGS=/nologo /subsystem:console /opt:ref /debug
+EX_LIBS=/libpath:"$(OPENSSL_LIB)" libeay32.lib wsock32.lib user32.lib gdi32.lib 
+
+#DEBUG_OPT   =  /MDd /Od /GS /RTCcsu -D_DEBUG -DDEBUG
+DEBUG_OPT   =  /MD /O2
+
+CFLAGS	= /W3 /Zi /Yd /nologo -DWIN32 $(DEBUG_OPT) -I. -I"$(OPENSSL_INC)"
+
+PROG	= sscep.exe
+OBJS    = sscep.obj init.obj net.obj sceputils.obj pkcs7.obj ias.obj fileutils.obj getopt.obj engine.obj configuration.obj applink.obj
+PDB = *.pdb
+
+all: $(PROG)
+
+$(PROG): $(OBJS)
+	$(LINK) $(LFLAGS) /out:$(PROG) $(OBJS) $(EX_LIBS)
+
+clean:
+	del $(PROG) $(OBJS) $(PDB)
+
+test: all
+	sscep.exe getca -v -u $(TEST_URL) -c cacert
+
+

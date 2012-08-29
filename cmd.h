@@ -35,6 +35,25 @@ char *f_char;
 char *F_char; 
 int F_flag;
 
+/* enable EnGine support */
+char *g_char;
+int g_flag;
+
+/* enable hwcrhk keys
+ * To set this means that the new key (for which you have the
+ * CSR and Private Key) should be taken from the engine
+ * while the old key (possibly, see captial letter options)
+ * is selected by the -H option
+*/
+int h_flag;
+
+/* sets if engine should be used if the old key usage is set
+ * i.e., setting this uses the old key für signing and does
+ * not set anything for the lowercase options that correspond
+ * to the new keys
+*/
+int H_flag;
+
 /* Local certificate  */
 char *l_char;
 int l_flag;
@@ -54,6 +73,10 @@ int k_flag;
 /* Private key of already existing certificate */
 char *K_char;
 int K_flag;
+
+/* Test mode */
+int m_flag;
+char *m_char;
 
 /* Request count */
 int n_flag;

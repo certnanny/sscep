@@ -33,12 +33,9 @@ int new_transaction(struct scep *s) {
 
 	/* Create transaction id */
 	if (operation_flag == SCEP_OPERATION_ENROLL)
-		s->transaction_id = key_fingerprint(request);
+		s->transaction_id = NULL;
 	else
 		s->transaction_id = TRANS_ID_GETCERT;
-	if (v_flag) {
-		printf("%s: transaction id: %s\n", pname, s->transaction_id);
-	}
 	return (0);
 }
 
@@ -230,7 +227,7 @@ key_fingerprint(X509_REQ *req) {
 	MD5_CTX		ctx;
 	
 	/* Assign space for ASCII presentation of the digest */
-	str = (unsigned char *)malloc(2 * MD5_DIGEST_LENGTH + 1);
+	str = malloc(2 * MD5_DIGEST_LENGTH + 1);
 	ret = str;
 
 	/* Create new memory bio for reading the public key */
@@ -248,7 +245,7 @@ key_fingerprint(X509_REQ *req) {
 		sprintf((char *)str, "%02X", md[c]);
 
 	}
-	*(str+2) = '\0';
+	*(str) = '\0';
 	return(ret);
 }
 

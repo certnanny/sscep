@@ -17,13 +17,13 @@ handle_serial (char * serial)
 	int hex = NULL != strchr (serial, ':');
 
 	/* Convert serial to a decimal serial when input is
-	   a hexidecimal representation of the serial */	
-	if (hex) 
+	   a hexidecimal representation of the serial */
+	if (hex)
 	{
 		unsigned int i,ii;
 		char *tmp_serial = (char*) calloc (strlen (serial) + 1,1);
-		
-		for (i=0,ii=0; '\0'!=serial[i];i++) 
+
+		for (i=0,ii=0; '\0'!=serial[i];i++)
 		{
 			if (':'!=serial[i])
 				tmp_serial[ii++]=serial[i];
@@ -33,7 +33,7 @@ handle_serial (char * serial)
 	else
 	{
 		unsigned int i;
-		for (i=0; ! hex && '\0' != serial[i]; i++) 
+		for (i=0; ! hex && '\0' != serial[i]; i++)
 			hex = 'a'==serial[i]||'b'==serial[i]||'c'==serial[i]||'d'==serial[i]||'e'==serial[i]||'f'==serial[i];
 	}
 
@@ -65,6 +65,7 @@ handle_serial (char * serial)
 
 int
 main(int argc, char **argv) {
+	//ENGINE *e = NULL;
 	int			c, host_port = 80, count = 1;
 	char			*host_name, *p, *dir_name = NULL;
 	char			http_string[16384];
@@ -74,15 +75,45 @@ main(int argc, char **argv) {
 	struct scep		scep_t;
 	FILE			*fp = NULL;
 	BIO			*bp;
+	
+#ifdef WIN32
+	WORD wVersionRequested;
+	WSADATA wsaData;
+	int err;
+	printf("Starting sscep\n");
+       
+	wVersionRequested = MAKEWORD( 2, 2 );
+ 
+	err = WSAStartup( wVersionRequested, &wsaData );
+	if ( err != 0 )
+	{
+	  /* Tell the user that we could not find a usable */
+	  /* WinSock DLL.                                  */
+	  return;
+	}
+ 
+	/* Confirm that the WinSock DLL supports 2.2.*/
+	/* Note that if the DLL supports versions greater    */
+	/* than 2.2 in addition to 2.2, it will still return */
+	/* 2.2 in wVersion since that is the version we      */
+	/* requested.                                        */
+ 
+	if ( LOBYTE( wsaData.wVersion ) != 2 ||
+	        HIBYTE( wsaData.wVersion ) != 2 )
+	{
+	    /* Tell the user that we could not find a usable */
+	    /* WinSock DLL.                                  */
+	    WSACleanup( );
+	    return; 
+	}
+
+#endif
 
 	/* Initialize scep layer */
 	init_scep();
 
 	/* Set program name */
 	pname = argv[0];
-
-	/* Define signal trap */
-        (void)signal(SIGALRM, catchalarm);
 
 	/* Set timeout */
 	timeout = TIMEOUT;
@@ -105,7 +136,7 @@ main(int argc, char **argv) {
 	}
 	/* Skip first parameter and parse the rest of the command */
 	optind++;
-	while ((c = getopt(argc, argv, "c:de:E:f:F:i:k:K:l:L:n:O:p:r:Rs:S:t:T:u:vw:")) != -1)
+	while ((c = getopt(argc, argv, "c:de:E:f:g:hF:i:k:K:l:L:n:O:p:r:Rs:S:t:T:u:vw:m:H")) != -1)
                 switch(c) {
 			case 'c':
 				c_flag = 1;
@@ -130,6 +161,16 @@ main(int argc, char **argv) {
 				f_flag = 1;
 				f_char = optarg;
 				break;
+			case 'g':
+				g_flag = 1;
+				g_char = optarg;
+				break;
+			case 'h'://TODO ändern bspw --inform=ID
+				h_flag = 1;
+				break;
+			case 'H':
+				H_flag = 1;
+				break;
 			case 'i':
 				i_flag = 1;
 				i_char = optarg;
@@ -149,6 +190,10 @@ main(int argc, char **argv) {
 			case 'L':
 				L_flag = 1;
 				L_char = optarg;
+				break;
+			case 'm':
+				m_flag = 1;
+				m_char = optarg;
 				break;
 			case 'n':
 				n_flag = 1;
@@ -207,19 +252,40 @@ main(int argc, char **argv) {
 	/* If we debug, include verbose messages also */
 	if (d_flag)
 		v_flag = 1;
-
+	
+	if(f_char)
+		scep_conf_init(f_char);
 	/* Read in the configuration file: */
-	if (f_char) {
-		if (!(fp = fopen(f_char, "r"))) 
+	/*if (f_char) {
+	#ifdef WIN32
+		if ((fopen_s(&fp, f_char, "r")))
+	#else
+		if (!(fp = fopen(f_char, "r")))
+	#endif
 			fprintf(stderr, "%s: cannot open %s\n", pname, f_char);
 		else {
 			init_config(fp);
 			(void)fclose(fp);
 		}
-	}
+	}*/
 	if (v_flag)
 		fprintf(stdout, "%s: starting sscep, version %s\n",
 			pname, VERSION);
+
+	/*
+	* Create a new SCEP transaction and self-signed
+	* certificate based on cert request
+	*/
+	if (v_flag)
+		fprintf(stdout, "%s: new transaction\n", pname);
+	new_transaction(&scep_t);
+
+	/*enable Engine Support */
+	if (g_flag) {
+		scep_t.e = scep_engine_init(scep_t.e);
+	}
+	
+
 	/*
 	 * Check argument logic.
 	 */
@@ -235,7 +301,7 @@ main(int argc, char **argv) {
 		}
 	}
 	if (operation_flag == SCEP_OPERATION_ENROLL) {
-		if (!k_flag) { 
+		if (!k_flag) {
 			fprintf(stderr, "%s: missing private key (-k)\n",pname);
 			exit (SCEP_PKISTATUS_ERROR);
 		}
@@ -252,9 +318,9 @@ main(int argc, char **argv) {
 		if (!n_flag)
 			n_num = MAX_POLL_COUNT;
 		if (!t_flag)
-			t_num = POLL_TIME;	
+			t_num = POLL_TIME;
 		if (!T_flag)
-			T_num = MAX_POLL_TIME;	
+			T_num = MAX_POLL_TIME;
 	}
 	if (operation_flag == SCEP_OPERATION_GETCERT) {
 		if (!l_flag) {
@@ -299,7 +365,11 @@ main(int argc, char **argv) {
 		exit (SCEP_PKISTATUS_ERROR);
 	}
 	if (p_flag) {
+		#ifdef WIN32
+		host_name = _strdup(p_char);
+		#else
 		host_name = strdup(p_char);
+		#endif
 		dir_name = url_char;
 	}
 
@@ -313,9 +383,18 @@ main(int argc, char **argv) {
 		exit (SCEP_PKISTATUS_ERROR);
 	}
 	if (p_flag) {
+		#ifdef WIN32
+		host_name = _strdup(p_char);
+		#else
 		host_name = strdup(p_char);
+		#endif
 		dir_name = url_char;
-	} else if (!(host_name = strdup(url_char + 7)))
+	}
+	#ifdef WIN32
+	else if (!(host_name = _strdup(url_char + 7)))
+	#else
+	else if (!(host_name = strdup(url_char + 7)))
+	#endif
 		error_memory();
 	p = host_name;
 	c = 0;
@@ -326,7 +405,7 @@ main(int argc, char **argv) {
 			c = 1;
 		}
 		if (*p == ':') {
-			*p = '\0';	
+			*p = '\0';
 			if (*(p+1)) host_port = atoi(p+1);
 		}
 		p++;
@@ -401,13 +480,13 @@ main(int argc, char **argv) {
 			snprintf(http_string, sizeof(http_string),
 			 "GET %s%s?operation=GetCACert&message=%s "
 			 "HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,
-					i_char); 
+					i_char);
 			printf("%s: requesting CA certificate\n", pname);
 			if (d_flag)
 				fprintf(stdout, "%s: scep msg: %s", pname,
 					http_string);
 			/*
-			 * Send http message. 
+			 * Send http message.
 			 * Response is written to http_response struct "reply".
 			 */
 			reply.payload = NULL;
@@ -444,7 +523,12 @@ main(int argc, char **argv) {
 			}
 
 			/* Write PEM-formatted file: */
-			if (!(fp = fopen(c_char, "w"))) {
+			#ifdef WIN32
+			if ((fopen_s(&fp, c_char, "w")))
+			#else
+			if (!(fp = fopen(c_char, "w")))
+			#endif
+			{
 				fprintf(stderr, "%s: cannot open CA file for "
 					"writing\n", pname);
 				exit (SCEP_PKISTATUS_ERROR);
@@ -481,7 +565,17 @@ main(int argc, char **argv) {
 			  fprintf(stderr, "%s: missing private key (-k)\n", pname);
 			  exit (SCEP_PKISTATUS_FILE);
 			}
-			read_key(&rsa, k_char);
+			
+			if(scep_conf->engine) {
+				if(scep_conf->engine->engine_usage == SCEP_CONFIGURATION_PARAM_VALUE_ENGINE_USAGE_BOTH ||
+					scep_conf->engine->engine_usage == SCEP_CONFIGURATION_PARAM_VALUE_ENGINE_USAGE_NEW){
+					sscep_engine_read_key_new(&rsa, k_char, scep_t.e);
+				} else{
+					read_key(&rsa, k_char);
+				}
+			} else {
+				read_key(&rsa, k_char);
+			}
 
 			if ((K_flag && !O_flag) || (!K_flag && O_flag)) {
 			  fprintf(stderr, "%s: -O also requires -K (and vice-versa)\n", pname);
@@ -489,31 +583,42 @@ main(int argc, char **argv) {
 			}
 
 			if (K_flag) {
-			  read_key(&renewal_key, K_char);
+				//TODO auf hwcrhk prüfen?
+				if(scep_conf->engine) {
+					if(scep_conf->engine->engine_usage == SCEP_CONFIGURATION_PARAM_VALUE_ENGINE_USAGE_BOTH ||
+						scep_conf->engine->engine_usage == SCEP_CONFIGURATION_PARAM_VALUE_ENGINE_USAGE_OLD){
+						//read_key_Engine_old(&renewal_key, K_char, e);
+						sscep_engine_read_key_old(&renewal_key, K_char, scep_t.e);
+					} else{
+						read_key(&renewal_key, K_char);
+					}
+				} else {
+					read_key(&renewal_key, K_char);
+				}
 			}
 
 			if (O_flag) {
-			  read_cert(&renewal_cert, O_char);
+				read_cert(&renewal_cert, O_char);
 			}
 
-			if (operation_flag == SCEP_OPERATION_ENROLL)
+			if (operation_flag == SCEP_OPERATION_ENROLL) {
 				read_request();
+				scep_t.transaction_id = key_fingerprint(request);			
+				if (v_flag) {
+					printf("%s: transaction id: %s\n", pname, scep_t.transaction_id);
+				}
+			}
 
-			/*
-			 * Create a new SCEP transaction and self-signed
-			 * certificate based on cert request
-			 */
-			if (v_flag)
-				fprintf(stdout, "%s: new transaction\n", pname);
-			new_transaction(&scep_t);
+			
 			if (operation_flag != SCEP_OPERATION_ENROLL)
 				goto not_enroll;
-			if (v_flag)
-				  fprintf(stdout, "%s: generating selfsigned "
+			
+			if (! O_flag) {
+				if (v_flag)
+					fprintf(stdout, "%s: generating selfsigned "
 					"certificate\n", pname);
-
-			if (! O_flag) 
 			  new_selfsigned(&scep_t);
+			}
 			else {
 			  /* Use existing certificate */
 			  scep_t.signercert = renewal_cert;
@@ -523,7 +628,11 @@ main(int argc, char **argv) {
 			/* Write the selfsigned certificate if requested */
 			if (L_flag) {
 				/* Write PEM-formatted file: */
+				#ifdef WIN32
+				if ((fopen_s(&fp, L_char, "w"))) {
+				#else
 				if (!(fp = fopen(L_char, "w"))) {
+				#endif
 					fprintf(stderr, "%s: cannot open "
 					  "file for writing\n", pname);
 					exit (SCEP_PKISTATUS_ERROR);
@@ -623,15 +732,37 @@ not_enroll:
 			pkcs7_wrap(&scep_t);
 
 			/* URL-encode */
-			p = url_encode(scep_t.request_payload,
+			p = url_encode((char *)scep_t.request_payload,
 				scep_t.request_len);
+
+			/*Test mode print SCEP request and don't send it*/
+			if(m_flag){
+
+				/* Write output file : */
+#ifdef WIN32
+				if ((fopen_s(&fp, m_char, "w")))
+#else
+				if (!(fp = fopen(m_char, "w")))
+#endif
+				{
+					fprintf(stderr, "%s: cannot open output file for "
+						"writing\n", m_char);
+				}else
+				{
+					printf("%s: writing PEM fomatted PKCS#7\n", pname);
+							PEM_write_PKCS7(fp, scep_t.request_p7);
+				}
+
+				//printf("Print SCEP Request:\n %s\n",scep_t.request_payload);
+				return 0;
+			}
 
 			/* Forge the HTTP message */
 			snprintf(http_string, sizeof(http_string),
 				"GET %s%s?operation="
 				"PKIOperation&message="
 				"%s HTTP/1.0\r\n\r\n",
-				p_flag ? "" : "/", dir_name, p); 
+				p_flag ? "" : "/", dir_name, p);
 
 			if (d_flag)
 				fprintf(stdout, "%s: scep msg: %s",
@@ -658,7 +789,7 @@ not_enroll:
 
 			/* Check payload */
 			scep_t.reply_len = reply.bytes;
-			scep_t.reply_payload = reply.payload;
+			scep_t.reply_payload = (unsigned char *)reply.payload;
 			pkcs7_unwrap(&scep_t);
 			pkistatus = scep_t.pki_status;
 
@@ -706,7 +837,7 @@ not_enroll:
 					}
 				default:
 					fprintf(stderr, "%s: unknown "
-						"pkiStatus\n", pname);	
+						"pkiStatus\n", pname);
 					exit (SCEP_PKISTATUS_ERROR);
 			}
 	}
@@ -730,6 +861,19 @@ not_enroll:
 			write_crl(&scep_t);
 			break;
 	}
+	//TODO
+	//richtiger ort für disable??
+//	if(e){
+//		ENGINE_finish(*e);
+//		ENGINE_free(*e);
+//	    hwEngine = NULL;
+//	    ENGINE_cleanup();
+//	}
+//
+
+
+
+
 	return (pkistatus);
 }
 
@@ -745,6 +889,8 @@ usage() {
 	"\nGeneral OPTIONS\n"
 	"  -u <url>          SCEP server URL\n"
 	"  -p <host:port>    Use proxy server at host:port\n"
+	"  -g                Enable Engine support\n"
+	"  -h				 Keyforme=ID."//TODO
 	"  -f <file>         Use configuration file\n"
 	"  -c <file>         CA certificate file (write if OPERATION is getca)\n"
 	"  -E <name>         PKCS#7 encryption algorithm (des|3des|blowfish)\n"
