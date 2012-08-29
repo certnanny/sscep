@@ -192,7 +192,7 @@ int scep_conf_load(CONF *conf) {
 			} else {
 				if(v_flag)
 					printf("%s: No storename was provided. Will use the engines default.\n", pname);
-				scep_conf->engine->new_key_location = 0;
+				scep_conf->engine->storelocation = 0;
 			}
 
 			
