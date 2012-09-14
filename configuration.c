@@ -140,22 +140,8 @@ int scep_conf_load(CONF *conf) {
 			exit(SCEP_PKISTATUS_FILE);
 		}
 
-		if(var = NCONF_get_string(conf, engine_section, SCEP_CONFIGURATION_ENGINE_USAGE)) {
-			if(v_flag)
-				printf("%s: Configuration: Engine Usage set to %s\n", pname, var);
-			if(!strncmp(var, "both", 4)) {
-				scep_conf->engine->engine_usage = SCEP_CONFIGURATION_PARAM_VALUE_ENGINE_USAGE_BOTH;
-			} else if(!strncmp(var, "new", 3)) {
-				scep_conf->engine->engine_usage = SCEP_CONFIGURATION_PARAM_VALUE_ENGINE_USAGE_NEW;
-			} else if(!strncmp(var, "old", 3)) {
-				scep_conf->engine->engine_usage = SCEP_CONFIGURATION_PARAM_VALUE_ENGINE_USAGE_OLD;
-			} else {
-				fprintf(stderr, "%s: Usage not correctly defined: %s\n", pname, var);
-				exit(SCEP_PKISTATUS_FILE);
-			}
-		}
-
-		//write g_char, but ONLY if not defined already (command line overwrites config file)
+		
+        //write g_char, but ONLY if not defined already (command line overwrites config file)
 		if(!g_flag) {
 			g_flag = 1;
 			g_char = strdup(scep_conf->engine->engine_id);
