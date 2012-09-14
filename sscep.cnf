@@ -61,19 +61,6 @@ Debug = true
 # Refer to OpenSSL / Engine documentation
 engine_id = capi
 
-# The next two options decide whether to use engine support for the 
-# the old private key (Option: PrivateKeyFile) and certificate,
-# for the new key (Option: SignKeyFile) and certificate
-# or for both
-# This is only relevant for the enroll process where it is
-# possible to sign the request with the old, active certificate
-# to enable to automatic enrollment
-# Possible Values:
-# both - Use engine on the new and the old private key
-# new - Use engine only with the new key, the old one is still only a file
-# old - Use engine only with the old key, the new key is a file on the file system
-engine_usage = both
-
 # If the engine needs to be loaded dynamically, specify the path to the SO file here.
 # It is possible to provide paths relative to the sscep binary
 # Note: On Windows use double slashes, see example

@@ -567,12 +567,7 @@ main(int argc, char **argv) {
 			}
 			
 			if(scep_conf->engine) {
-				if(scep_conf->engine->engine_usage == SCEP_CONFIGURATION_PARAM_VALUE_ENGINE_USAGE_BOTH ||
-					scep_conf->engine->engine_usage == SCEP_CONFIGURATION_PARAM_VALUE_ENGINE_USAGE_NEW){
-					sscep_engine_read_key_new(&rsa, k_char, scep_t.e);
-				} else{
-					read_key(&rsa, k_char);
-				}
+				sscep_engine_read_key_new(&rsa, k_char, scep_t.e);
 			} else {
 				read_key(&rsa, k_char);
 			}
@@ -585,13 +580,7 @@ main(int argc, char **argv) {
 			if (K_flag) {
 				//TODO auf hwcrhk prüfen?
 				if(scep_conf->engine) {
-					if(scep_conf->engine->engine_usage == SCEP_CONFIGURATION_PARAM_VALUE_ENGINE_USAGE_BOTH ||
-						scep_conf->engine->engine_usage == SCEP_CONFIGURATION_PARAM_VALUE_ENGINE_USAGE_OLD){
-						//read_key_Engine_old(&renewal_key, K_char, e);
-						sscep_engine_read_key_old(&renewal_key, K_char, scep_t.e);
-					} else{
-						read_key(&renewal_key, K_char);
-					}
+					sscep_engine_read_key_old(&renewal_key, K_char, scep_t.e);
 				} else {
 					read_key(&renewal_key, K_char);
 				}
