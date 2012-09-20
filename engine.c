@@ -100,7 +100,7 @@ ENGINE *scep_engine_init(ENGINE *e) {
 		if(strncmp(scep_conf->engine->engine_id, "pkcs11", 6) == 0) {
 			if(scep_conf->engine->pin) {
 				if(!ENGINE_ctrl(e, (ENGINE_CMD_BASE + 2), 0, scep_conf->engine->pin, NULL)) {
-					fprintf(stderr, "%s: Could not defined PIN\n", pname);
+					fprintf(stderr, "%s: Could not define PIN\n", pname);
 					sscep_engine_report_error();
 					exit (SCEP_PKISTATUS_ERROR);
 				}
