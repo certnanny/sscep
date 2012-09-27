@@ -118,6 +118,9 @@ int scep_conf_load(CONF *conf) {
 		if(d_flag) {
 			printf("%s: No engine section specified, not loading an engine\n", pname);
 		}
+		scep_conf->engine_str = NULL;
+		free(scep_conf->engine);
+		scep_conf->engine = NULL;
 	} else {
 		//set the engine_str variable to save the section name
 		scep_conf->engine_str = engine_section;
