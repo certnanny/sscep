@@ -179,7 +179,7 @@ void sscep_engine_read_key(EVP_PKEY **key, char *id, ENGINE *e) {
 }
 
 void sscep_engine_read_key_old(EVP_PKEY **key, char *id, ENGINE *e) {
-	if(!strncmp(scep_conf->engine->engine_id, "capi", 4)) {
+	if(scep_conf->engine && !strncmp(scep_conf->engine->engine_id, "capi", 4)) {
 		sscep_engine_read_key_capi(key, id, e, "MY");
 	} else {
 		sscep_engine_read_key(key, id, e);
@@ -188,7 +188,7 @@ void sscep_engine_read_key_old(EVP_PKEY **key, char *id, ENGINE *e) {
 }
 
 void sscep_engine_read_key_new(EVP_PKEY **key, char *id, ENGINE *e) {
-	if(!strncmp(scep_conf->engine->engine_id, "capi", 4)) {
+	if(scep_conf->engine && !strncmp(scep_conf->engine->engine_id, "capi", 4)) {
 		sscep_engine_read_key_capi(key, id, e, scep_conf->engine->new_key_location);
 	} else {
 		sscep_engine_read_key(key, id, e);
