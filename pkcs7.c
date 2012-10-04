@@ -111,7 +111,7 @@ int pkcs7_wrap(struct scep *s) {
 				exit (SCEP_PKISTATUS_P7);
 			}
 			BIO_flush(databio);
-			BIO_set_flags(databio, BIO_FLAGS_MEM_RDONLY); 
+			BIO_set_flags(databio, BIO_FLAGS_MEM_RDONLY);
 			break;
 
 		case SCEP_REQUEST_GETCRL:
@@ -176,7 +176,7 @@ int pkcs7_wrap(struct scep *s) {
 		fprintf(stderr, "%s: error creating data " "bio\n", pname);
 		ERR_print_errors_fp(stderr);
 		exit (SCEP_PKISTATUS_P7);
-	} 
+	}
 
 	/* Encrypt */
 	if (!(p7enc = PKCS7_encrypt(recipients, encbio,
@@ -196,7 +196,7 @@ int pkcs7_wrap(struct scep *s) {
 		exit (SCEP_PKISTATUS_P7);
 	}
 	BIO_flush(memorybio);
-	BIO_set_flags(memorybio, BIO_FLAGS_MEM_RDONLY); 
+	BIO_set_flags(memorybio, BIO_FLAGS_MEM_RDONLY);
 	len = BIO_get_mem_data(memorybio, &buffer);
 	if (v_flag)
 		printf("%s: envelope size: %d bytes\n", pname, len);
@@ -204,7 +204,7 @@ int pkcs7_wrap(struct scep *s) {
 		printf("%s: printing PEM fomatted PKCS#7\n", pname);
 		PEM_write_PKCS7(stdout, p7enc);
 	}
-	BIO_free(memorybio); 
+	BIO_free(memorybio);
 
 	/* Create outer PKCS#7  */
 	if (v_flag)
@@ -242,7 +242,6 @@ int pkcs7_wrap(struct scep *s) {
 	add_attribute_octet(attributes, nid_senderNonce, s->sender_nonce,
 			s->sender_nonce_len);
 	PKCS7_set_signed_attributes(si, attributes);
-	
 	/* Add contentType */
 	if (!PKCS7_add_signed_attribute(si, NID_pkcs9_contentType,
 			V_ASN1_OBJECT, OBJ_nid2obj(NID_pkcs7_data))) {
@@ -309,6 +308,140 @@ int pkcs7_wrap(struct scep *s) {
 	return (0);
 }
 
+
+int pkcs7_varify_unwrap(struct scep *s , char * cachainfile ) {
+	BIO				*memorybio;
+	BIO				*outbio;
+	BIO				*pkcs7bio;
+	int				i, len, bytes, used;
+	STACK_OF(PKCS7_SIGNER_INFO)	*sk;
+	PKCS7				*p7;
+	PKCS7_SIGNER_INFO		*si;
+	STACK_OF(X509_ATTRIBUTE)	*attribs;
+	char				*p;
+	unsigned char			buffer[1024];
+	X509				*recipientcert;
+	EVP_PKEY			*recipientkey;
+    X509   				*signercert;
+
+    X509_STORE_CTX 		*cert_ctx;
+
+	X509_STORE *cert_store=NULL;
+
+
+	/* Create new memory BIO for outer PKCS#7 */
+	memorybio = BIO_new(BIO_s_mem());
+
+	/* Read in data */
+	if (v_flag)
+		printf("%s: reading outer PKCS#7\n",pname);
+	if ((len = BIO_write(memorybio, s->reply_payload, s->reply_len)) <= 0) {
+		fprintf(stderr, "%s: error reading PKCS#7 data\n", pname);
+		ERR_print_errors_fp(stderr);
+		exit (SCEP_PKISTATUS_P7);
+	}
+	if (v_flag)
+		printf("%s: PKCS#7 payload size: %d bytes\n", pname, len);
+	BIO_set_flags(memorybio, BIO_FLAGS_MEM_RDONLY);
+	s->reply_p7 = d2i_PKCS7_bio(memorybio, NULL);
+	if (d_flag) {
+		printf("%s: printing PEM fomatted PKCS#7\n", pname);
+		PEM_write_PKCS7(stdout, s->reply_p7);
+	}
+
+	 /* Make sure this is a signed PKCS#7 */
+        if (!PKCS7_type_is_signed(s->reply_p7)) {
+		fprintf(stderr, "%s: PKCS#7 is not signed!\n", pname);
+		ERR_print_errors_fp(stderr);
+		exit (SCEP_PKISTATUS_P7);
+        }
+
+	/* Create BIO for content data */
+	pkcs7bio = PKCS7_dataInit(s->reply_p7, NULL);
+	if (pkcs7bio == NULL) {
+		fprintf(stderr, "%s: cannot get PKCS#7 data\n", pname);
+		ERR_print_errors_fp(stderr);
+		exit (SCEP_PKISTATUS_P7);
+	}
+
+	/* Copy enveloped data from PKCS#7 */
+	outbio = BIO_new(BIO_s_mem());
+	used = 0;
+	for (;;) {
+		bytes = BIO_read(pkcs7bio, buffer, sizeof(buffer));
+		used += bytes;
+		if (bytes <= 0) break;
+		BIO_write(outbio, buffer, bytes);
+	}
+	BIO_flush(outbio);
+	if (v_flag)
+		printf("%s: PKCS#7 contains %d bytes of signed data\n",
+			pname, used);
+
+	/* Get signer */
+	sk = PKCS7_get_signer_info(s->reply_p7);
+	if (sk == NULL) {
+		fprintf(stderr, "%s: cannot get signer info!\n", pname);
+		ERR_print_errors_fp(stderr);
+		exit (SCEP_PKISTATUS_P7);
+	}
+
+	/* Verify signature */
+	if (v_flag)
+		printf("%s: verifying signature\n", pname);
+	si = sk_PKCS7_SIGNER_INFO_value(sk, 0);
+
+	signercert = PKCS7_cert_from_signer_info(s->reply_p7,si);
+	if(signercert == NULL ) printf("%s: Can't read signer cert from pkcs7\n", pname);
+
+//int reson=0;
+
+	if (PKCS7_signatureVerify(pkcs7bio, s->reply_p7, si,signercert ) <= 0) {
+		//reson = ERR_GET_REASON(ERR_peek_last_error());
+		printf("%s: error verifying signature Error \n", pname);
+		ERR_print_errors_fp(stderr);
+		exit (SCEP_PKISTATUS_P7);
+	}
+	if (v_flag)
+		printf("%s: signature ok\n", pname);
+
+	/*verify certificates*/
+
+
+	cert_store=X509_STORE_new();
+	if(cert_store == NULL)
+		fprintf(stderr, "%s: error verifying certificates \n", pname);
+
+	X509_STORE_set_flags(cert_store, 0);
+
+    //X509_STORE_load_locations(cert_store,certsfile,certsdir);
+    X509_STORE_load_locations(cert_store,cachainfile,NULL);
+
+    if(!(cert_ctx = X509_STORE_CTX_new())) {;
+    fprintf(stderr, "%s: error creating certificate chain \n", pname);
+    }
+
+    if(!X509_STORE_CTX_init(cert_ctx,cert_store,signercert,NULL))
+    {
+    	fprintf(stderr, "%s: error verifying certificates \n", pname);
+    }
+
+    //X509_STORE_CTX_set_purpose(cert_ctx, purpose);
+
+    if( !X509_verify_cert(cert_ctx)) {
+    	fprintf(stderr, "%s: The signer certificate verification failed \n", pname);
+    }
+
+	/* Copy enveloped data into PKCS#7 */
+	s->reply_p7 = d2i_PKCS7_bio(outbio, NULL);
+
+	X509_STORE_free(cert_store);
+	X509_STORE_CTX_cleanup(cert_ctx);
+
+	return (0);
+}
+
+
 /*
  * Unwrap PKCS#7 data and decrypt if necessary
  */
@@ -339,7 +472,7 @@ int pkcs7_unwrap(struct scep *s) {
 	}
 	if (v_flag)
 		printf("%s: PKCS#7 payload size: %d bytes\n", pname, len);
-	BIO_set_flags(memorybio, BIO_FLAGS_MEM_RDONLY); 
+	BIO_set_flags(memorybio, BIO_FLAGS_MEM_RDONLY);
 	s->reply_p7 = d2i_PKCS7_bio(memorybio, NULL);
 	if (d_flag) {
 		printf("%s: printing PEM fomatted PKCS#7\n", pname);
@@ -599,8 +732,7 @@ int pkcs7_unwrap(struct scep *s) {
 }
 
 /* Add signed attributes */
-int
-add_attribute_string(STACK_OF(X509_ATTRIBUTE) *attrs, int nid, char *buffer) {
+int add_attribute_string(STACK_OF(X509_ATTRIBUTE) *attrs, int nid, char *buffer){
 	ASN1_STRING     *asn1_string = NULL;
 	X509_ATTRIBUTE  *x509_a;
 	int		c;
@@ -619,12 +751,10 @@ add_attribute_string(STACK_OF(X509_ATTRIBUTE) *attrs, int nid, char *buffer) {
 	x509_a = X509_ATTRIBUTE_create(nid, V_ASN1_PRINTABLESTRING,
 		asn1_string);
 	sk_X509_ATTRIBUTE_push(attrs, x509_a);
-	
 	return (0);
 
 }
-int
-add_attribute_octet(STACK_OF(X509_ATTRIBUTE) *attrs, int nid, char *buffer,
+int add_attribute_octet(STACK_OF(X509_ATTRIBUTE) *attrs, int nid, char *buffer,
 		int len) {
 	ASN1_STRING     *asn1_string = NULL;
 	X509_ATTRIBUTE  *x509_a;
@@ -644,15 +774,12 @@ add_attribute_octet(STACK_OF(X509_ATTRIBUTE) *attrs, int nid, char *buffer,
 	x509_a = X509_ATTRIBUTE_create(nid, V_ASN1_OCTET_STRING,
 		asn1_string);
 	sk_X509_ATTRIBUTE_push(attrs, x509_a);
-	
 	return (0);
 
 }
 
 /* Find signed attributes */
-int
-get_signed_attribute(STACK_OF(X509_ATTRIBUTE) *attribs, int nid,
-		int type, char **buffer) {
+int get_signed_attribute(STACK_OF(X509_ATTRIBUTE) *attribs, int nid,int type, char **buffer){
 	int		rc; 
 	ASN1_TYPE	*asn1_type;
 	unsigned int	len;
@@ -695,8 +822,8 @@ get_signed_attribute(STACK_OF(X509_ATTRIBUTE) *attribs, int nid,
 
 	return (0);
 } 
-int
-get_attribute(STACK_OF(X509_ATTRIBUTE) *attribs, int required_nid,
+
+int get_attribute(STACK_OF(X509_ATTRIBUTE) *attribs, int required_nid,
 				ASN1_TYPE **asn1_type) {
 	int		i;
 	ASN1_OBJECT	*asn1_obj = NULL;
@@ -708,7 +835,7 @@ get_attribute(STACK_OF(X509_ATTRIBUTE) *attribs, int required_nid,
 	*asn1_type = NULL;
 	asn1_obj = OBJ_nid2obj(required_nid);
 	if (asn1_obj == NULL) {
-		fprintf(stderr, "%s: error creating ASN.1 object\n", pname);	
+		fprintf(stderr, "%s: error creating ASN.1 object\n", pname);
 		ERR_print_errors_fp(stderr);
 		exit (SCEP_PKISTATUS_P7);
 	}

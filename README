@@ -103,6 +103,16 @@ C:\...> nmake -f Makefile.w32
 
 Copy binary file sscep and configuration file sscep.conf to somewhere.
 
+=======
+The program should compile on OpenBSD system without problems. Uncompress
+the package and run command
+
+$ make
+
+Copy binary file sscep and configuration file sscep.conf to somewhere.
+
+
+>>>>>>> feat/getnextca
 HOW TO USE
 ==========
 
