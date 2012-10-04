@@ -108,7 +108,6 @@ main(int argc, char **argv) {
 	}
 
 #endif
-
 	/* Initialize scep layer */
 	init_scep();
 
@@ -129,6 +128,8 @@ main(int argc, char **argv) {
 		operation_flag = SCEP_OPERATION_GETCERT;
 	} else if (!strncmp(argv[1], "getcrl", 6)) {
 		operation_flag = SCEP_OPERATION_GETCRL;
+	} else if (!strncmp(argv[1], "getnextca", 9)) {
+		operation_flag = SCEP_OPERATION_GETNEXTCA;
 	} else {
 		fprintf(stderr, "%s: missing or illegal operation parameter\n",
 				argv[0]);
@@ -136,11 +137,15 @@ main(int argc, char **argv) {
 	}
 	/* Skip first parameter and parse the rest of the command */
 	optind++;
-	while ((c = getopt(argc, argv, "c:de:E:f:g:hF:i:k:K:l:L:n:O:p:r:Rs:S:t:T:u:vw:m:H")) != -1)
+	while ((c = getopt(argc, argv, "c:C:de:E:f:g:hF:i:k:K:l:L:n:O:p:r:Rs:S:t:T:u:vw:m:H")) != -1)
                 switch(c) {
 			case 'c':
 				c_flag = 1;
 				c_char = optarg;
+				break;
+			case 'C':
+				C_flag = 1;
+				C_char = optarg;
 				break;
 			case 'd':
 				d_flag = 1;
@@ -272,6 +277,10 @@ main(int argc, char **argv) {
 		fprintf(stdout, "%s: starting sscep, version %s\n",
 			pname, VERSION);
 
+	if (v_flag)
+		fprintf(stdout, "%s: starting sscep, version %s\n",
+			pname, VERSION);
+
 	/*
 	* Create a new SCEP transaction and self-signed
 	* certificate based on cert request
@@ -285,7 +294,6 @@ main(int argc, char **argv) {
 		scep_t.e = scep_engine_init(scep_t.e);
 	}
 	
-
 	/*
 	 * Check argument logic.
 	 */
@@ -297,6 +305,22 @@ main(int argc, char **argv) {
 		} else {
 			fprintf(stderr,
 				"%s: missing CA certificate (-c)\n", pname);
+			exit (SCEP_PKISTATUS_ERROR);
+		}
+		if (operation_flag == SCEP_OPERATION_GETNEXTCA) {
+			fprintf(stderr,
+			  "%s: missing nextCA certificate target filename (-c)\n", pname);
+			exit (SCEP_PKISTATUS_ERROR);
+		} else {
+			fprintf(stderr,
+				"%s: missing nextCA certificate target filename(-c)\n", pname);
+			exit (SCEP_PKISTATUS_ERROR);
+		}
+	}
+	if (!C_flag) {
+		if (operation_flag == SCEP_OPERATION_GETNEXTCA) {
+			fprintf(stderr,
+			  "%s: missing nextCA certificate chain filename (-C)\n", pname);
 			exit (SCEP_PKISTATUS_ERROR);
 		}
 	}
@@ -411,7 +435,7 @@ main(int argc, char **argv) {
 		p++;
 	}
 	if (!dir_name) {
-		fprintf(stderr, "%s: illegal URL\n", pname);
+		fprintf(stderr, "%s: illegal URL %s\n", pname, url_char);
 		exit (SCEP_PKISTATUS_ERROR);
 	}
 	if (host_port < 1 || host_port > 65550) {
@@ -544,6 +568,123 @@ main(int argc, char **argv) {
 			(void)fclose(fp);
 			pkistatus = SCEP_PKISTATUS_SUCCESS;
 			break;
+
+		case SCEP_OPERATION_GETNEXTCA:
+				if (v_flag)
+					fprintf(stdout, "%s: SCEP_OPERATION_GETNEXTCA\n",
+						pname);
+
+				/* Set CA identifier */
+				if (!i_flag)
+					i_char = CA_IDENTIFIER;
+
+				/* Forge the HTTP message */
+				snprintf(http_string, sizeof(http_string),
+				 "GET %s%s?operation=GetNextCACert&message=%s "
+				 "HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,
+						i_char);
+				printf("%s: requesting nextCA certificate\n", pname);
+				if (d_flag)
+					fprintf(stdout, "%s: scep msg: %s", pname,
+						http_string);
+				/*
+				 * Send http message.
+				 * Response is written to http_response struct "reply".
+				 */
+				reply.payload = NULL;
+				if ((c = send_msg (&reply, http_string, host_name,
+						host_port, operation_flag)) == 1) {
+					fprintf(stderr, "%s: error while sending "
+						"message\n", pname);
+					fprintf(stderr, "%s: getnextCA might be not available"
+											"\n", pname);
+					exit (SCEP_PKISTATUS_NET);
+				}
+				if (reply.payload == NULL) {
+					fprintf(stderr, "%s: no data, perhaps you "
+					   "there is no nextCA available\n", pname);
+					exit (SCEP_PKISTATUS_SUCCESS);
+				}
+
+				printf("%s: valid response from server\n", pname);
+
+				if (reply.type == SCEP_MIME_GETNEXTCA) {
+					/* XXXXXXXXXXXXXXXXXXXXX chain not verified */
+
+					//write_ca_ra(&reply);
+
+					/* Set the whole struct as 0 */
+					memset(&scep_t, 0, sizeof(scep_t));
+
+					scep_t.reply_payload = reply.payload;
+					scep_t.reply_len = reply.bytes;
+					scep_t.request_type = SCEP_MIME_GETNEXTCA;
+
+					pkcs7_varify_unwrap(&scep_t , C_char);
+
+					//pkcs7_unwrap(&scep_t);
+				}
+
+
+
+				STACK_OF(X509)		*nextcara = NULL;
+				X509 				*cert=NULL;
+				PKCS7 p7;
+				int i;
+
+				/* Get certs */
+				p7 = *(scep_t.reply_p7);
+				nextcara = scep_t.reply_p7->d.sign->cert;
+
+			    if (v_flag) {
+					printf ("verify and unwrap: found %d cert(s)\n", sk_X509_num(nextcara));
+			        }
+
+			    for (i = 0; i < sk_X509_num(nextcara); i++) {
+			    		char buffer[1024];
+			    		char name[1024];
+			    		memset(buffer, 0, 1024);
+			    		memset(name, 0, 1024);
+
+			    		cert = sk_X509_value(nextcara, i);
+			    		if (v_flag) {
+			    			printf("%s: found certificate with\n"
+			    				"  subject: '%s'\n", pname,
+			    				X509_NAME_oneline(X509_get_subject_name(cert),
+			    					buffer, sizeof(buffer)));
+			    			printf("  issuer: %s\n",
+			    				X509_NAME_oneline(X509_get_issuer_name(cert),
+			    					buffer, sizeof(buffer)));
+			    		}
+
+			    		/* Create name */
+			    		snprintf(name, 1024, "%s-%d", c_char, i);
+
+
+			    		/* Write PEM-formatted file: */
+			    		if (!(fp = fopen(name, "w"))) {
+			    			fprintf(stderr, "%s: cannot open cert file for writing\n",
+			    					pname);
+			    			exit (SCEP_PKISTATUS_FILE);
+			    		}
+			    		if (v_flag)
+			    			printf("%s: writing cert\n", pname);
+			    		if (d_flag)
+			    			PEM_write_X509(stdout, cert);
+			    		if (PEM_write_X509(fp, cert) != 1) {
+			    			fprintf(stderr, "%s: error while writing certificate "
+			    				"file\n", pname);
+			    			ERR_print_errors_fp(stderr);
+			    			exit (SCEP_PKISTATUS_FILE);
+			    		}
+			    		printf("%s: certificate written as %s\n", pname, name);
+			    		(void)fclose(fp);
+			    }
+
+
+
+				pkistatus = SCEP_PKISTATUS_SUCCESS;
+				break;
 
 		case SCEP_OPERATION_GETCERT:
 		case SCEP_OPERATION_GETCRL:
@@ -872,6 +1013,7 @@ usage() {
 	fprintf(stdout, "Usage: %s OPERATION [OPTIONS]\n"
 	"\nAvailable OPERATIONs are\n"
 	"  getca             Get CA/RA certificate(s)\n"
+	"  getnextca         Get next CA/RA certificate(s)\n"
 	"  enroll            Enroll certificate\n"
 	"  getcert           Query certificate\n"
 	"  getcrl            Query CRL\n"
@@ -881,13 +1023,16 @@ usage() {
 	"  -g                Enable Engine support\n"
 	"  -h				 Keyforme=ID."//TODO
 	"  -f <file>         Use configuration file\n"
-	"  -c <file>         CA certificate file (write if OPERATION is getca)\n"
+	"  -c <file>         CA certificate file (write if OPERATION is getca or getnextca)\n"
 	"  -E <name>         PKCS#7 encryption algorithm (des|3des|blowfish)\n"
 	"  -S <name>         PKCS#7 signature algorithm (md5|sha1)\n"
 	"  -v                Verbose operation\n"
 	"  -d                Debug (even more verbose operation)\n"
 	"\nOPTIONS for OPERATION getca are\n"
 	"  -i <string>       CA identifier string\n"
+	"  -F <name>         Fingerprint algorithm\n"
+	"\nOPTIONS for OPERATION getnextca are\n"
+	"  -C <file>         Local certificate chain file for signature verification\n"
 	"  -F <name>         Fingerprint algorithm\n"
 	"\nOPTIONS for OPERATION enroll are\n"
  	"  -k <file>         Private key file\n"

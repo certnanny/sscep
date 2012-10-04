@@ -60,7 +60,6 @@ send_msg(struct http_reply *http,char *msg,char *host,int port,int operation) {
 		perror("cannot open socket ");
 		return (1);
 	}
-	
 	/* bind any port number */
 	localAddr.sin_family = AF_INET;
 	localAddr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -84,6 +83,7 @@ send_msg(struct http_reply *http,char *msg,char *host,int port,int operation) {
 	setsockopt(sd,SOL_SOCKET, SO_SNDTIMEO,(void *)&tv, sizeof(tv));
 	/* send data */ 
 	rc = send(sd, msg,strlen(msg), 0);
+
 	if (rc < 0) {
 		perror("cannot send data ");
 		close(sd);
@@ -142,6 +142,19 @@ send_msg(struct http_reply *http,char *msg,char *host,int port,int operation) {
 				goto mime_err;
 			}
 			break;
+		case SCEP_OPERATION_GETNEXTCA:
+			if (strstr(buf, MIME_GETNEXTCA)) {
+				http->type = SCEP_MIME_GETNEXTCA;
+				if (v_flag)
+					printf("%s: MIME header: %s\n",
+						pname, MIME_GETNEXTCA);
+			}else {
+				if (v_flag)
+					printf("%s: mime_err: %s\n", pname,buf);
+
+				goto mime_err;
+			}
+			break;
 		default:
 			if (!strstr(buf, MIME_PKI)) {
 				if (v_flag)
@@ -194,7 +207,7 @@ char * url_encode(char *s, size_t n) {
 	char	*r;
 	size_t	len;
 	unsigned int     i;
-	char    ch[2];
+    char    ch[2];
 
 	/* Allocate 2 times bigger space than the original string */
 	len = 2 * n;
@@ -242,8 +255,6 @@ char * url_encode(char *s, size_t n) {
 #else
 				strncat(r, "%0A", len);
 #endif
-				break;
-			default:
 				ch[0] = *(s+i);
 				ch[1] = '\0';
 #ifdef WIN32
