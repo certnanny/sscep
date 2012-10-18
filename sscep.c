@@ -75,7 +75,12 @@ main(int argc, char **argv) {
 	struct scep		scep_t;
 	FILE			*fp = NULL;
 	BIO			*bp;
+	STACK_OF(X509)		*nextcara = NULL;
+	X509 				*cert=NULL;
+	PKCS7 p7;
+	int i;
 	
+
 #ifdef WIN32
 	WORD wVersionRequested;
 	WSADATA wsaData;
@@ -625,12 +630,6 @@ main(int argc, char **argv) {
 					//pkcs7_unwrap(&scep_t);
 				}
 
-
-
-				STACK_OF(X509)		*nextcara = NULL;
-				X509 				*cert=NULL;
-				PKCS7 p7;
-				int i;
 
 				/* Get certs */
 				p7 = *(scep_t.reply_p7);

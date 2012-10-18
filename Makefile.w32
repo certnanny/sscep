@@ -13,12 +13,12 @@ CC = cl
 
 
 #if you compile OpenSSL from source use the following definitions
-OPENSSL_PATH=C:\path\to\openssl
-OPENSSL_LIB=$(OPENSSL_PATH)\lib
+OPENSSL_PATH=Z:\projects\github\openSSL\openssl-1.0.1c
+OPENSSL_LIB=$(OPENSSL_PATH)\out32dll
 OPENSSL_INC=$(OPENSSL_PATH)\include
 
 #change to your scep URL
-TEST_URL=http://example-scep-url.com
+TEST_URL=http://uat-server-ca.tools.intranet.db.com/cgi-bin/scep/scep
 
 LINK=link
 LFLAGS=/nologo /subsystem:console /opt:ref /debug
