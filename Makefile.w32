@@ -7,7 +7,7 @@ CC = cl
 #for dynamically linking against binary OpenSSL distribution
 #http://www.slproweb.com/download/Win32OpenSSL-v0.9.7i.exe
 #works with VC 6.0 but not with VC 7.0
-#OPENSSL_PATH=C:\program files\OpenSSL
+#OPENSSL_PATH=C:\Program Files (x86)\OpenSSL-Win32
 #OPENSSL_LIB=$(OPENSSL_PATH)\lib\VC
 #OPENSSL_INC=$(OPENSSL_PATH)\include
 
@@ -15,7 +15,7 @@ CC = cl
 #if you compile OpenSSL from source use the following definitions
 OPENSSL_PATH=Z:\projects\github\openSSL\openssl-1.0.1c
 OPENSSL_LIB=$(OPENSSL_PATH)\out32dll
-OPENSSL_INC=$(OPENSSL_PATH)\include
+OPENSSL_INC=$(OPENSSL_PATH)\inc32
 
 #change to your scep URL
 TEST_URL=http://scepserver.example.com/cgi-bin/scep/scep

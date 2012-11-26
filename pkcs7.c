@@ -17,6 +17,7 @@
  */
 int pkcs7_wrap(struct scep *s) {
 	BIO			*databio = NULL;
+	BIO 		*debugbio = NULL;
 	BIO			*encbio = NULL;
 	BIO			*pkcs7bio = NULL;
 	BIO			*memorybio = NULL;
@@ -24,12 +25,15 @@ int pkcs7_wrap(struct scep *s) {
 	BIO			*base64bio = NULL;
 	unsigned char		*buffer = NULL;
 	int			rc, len = 0;
+	int i=0;
 	STACK_OF(X509)		*recipients;
 	PKCS7			*p7enc;
 	PKCS7_SIGNER_INFO	*si;
 	STACK_OF(X509_ATTRIBUTE) *attributes;
 	X509			*signercert = NULL;
 	EVP_PKEY		*signerkey = NULL;
+	X509_REQ *reqcsr = NULL;
+	unsigned char *pp = NULL;
 
 	/* Create a new sender nonce for all messages 
 	 * XXXXXXXXXXXXXX should it be per transaction? */
@@ -62,9 +66,11 @@ int pkcs7_wrap(struct scep *s) {
 					"certificate request in bio\n", pname);
 				ERR_print_errors_fp(stderr);
 				exit (SCEP_PKISTATUS_P7);
+			}else{
+				if (v_flag)
+					printf("%s: inner PKCS#7 in mem BIO read %d byte \n", pname, rc);
+
 			}
-			BIO_flush(databio);
-			BIO_set_flags(databio, BIO_FLAGS_MEM_RDONLY); 
 			break;
 
 		case SCEP_REQUEST_GETCERTINIT:
@@ -89,8 +95,6 @@ int pkcs7_wrap(struct scep *s) {
 				ERR_print_errors_fp(stderr);
 				exit (SCEP_PKISTATUS_P7);
 			}
-			BIO_flush(databio);
-			BIO_set_flags(databio, BIO_FLAGS_MEM_RDONLY); 
 			break;
 
 		case SCEP_REQUEST_GETCERT:
@@ -110,8 +114,6 @@ int pkcs7_wrap(struct scep *s) {
 				ERR_print_errors_fp(stderr);
 				exit (SCEP_PKISTATUS_P7);
 			}
-			BIO_flush(databio);
-			BIO_set_flags(databio, BIO_FLAGS_MEM_RDONLY);
 			break;
 
 		case SCEP_REQUEST_GETCRL:
@@ -131,15 +133,51 @@ int pkcs7_wrap(struct scep *s) {
 				ERR_print_errors_fp(stderr);
 				exit (SCEP_PKISTATUS_P7);
 			}
-			BIO_flush(databio);
-			BIO_set_flags(databio, BIO_FLAGS_MEM_RDONLY); 
+
 			break;
 	}
-	printf("After switch\n");
+
+	//BIO_set_flags(databio, BIO_FLAGS_MEM_RDONLY);
+	if( BIO_flush(databio) <= 0 ){
+		fprintf(stderr, "%s: error flushing databio\n", pname);
+	}
+
+	//printf("After switch\n");
 	/* Below this is the common code for all request_type */
 
 	/* Read in the payload */
 	s->request_len = BIO_get_mem_data(databio, &s->request_payload);
+	if (v_flag){
+		printf("%s: request data dump \n", pname);
+		PEM_write_X509_REQ(stdout, request);
+
+		/*
+		debugbio = BIO_new(BIO_s_mem());
+
+		if ((rc = i2d_X509_REQ_bio(debugbio, request)) <= 0) {
+			fprintf(stderr, "%s: error writing "
+				"certificate request in bio\n", pname);
+			ERR_print_errors_fp(stderr);
+			exit (SCEP_PKISTATUS_P7);
+		}
+
+		len = BIO_get_mem_data(debugbio, &pp);
+
+
+		for(i=0; i < len; i++ ){
+			printf("%02x", pp[i]);
+		}
+
+		if ((rc = i2d_X509_REQ_bio(databio, request)) <= 0) {
+			printf("%s: error reading request \n", pname);
+		}
+		PEM_read_bio_X509_REQ(s->request_payload, reqcsr , NULL , NULL);
+
+		printf("%s: request mem databio \n", pname);
+		PEM_write_X509_REQ(stdout, reqcsr);
+		*/
+	}
+
 	if (v_flag)
 		printf("%s: data payload size: %d bytes\n", pname,
 				s->request_len);

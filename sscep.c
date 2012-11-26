@@ -85,7 +85,8 @@ main(int argc, char **argv) {
 	WORD wVersionRequested;
 	WSADATA wsaData;
 	int err;
-	printf("Starting sscep\n");
+	//printf("Starting sscep\n");
+	fprintf(stdout, "%s: starting sscep on WIN32, sscep version %s\n",	pname, VERSION);
        
 	wVersionRequested = MAKEWORD( 2, 2 );
  
@@ -278,10 +279,6 @@ main(int argc, char **argv) {
 			(void)fclose(fp);
 		}
 	}*/
-	if (v_flag)
-		fprintf(stdout, "%s: starting sscep, version %s\n",
-			pname, VERSION);
-
 	if (v_flag)
 		fprintf(stdout, "%s: starting sscep, version %s\n",
 			pname, VERSION);
@@ -718,7 +715,7 @@ main(int argc, char **argv) {
 			}
 
 			if (K_flag) {
-				//TODO auf hwcrhk prüfen?
+				//TODO auf hwcrhk prfen?
 				if(scep_conf->engine) {
 					sscep_engine_read_key_old(&renewal_key, K_char, scep_t.e);
 				} else {
@@ -734,7 +731,7 @@ main(int argc, char **argv) {
 				read_request();
 				scep_t.transaction_id = key_fingerprint(request);			
 				if (v_flag) {
-					printf("%s: transaction id: %s\n", pname, scep_t.transaction_id);
+					printf("%s:  Read request with transaction id: %s\n", pname, scep_t.transaction_id);
 				}
 			}
 
