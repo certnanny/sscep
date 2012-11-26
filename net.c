@@ -207,7 +207,7 @@ char * url_encode(char *s, size_t n) {
 	char	*r;
 	size_t	len;
 	unsigned int     i;
-    char    ch[2];
+	char    ch[2];
 
 	/* Allocate 2 times bigger space than the original string */
 	len = 2 * n;
@@ -255,6 +255,8 @@ char * url_encode(char *s, size_t n) {
 #else
 				strncat(r, "%0A", len);
 #endif
+				break;
+			default:
 				ch[0] = *(s+i);
 				ch[1] = '\0';
 #ifdef WIN32

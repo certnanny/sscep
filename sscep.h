@@ -65,7 +65,7 @@
 #include <openssl/ssl.h>
 /* Global defines */
 
-#define	VERSION	"20120614"
+#define	VERSION	"20121025"
 
 /* SCEP operations */
 int operation_flag;

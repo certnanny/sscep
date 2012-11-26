@@ -500,7 +500,7 @@ void
 read_request(void) {
 	/* Read certificate request file */
 	if (!r_flag || 
-#ifdef WIN32BLA
+#ifdef WIN32
 		(fopen_s(&reqfile, r_char, "r")))
 #else
 		!(reqfile = fopen(r_char, "r")))
