@@ -344,7 +344,7 @@ int get_signed_attribute(STACK_OF(X509_ATTRIBUTE) *, int, int, char **);
 int get_attribute(STACK_OF(X509_ATTRIBUTE) *, int, ASN1_TYPE **);
 
 /*PKCS#7 decode message without SCEP attribute verification*/
-int pkcs7_varify_unwrap(struct scep *s, char * cachainfile );
+int pkcs7_verify_unwrap(struct scep *s, char * cachainfile );
 
 /* URL-endcode */
 char *url_encode (char *, size_t);
