@@ -243,9 +243,9 @@ char * url_encode(char *s, size_t n) {
 			case '=':
 #ifdef WIN32
 				//strncat_s(r, sizeof(r), "%3D", len);
-				strncat(r, "32D", len);
+				strncat(r, "%3D", len);
 #else
-				strncat(r, "32D", len);
+				strncat(r, "%3D", len);
 #endif
 				break;
 			case '\n':

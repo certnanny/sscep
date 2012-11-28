@@ -17,7 +17,6 @@
  */
 int pkcs7_wrap(struct scep *s) {
 	BIO			*databio = NULL;
-	BIO 		*debugbio = NULL;
 	BIO			*encbio = NULL;
 	BIO			*pkcs7bio = NULL;
 	BIO			*memorybio = NULL;
@@ -33,7 +32,6 @@ int pkcs7_wrap(struct scep *s) {
 	X509			*signercert = NULL;
 	EVP_PKEY		*signerkey = NULL;
 	X509_REQ *reqcsr = NULL;
-	unsigned char *pp = NULL;
 
 	/* Create a new sender nonce for all messages 
 	 * XXXXXXXXXXXXXX should it be per transaction? */
@@ -68,7 +66,7 @@ int pkcs7_wrap(struct scep *s) {
 				exit (SCEP_PKISTATUS_P7);
 			}else{
 				if (v_flag)
-					printf("%s: inner PKCS#7 in mem BIO read %d byte \n", pname, rc);
+					printf("%s: inner PKCS#7 in mem BIO \n", pname);
 
 			}
 			break;
@@ -137,12 +135,12 @@ int pkcs7_wrap(struct scep *s) {
 			break;
 	}
 
-	//BIO_set_flags(databio, BIO_FLAGS_MEM_RDONLY);
+
 	if( BIO_flush(databio) <= 0 ){
 		fprintf(stderr, "%s: error flushing databio\n", pname);
 	}
+	BIO_set_flags(databio, BIO_FLAGS_MEM_RDONLY);
 
-	//printf("After switch\n");
 	/* Below this is the common code for all request_type */
 
 	/* Read in the payload */
@@ -150,38 +148,12 @@ int pkcs7_wrap(struct scep *s) {
 	if (v_flag){
 		printf("%s: request data dump \n", pname);
 		PEM_write_X509_REQ(stdout, request);
-
-		/*
-		debugbio = BIO_new(BIO_s_mem());
-
-		if ((rc = i2d_X509_REQ_bio(debugbio, request)) <= 0) {
-			fprintf(stderr, "%s: error writing "
-				"certificate request in bio\n", pname);
-			ERR_print_errors_fp(stderr);
-			exit (SCEP_PKISTATUS_P7);
-		}
-
-		len = BIO_get_mem_data(debugbio, &pp);
-
-
-		for(i=0; i < len; i++ ){
-			printf("%02x", pp[i]);
-		}
-
-		if ((rc = i2d_X509_REQ_bio(databio, request)) <= 0) {
-			printf("%s: error reading request \n", pname);
-		}
-		PEM_read_bio_X509_REQ(s->request_payload, reqcsr , NULL , NULL);
-
-		printf("%s: request mem databio \n", pname);
-		PEM_write_X509_REQ(stdout, reqcsr);
-		*/
 	}
 
 	if (v_flag)
 		printf("%s: data payload size: %d bytes\n", pname,
 				s->request_len);
-	BIO_free(databio);
+
 
 	/* Create encryption certificate stack */
 	if ((recipients = sk_X509_new(NULL)) == NULL) {
@@ -209,6 +181,16 @@ int pkcs7_wrap(struct scep *s) {
 	}
 
 	/* Create BIO for encryption  */
+	if (d_flag){
+		printf("\n %s: hexdump request payload \n", pname , i);
+		for(i=0; i < s->request_len; i++ ){
+			printf("%02x", s->request_payload[i]);
+		}
+		printf("\n %s: hexdump payload %d \n", pname , i);
+
+	}
+
+
 	if ((encbio = BIO_new_mem_buf(s->request_payload,
 				s->request_len)) == NULL) {
 		fprintf(stderr, "%s: error creating data " "bio\n", pname);
@@ -342,12 +324,12 @@ int pkcs7_wrap(struct scep *s) {
 		printf("%s: base64 encoded payload size: %d bytes\n",
 				pname, s->request_len);
 	BIO_free(outbio);
-
+	BIO_free(databio);
 	return (0);
 }
 
 
-int pkcs7_varify_unwrap(struct scep *s , char * cachainfile ) {
+int pkcs7_verify_unwrap(struct scep *s , char * cachainfile ) {
 	BIO				*memorybio;
 	BIO				*outbio;
 	BIO				*pkcs7bio;

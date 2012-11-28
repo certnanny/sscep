@@ -622,7 +622,7 @@ main(int argc, char **argv) {
 					scep_t.reply_len = reply.bytes;
 					scep_t.request_type = SCEP_MIME_GETNEXTCA;
 
-					pkcs7_varify_unwrap(&scep_t , C_char);
+					pkcs7_verify_unwrap(&scep_t , C_char);
 
 					//pkcs7_unwrap(&scep_t);
 				}
