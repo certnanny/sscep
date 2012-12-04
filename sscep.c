@@ -366,6 +366,10 @@ main(int argc, char **argv) {
 		sig_alg = (EVP_MD *)EVP_md5();
 	} else if (!strncmp(S_char, "sha1", 4)) {
 		sig_alg = (EVP_MD *)EVP_sha1();
+	} else if (!strncmp(S_char, "sha256", 6)) {
+		sig_alg = (EVP_MD *)EVP_sha256();
+	} else if (!strncmp(S_char, "sha512", 6)) {
+		sig_alg = (EVP_MD *)EVP_sha512();
 	} else {
 		fprintf(stderr, "%s: unsupported algorithm: %s\n",
 			pname, S_char);
@@ -378,6 +382,10 @@ main(int argc, char **argv) {
 		fp_alg = (EVP_MD *)EVP_md5();
 	} else if (!strncmp(F_char, "sha1", 4)) {
 		fp_alg = (EVP_MD *)EVP_sha1();
+	} else if (!strncmp(F_char, "sha256", 6)) {
+		fp_alg = (EVP_MD *)EVP_sha256();
+	} else if (!strncmp(F_char, "sha512", 6)) {
+		fp_alg = (EVP_MD *)EVP_sha512();
 	} else {
 		fprintf(stderr, "%s: unsupported algorithm: %s\n",
 			pname, F_char);
