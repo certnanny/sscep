@@ -157,8 +157,14 @@ subjectAltName=critical,DNS:$PARAMETER
 subjectAltName=critical,email:$PARAMETER
 _EOF_
 
+if [ "$4" ]; then
+	DIGEST=-$4
+else
+	DIGEST=""
+fi
+
 # Make request
-openssl req -new -key $PREFIX.key -out $PREFIX.csr -config $CONFIG \
+openssl req -new -key $PREFIX.key $DIGEST -out $PREFIX.csr -config $CONFIG \
 	-reqexts $EXT
 
 # Make a self-signed certificate from request subject
