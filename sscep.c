@@ -143,7 +143,7 @@ main(int argc, char **argv) {
 	}
 	/* Skip first parameter and parse the rest of the command */
 	optind++;
-	while ((c = getopt(argc, argv, "c:C:de:E:f:g:hF:i:k:K:l:L:n:O:p:r:Rs:S:t:T:u:vw:m:H")) != -1)
+	while ((c = getopt(argc, argv, "c:C:de:E:f:g:hF:i:k:K:l:L:n:O:p:r:Rs:S:t:T:u:vw:m:HM:")) != -1)
                 switch(c) {
 			case 'c':
 				c_flag = 1;
@@ -176,7 +176,7 @@ main(int argc, char **argv) {
 				g_flag = 1;
 				g_char = optarg;
 				break;
-			case 'h'://TODO ändern bspw --inform=ID
+			case 'h'://TODO change to eg. ID --inform=ID
 				h_flag = 1;
 				break;
 			case 'H':
@@ -205,6 +205,10 @@ main(int argc, char **argv) {
 			case 'm':
 				m_flag = 1;
 				m_char = optarg;
+				break;
+			case 'M':
+				M_flag = 1;
+				M_char = optarg;
 				break;
 			case 'n':
 				n_flag = 1;
@@ -503,10 +507,22 @@ main(int argc, char **argv) {
 				i_char = CA_IDENTIFIER;
 
 			/* Forge the HTTP message */
-			snprintf(http_string, sizeof(http_string),
-			 "GET %s%s?operation=GetCACert&message=%s "
-			 "HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,
-					i_char);
+
+			if(!M_flag){
+				snprintf(http_string, sizeof(http_string),
+				 "GET %s%s?operation=GetCACert&message=%s "
+				 "HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,
+						i_char);
+
+			}else{
+				snprintf(http_string, sizeof(http_string),
+					"GET %s%s?operation=GetCACert&message=%s&%s "
+					"HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,
+						i_char, M_char);
+
+			}
+
+
 			printf("%s: requesting CA certificate\n", pname);
 			if (d_flag)
 				fprintf(stdout, "%s: scep msg: %s", pname,
@@ -581,11 +597,21 @@ main(int argc, char **argv) {
 					i_char = CA_IDENTIFIER;
 
 				/* Forge the HTTP message */
-				snprintf(http_string, sizeof(http_string),
-				 "GET %s%s?operation=GetNextCACert&message=%s "
-				 "HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,
-						i_char);
+				if(!M_flag){
+					snprintf(http_string, sizeof(http_string),
+					 "GET %s%s?operation=GetNextCACert&message=%s "
+					 "HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,
+							i_char);
+
+				}else{
+					snprintf(http_string, sizeof(http_string),
+						"GET %s%s?operation=GetNextCACert&message=%s&%s "
+						"HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,
+							i_char, M_char);
+
+				}
 				printf("%s: requesting nextCA certificate\n", pname);
+
 				if (d_flag)
 					fprintf(stdout, "%s: scep msg: %s", pname,
 						http_string);
@@ -884,11 +910,25 @@ not_enroll:
 			}
 
 			/* Forge the HTTP message */
-			snprintf(http_string, sizeof(http_string),
+		/*	snprintf(http_string, sizeof(http_string),
 				"GET %s%s?operation="
 				"PKIOperation&message="
 				"%s HTTP/1.0\r\n\r\n",
-				p_flag ? "" : "/", dir_name, p);
+				p_flag ? "" : "/", dir_name, p);*/
+
+			if(!M_flag){
+				snprintf(http_string, sizeof(http_string),
+				 "GET %s%s?operation=PKIOperation&message=%s "
+				 "HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,
+						i_char);
+
+			}else{
+				snprintf(http_string, sizeof(http_string),
+					"GET %s%s?operation=PKIOperation&message=%s&%s "
+					"HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,
+						i_char, M_char);
+
+			}
 
 			if (d_flag)
 				fprintf(stdout, "%s: scep msg: %s",
@@ -1016,6 +1056,7 @@ usage() {
 	"\nGeneral OPTIONS\n"
 	"  -u <url>          SCEP server URL\n"
 	"  -p <host:port>    Use proxy server at host:port\n"
+	"  -M <string>		 Monitor Information String name=value&name=value ...\n"
 	"  -g                Enable Engine support\n"
 	"  -h				 Keyforme=ID."//TODO
 	"  -f <file>         Use configuration file\n"

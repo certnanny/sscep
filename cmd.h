@@ -82,6 +82,10 @@ int K_flag;
 int m_flag;
 char *m_char;
 
+/* Monitor Information HTTP get parameter style */
+int M_flag;
+char *M_char;
+
 /* Request count */
 int n_flag;
 int n_num;
