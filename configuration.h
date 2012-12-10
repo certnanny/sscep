@@ -23,9 +23,11 @@
 #define SCEP_CONFIGURATION_SECTION						"sscep"
 #define SCEP_CONFIGURATION_SECTION_ENGINE_TEMPLATE		"sscep_engine_%s"
 #define SCEP_CONFIGURATION_SECTION_GETCA				"sscep_getca"
+#define SCEP_CONFIGURATION_SECTION_GETNEXTCA			"sscep_getnextca"
 #define SCEP_CONFIGURATION_SECTION_ENROLL				"sscep_enroll"
 #define SCEP_CONFIGURATION_SECTION_GETCERT				"sscep_getcert"
 #define SCEP_CONFIGURATION_SECTION_GETCRL				"sscep_getcrl"
+
 
 /*
  * The param "engine" defines the name of the section
@@ -50,6 +52,8 @@
 #define SCEP_CONFIGURATION_ENGINE_DYNPATH				"dynamic_path"
 #define SCEP_CONFIGURATION_ENGINE_MODULEPATH			"MODULE_PATH"
 #define SCEP_CONFIGURATION_PARAM_CACERTFILE				"CACertFile"
+#define SCEP_CONFIGURATION_PARAM_NEXTCACERTFILE			"NextCACertFile"
+#define SCEP_CONFIGURATION_PARAM_CERTROOTCHAINFILE		"ChainRootCACertFile"
 #define SCEP_CONFIGURATION_PARAM_CAIDENTIFIER			"CAIdentifier"
 #define SCEP_CONFIGURATION_PARAM_CERTREQFILE			"CertReqFile"
 #define SCEP_CONFIGURATION_PARAM_DEBUG					"Debug"
@@ -72,6 +76,7 @@
 #define SCEP_CONFIGURATION_PARAM_URL					"URL"
 #define SCEP_CONFIGURATION_PARAM_VERBOSE				"Verbose"
 #define SCEP_CONFIGURATION_PARAM_RESUME					"Resume"
+#define SCEP_CONFIGURATION_PARAM_MONITORINFO            "MonitorInformation"
 
 #ifdef WIN32
 #define SCEP_CONFIGURATION_DEFAULT_DYNAMICPATH_WINDOWS	"%s\\System32\\%s.dll"
@@ -110,6 +115,7 @@ int scep_conf_load_operation_getca(CONF *conf);
 int scep_conf_load_operation_enroll(CONF *conf);
 int scep_conf_load_operation_getcert(CONF *conf);
 int scep_conf_load_operation_getcrl(CONF *conf);
+int scep_conf_load_operation_getnextca(CONF *conf);
 void scep_dump_conf(void);
 void error_memory(void);
 

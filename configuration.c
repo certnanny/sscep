@@ -85,6 +85,12 @@ int scep_conf_load(CONF *conf) {
 			error_memory();
 	}
 
+	if((var = NCONF_get_string(conf, SCEP_CONFIGURATION_SECTION, SCEP_CONFIGURATION_PARAM_MONITORINFO)) && !M_flag) {
+		M_flag = 1;
+		if(!(M_char = strdup(var)))
+			error_memory();
+	}
+
 	if((var = NCONF_get_string(conf, SCEP_CONFIGURATION_SECTION, SCEP_CONFIGURATION_PARAM_VERBOSE)) && !v_flag) {
 		if(!strncmp(var, "true", 3) && !v_flag)
 			v_flag = 1;
@@ -103,6 +109,9 @@ int scep_conf_load(CONF *conf) {
 			break;
 		case SCEP_OPERATION_GETCRL:
 			ret = scep_conf_load_operation_getcrl(conf);
+			break;
+		case SCEP_OPERATION_GETNEXTCA:
+			ret = scep_conf_load_operation_getnextca(conf);
 			break;
 		default:
 			fprintf(stderr, "No operation specified, can't load specific settings!\n");
@@ -277,6 +286,32 @@ int scep_conf_load_operation_getca(CONF *conf) {
 			error_memory();
 	}
 	
+	return 0;
+}
+
+
+
+int scep_conf_load_operation_getnextca(CONF *conf) {
+	char *var;
+
+	if((var = NCONF_get_string(conf, SCEP_CONFIGURATION_SECTION_GETNEXTCA, SCEP_CONFIGURATION_PARAM_CAIDENTIFIER)) && !i_flag) {
+		i_flag = 1;
+		if(!(i_char = strdup(var)))
+			error_memory();
+	}
+
+	if((var = NCONF_get_string(conf, SCEP_CONFIGURATION_SECTION_GETNEXTCA, SCEP_CONFIGURATION_PARAM_CERTROOTCHAINFILE)) && !C_flag) {
+		C_flag = 1;
+		if(!(C_char = strdup(var)))
+			error_memory();
+	}
+
+	if((var = NCONF_get_string(conf, SCEP_CONFIGURATION_SECTION_GETCA, SCEP_CONFIGURATION_PARAM_FINGERPRINT)) && !F_flag) {
+		F_flag = 1;
+		if(!(F_char = strdup(var)))
+			error_memory();
+	}
+
 	return 0;
 }
 
