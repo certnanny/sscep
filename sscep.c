@@ -919,14 +919,12 @@ not_enroll:
 			if(!M_flag){
 				snprintf(http_string, sizeof(http_string),
 				 "GET %s%s?operation=PKIOperation&message=%s "
-				 "HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,
-						i_char);
+				 "HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name, p);
 
 			}else{
 				snprintf(http_string, sizeof(http_string),
 					"GET %s%s?operation=PKIOperation&message=%s&%s "
-					"HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,
-						i_char, M_char);
+					"HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,p, M_char);
 
 			}
 
