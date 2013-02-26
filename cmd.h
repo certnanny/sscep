@@ -16,6 +16,10 @@
 int c_flag;
 char *c_char;
 
+/* CA certificate chain*/
+int C_flag;
+char *C_char;
+
 /* Debug? */
 int d_flag;
 
@@ -24,7 +28,7 @@ int e_flag;
 char *e_char;
 
 /* Encryption algorithm */
-char *E_char; 
+char *E_char;
 int E_flag;
 
 /* Configuration file */
@@ -32,7 +36,7 @@ int f_flag;
 char *f_char;
 
 /* Fingerprint algorithm */
-char *F_char; 
+char *F_char;
 int F_flag;
 
 /* enable EnGine support */
@@ -78,39 +82,43 @@ int K_flag;
 int m_flag;
 char *m_char;
 
+/* Monitor Information HTTP get parameter style */
+int M_flag;
+char *M_char;
+
 /* Request count */
 int n_flag;
 int n_num;
 
 /* Already existing certificate (to be renewed) */
-char *O_char; 
+char *O_char;
 int O_flag;
 
 /* Proxy */
-char *p_char; 
+char *p_char;
 int p_flag;
 
 /* GetCrl CRL file */
-char *r_char; 
+char *r_char;
 int r_flag;
 
 /* Resume */
 int R_flag;
 
 /* Certificate serial number */
-char *s_char; 
+char *s_char;
 int s_flag;
 
 /* Signature algorithm */
-char *S_char; 
+char *S_char;
 int S_flag;
 
 /* Polling interval */
-int t_num; 
+int t_num;
 int t_flag;
 
 /* Max polling time */
-int T_num; 
+int T_num;
 int T_flag;
 
 /* URL */
