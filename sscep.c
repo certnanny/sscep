@@ -829,16 +829,19 @@ not_enroll:
 			}
 			/* User supplied serial number */
 			if (s_flag) {
-			    if (!(ASN1_INTEGER_set(scep_t.ias_getcert->serial,
-						(long)atoi(s_char)))) {
-                			fprintf(stderr, "%s: error converting "
-						"serial\n", pname);
-                			ERR_print_errors_fp(stderr);
-                			exit (SCEP_PKISTATUS_ERROR);
-				}
+				BIGNUM *bn;
+				ASN1_INTEGER *ai;
+				int len = BN_dec2bn(&bn , s_char);
+				if (!len || !(ai = BN_to_ASN1_INTEGER(bn, NULL))) {
+					fprintf(stderr, "%s: error converting serial\n", pname);
+					ERR_print_errors_fp(stderr);
+					exit (SCEP_PKISTATUS_SS);
+				 }
+				 scep_t.ias_getcert->serial = ai;
 			}
 		break;
 	}
+
 	switch(operation_flag) {
 		case SCEP_OPERATION_ENROLL:
 			if (v_flag)
@@ -1056,7 +1059,7 @@ usage() {
 	"  -p <host:port>    Use proxy server at host:port\n"
 	"  -M <string>		 Monitor Information String name=value&name=value ...\n"
 	"  -g                Enable Engine support\n"
-	"  -h				 Keyforme=ID."//TODO
+	"  -h				 Keyforme=ID. \n"//TODO
 	"  -f <file>         Use configuration file\n"
 	"  -c <file>         CA certificate file (write if OPERATION is getca or getnextca)\n"
 	"  -E <name>         PKCS#7 encryption algorithm (des|3des|blowfish)\n"
