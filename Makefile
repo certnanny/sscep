@@ -23,6 +23,10 @@ $(PROG): $(OBJS)
 clean:
 	rm -f $(PROG) $(OBJS) $(MAN) core
 
+test:
+	prove t/*.t
+
 install:
 	./install-sh $(PROG) $(BINDIR)
 	./install-sh $(MAN) $(MANDIR)
+
