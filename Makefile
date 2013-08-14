@@ -7,8 +7,8 @@ MANDIR = /usr/local/man/man8
 
 CC	= gcc
 #WITH_DEBUG   = -g
-OPENSSL = /c/Users/tob130/Downloads/openssl-mingw
-CFLAGS	= -Wall -O $(WITH_DEBUG) -I $(OPENSSL)/include
+OPENSSL = /path/to/openssl
+CFLAGS	= -Wall -O $(WITH_DEBUG) -I $(OPENSSL)/include 
 
 LDFLAGS = -L$(OPENSSL)/lib
 LDLIBS = -lcrypto
