@@ -78,9 +78,9 @@ main(int argc, char **argv) {
 	STACK_OF(X509)		*nextcara = NULL;
 	X509 				*cert=NULL;
 	PKCS7 p7;
-	scep_conf = NULL;
 	int i;
 	
+
 
 #ifdef WIN32
 	WORD wVersionRequested;
@@ -123,6 +123,7 @@ main(int argc, char **argv) {
 
 	/* Set timeout */
 	timeout = TIMEOUT;
+
 
 	/* Check operation parameter */
 	if (!argv[1]) {
@@ -269,8 +270,11 @@ main(int argc, char **argv) {
 	if (d_flag)
 		v_flag = 1;
 	
-	if(f_char)
+	if(f_char){
 		scep_conf_init(f_char);
+	}else{
+		scep_conf = NULL;    //moved init to here otherwise compile error on windows
+	}
 	/* Read in the configuration file: */
 	/*if (f_char) {
 	#ifdef WIN32
