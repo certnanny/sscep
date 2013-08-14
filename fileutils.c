@@ -8,7 +8,9 @@
 
 /* Misc. cert/crl manipulation routines */
 
+#if !defined(__APPLE__)
 #include <malloc.h>
+#endif
 #include "sscep.h"
 
 /* Open the inner, decrypted PKCS7 and try to write CRL.  */ 
