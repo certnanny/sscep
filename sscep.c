@@ -78,6 +78,7 @@ main(int argc, char **argv) {
 	STACK_OF(X509)		*nextcara = NULL;
 	X509 				*cert=NULL;
 	PKCS7 p7;
+	scep_conf = NULL;
 	int i;
 	
 
@@ -566,7 +567,7 @@ main(int argc, char **argv) {
 
 			/* Write PEM-formatted file: */
 			#ifdef WIN32
-			if ((fopen_s(&fp, c_char, "w")))
+			if ((fopen_s(&fp,c_char , "w")))
 			#else
 			if (!(fp = fopen(c_char, "w")))
 			#endif
@@ -575,7 +576,7 @@ main(int argc, char **argv) {
 					"writing\n", pname);
 				exit (SCEP_PKISTATUS_ERROR);
 			}
-			if (PEM_write_X509(fp, cacert) != 1) {
+			if (PEM_write_X509(fp, c_char) != 1) {
 				fprintf(stderr, "%s: error while writing CA "
 					"file\n", pname);
 				ERR_print_errors_fp(stderr);
@@ -729,7 +730,7 @@ main(int argc, char **argv) {
 			  exit (SCEP_PKISTATUS_FILE);
 			}
 			
-			if(scep_conf->engine) {
+			if(scep_conf != NULL) {
 				sscep_engine_read_key_new(&rsa, k_char, scep_t.e);
 			} else {
 				read_key(&rsa, k_char);
@@ -742,7 +743,7 @@ main(int argc, char **argv) {
 
 			if (K_flag) {
 				//TODO auf hwcrhk prfen?
-				if(scep_conf->engine) {
+				if(scep_conf != NULL) {
 					sscep_engine_read_key_old(&renewal_key, K_char, scep_t.e);
 				} else {
 					read_key(&renewal_key, K_char);
@@ -1073,6 +1074,7 @@ usage() {
 	"  -C <file>         Local certificate chain file for signature verification in PEM format \n"
 	"  -F <name>         Fingerprint algorithm\n"
 	"  -c <file>         CA certificate file (write if OPERATION is getca or getnextca)\n"
+	"  -w <file>         Write signer certificate in file (optional) \n"
 	"\nOPTIONS for OPERATION enroll are\n"
  	"  -k <file>         Private key file\n"
 	"  -r <file>         Certificate request file\n"

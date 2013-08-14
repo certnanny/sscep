@@ -343,6 +343,7 @@ int pkcs7_verify_unwrap(struct scep *s , char * cachainfile ) {
 	X509				*recipientcert;
 	EVP_PKEY			*recipientkey;
     X509   				*signercert;
+    FILE 				*fp;
 
     X509_STORE_CTX 		*cert_ctx;
 
@@ -452,9 +453,34 @@ int pkcs7_verify_unwrap(struct scep *s , char * cachainfile ) {
     	fprintf(stderr, "%s: The signer certificate verification failed \n", pname);
     }
 
+    /*Write pem encoded signer certificate */
+#ifdef WIN32
+	if ((fopen_s(&fp, w_char, "w")))
+#else
+	if (!(fp = fopen(w_char, "w")))
+#endif
+	{
+		fprintf(stderr, "%s: cannot open cert file for writing\n",
+				w_char);
+		exit (SCEP_PKISTATUS_FILE);
+	}
+	if (v_flag)
+		printf("%s: writing cert\n", w_char);
+	if (d_flag)
+		PEM_write_X509(stdout, signercert);
+	if (PEM_write_X509(fp, signercert) != 1) {
+		fprintf(stderr, "%s: error while writing certificate "
+			"file\n", w_char);
+		ERR_print_errors_fp(stderr);
+		exit (SCEP_PKISTATUS_FILE);
+	}else{
+		printf("%s: certificate written as %s\n", pname, w_char);
+	}
+
 	/* Copy enveloped data into PKCS#7 */
 	s->reply_p7 = d2i_PKCS7_bio(outbio, NULL);
 
+	(void)fclose(fp);
 	X509_STORE_free(cert_store);
 	X509_STORE_CTX_cleanup(cert_ctx);
 
