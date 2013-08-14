@@ -306,9 +306,15 @@ int scep_conf_load_operation_getnextca(CONF *conf) {
 			error_memory();
 	}
 
-	if((var = NCONF_get_string(conf, SCEP_CONFIGURATION_SECTION_GETCA, SCEP_CONFIGURATION_PARAM_FINGERPRINT)) && !F_flag) {
+	if((var = NCONF_get_string(conf, SCEP_CONFIGURATION_SECTION_GETNEXTCA, SCEP_CONFIGURATION_PARAM_FINGERPRINT)) && !F_flag) {
 		F_flag = 1;
 		if(!(F_char = strdup(var)))
+			error_memory();
+	}
+
+	if((var = NCONF_get_string(conf, SCEP_CONFIGURATION_SECTION_GETNEXTCA, SCEP_CONFIGURATION_PARAM_SIGNERCERTIFICATE)) && !w_flag) {
+		w_flag = 1;
+		if(!(w_char = strdup(var)))
 			error_memory();
 	}
 
