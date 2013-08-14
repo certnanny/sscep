@@ -78,6 +78,7 @@ main(int argc, char **argv) {
 	STACK_OF(X509)		*nextcara = NULL;
 	X509 				*cert=NULL;
 	PKCS7 p7;
+	scep_conf = NULL;
 	int i;
 	
 
@@ -566,7 +567,7 @@ main(int argc, char **argv) {
 
 			/* Write PEM-formatted file: */
 			#ifdef WIN32
-			if ((fopen_s(&fp, c_char, "w")))
+			if ((fopen_s(&fp,c_char , "w")))
 			#else
 			if (!(fp = fopen(c_char, "w")))
 			#endif
@@ -575,7 +576,7 @@ main(int argc, char **argv) {
 					"writing\n", pname);
 				exit (SCEP_PKISTATUS_ERROR);
 			}
-			if (PEM_write_X509(fp, cacert) != 1) {
+			if (PEM_write_X509(fp, c_char) != 1) {
 				fprintf(stderr, "%s: error while writing CA "
 					"file\n", pname);
 				ERR_print_errors_fp(stderr);
@@ -729,7 +730,7 @@ main(int argc, char **argv) {
 			  exit (SCEP_PKISTATUS_FILE);
 			}
 			
-			if(scep_conf->engine) {
+			if(scep_conf != NULL) {
 				sscep_engine_read_key_new(&rsa, k_char, scep_t.e);
 			} else {
 				read_key(&rsa, k_char);
@@ -742,7 +743,7 @@ main(int argc, char **argv) {
 
 			if (K_flag) {
 				//TODO auf hwcrhk prfen?
-				if(scep_conf->engine) {
+				if(scep_conf != NULL) {
 					sscep_engine_read_key_old(&renewal_key, K_char, scep_t.e);
 				} else {
 					read_key(&renewal_key, K_char);
@@ -829,16 +830,19 @@ not_enroll:
 			}
 			/* User supplied serial number */
 			if (s_flag) {
-			    if (!(ASN1_INTEGER_set(scep_t.ias_getcert->serial,
-						(long)atoi(s_char)))) {
-                			fprintf(stderr, "%s: error converting "
-						"serial\n", pname);
-                			ERR_print_errors_fp(stderr);
-                			exit (SCEP_PKISTATUS_ERROR);
-				}
+				BIGNUM *bn;
+				ASN1_INTEGER *ai;
+				int len = BN_dec2bn(&bn , s_char);
+				if (!len || !(ai = BN_to_ASN1_INTEGER(bn, NULL))) {
+					fprintf(stderr, "%s: error converting serial\n", pname);
+					ERR_print_errors_fp(stderr);
+					exit (SCEP_PKISTATUS_SS);
+				 }
+				 scep_t.ias_getcert->serial = ai;
 			}
 		break;
 	}
+
 	switch(operation_flag) {
 		case SCEP_OPERATION_ENROLL:
 			if (v_flag)
@@ -1056,7 +1060,7 @@ usage() {
 	"  -p <host:port>    Use proxy server at host:port\n"
 	"  -M <string>		 Monitor Information String name=value&name=value ...\n"
 	"  -g                Enable Engine support\n"
-	"  -h				 Keyforme=ID."//TODO
+	"  -h				 Keyforme=ID. \n"//TODO
 	"  -f <file>         Use configuration file\n"
 	"  -c <file>         CA certificate file (write if OPERATION is getca or getnextca)\n"
 	"  -E <name>         PKCS#7 encryption algorithm (des|3des|blowfish)\n"
@@ -1067,8 +1071,10 @@ usage() {
 	"  -i <string>       CA identifier string\n"
 	"  -F <name>         Fingerprint algorithm\n"
 	"\nOPTIONS for OPERATION getnextca are\n"
-	"  -C <file>         Local certificate chain file for signature verification\n"
+	"  -C <file>         Local certificate chain file for signature verification in PEM format \n"
 	"  -F <name>         Fingerprint algorithm\n"
+	"  -c <file>         CA certificate file (write if OPERATION is getca or getnextca)\n"
+	"  -w <file>         Write signer certificate in file (optional) \n"
 	"\nOPTIONS for OPERATION enroll are\n"
  	"  -k <file>         Private key file\n"
 	"  -r <file>         Certificate request file\n"
