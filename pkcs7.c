@@ -454,6 +454,9 @@ int pkcs7_verify_unwrap(struct scep *s , char * cachainfile ) {
     }
 
     /*Write pem encoded signer certificate */
+	if(w_flag)
+	{
+
 #ifdef WIN32
 	if ((fopen_s(&fp, w_char, "w")))
 #else
@@ -468,19 +471,22 @@ int pkcs7_verify_unwrap(struct scep *s , char * cachainfile ) {
 		printf("%s: writing cert\n", w_char);
 	if (d_flag)
 		PEM_write_X509(stdout, signercert);
-	if (PEM_write_X509(fp, signercert) != 1) {
-		fprintf(stderr, "%s: error while writing certificate "
-			"file\n", w_char);
-		ERR_print_errors_fp(stderr);
-		exit (SCEP_PKISTATUS_FILE);
-	}else{
-		printf("%s: certificate written as %s\n", pname, w_char);
-	}
 
+		if (PEM_write_X509(fp, signercert) != 1) {
+			fprintf(stderr, "%s: error while writing certificate "
+				"file\n", w_char);
+			ERR_print_errors_fp(stderr);
+			exit (SCEP_PKISTATUS_FILE);
+		}else{
+			printf("%s: certificate written as %s\n", pname, w_char);
+		}
+
+		(void)fclose(fp);
+	}
 	/* Copy enveloped data into PKCS#7 */
 	s->reply_p7 = d2i_PKCS7_bio(outbio, NULL);
 
-	(void)fclose(fp);
+
 	X509_STORE_free(cert_store);
 	X509_STORE_CTX_cleanup(cert_ctx);
 
