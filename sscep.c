@@ -87,7 +87,7 @@ main(int argc, char **argv) {
 	WSADATA wsaData;
 	int err;
 	//printf("Starting sscep\n");
-	fprintf(stdout, "%s: starting sscep on WIN32, sscep version %s\n",	pname, VERSION);
+	//fprintf(stdout, "%s: starting sscep on WIN32, sscep version %s\n",	pname, VERSION);
        
 	wVersionRequested = MAKEWORD( 2, 2 );
  
@@ -528,10 +528,13 @@ main(int argc, char **argv) {
 			}
 
 
-			printf("%s: requesting CA certificate\n", pname);
-			if (d_flag)
+
+			if (d_flag){
+				printf("%s: requesting CA certificate\n", pname);
 				fprintf(stdout, "%s: scep msg: %s", pname,
-					http_string);
+									http_string);
+			}
+
 			/*
 			 * Send http message.
 			 * Response is written to http_response struct "reply".
@@ -548,7 +551,9 @@ main(int argc, char **argv) {
 				   "should define CA identifier (-i)\n", pname);
 				exit (SCEP_PKISTATUS_SUCCESS);
 			}
-			printf("%s: valid response from server\n", pname);
+			if (v_flag){
+				printf("%s: valid response from server\n", pname);
+			}
 			if (reply.type == SCEP_MIME_GETCA_RA) {
 				/* XXXXXXXXXXXXXXXXXXXXX chain not verified */
 				write_ca_ra(&reply);
@@ -562,11 +567,14 @@ main(int argc, char **argv) {
 				ERR_print_errors_fp(stderr);
 				exit (SCEP_PKISTATUS_ERROR);
 			}
-			printf("%s: %s fingerprint: ", pname,
-				OBJ_nid2sn(EVP_MD_type(fp_alg)));
-			for (c = 0; c < (int)n; c++) {
-				printf("%02X%c",md[c],
-					(c + 1 == (int)n) ?'\n':':');
+			if (v_flag){
+				printf("%s: %s fingerprint: ", pname,
+					OBJ_nid2sn(EVP_MD_type(fp_alg)));
+				for (c = 0; c < (int)n; c++) {
+					printf("%02X%c",md[c],
+						(c + 1 == (int)n) ?'\n':':');
+				}
+
 			}
 
 			/* Write PEM-formatted file: */
@@ -586,6 +594,7 @@ main(int argc, char **argv) {
 				ERR_print_errors_fp(stderr);
 				exit (SCEP_PKISTATUS_ERROR);
 			}
+			if (v_flag)
 			printf("%s: CA certificate written as %s\n",
 				pname, c_char);
 			(void)fclose(fp);
@@ -615,11 +624,14 @@ main(int argc, char **argv) {
 							i_char, M_char);
 
 				}
-				printf("%s: requesting nextCA certificate\n", pname);
 
-				if (d_flag)
+
+				if (d_flag){
+					printf("%s: requesting nextCA certificate\n", pname);
 					fprintf(stdout, "%s: scep msg: %s", pname,
 						http_string);
+				}
+
 				/*
 				 * Send http message.
 				 * Response is written to http_response struct "reply".
@@ -639,6 +651,7 @@ main(int argc, char **argv) {
 					exit (SCEP_PKISTATUS_SUCCESS);
 				}
 
+				if(d_flag)
 				printf("%s: valid response from server\n", pname);
 
 				if (reply.type == SCEP_MIME_GETNEXTCA) {
@@ -704,6 +717,7 @@ main(int argc, char **argv) {
 			    			ERR_print_errors_fp(stderr);
 			    			exit (SCEP_PKISTATUS_FILE);
 			    		}
+			    		if(v_flag)
 			    		printf("%s: certificate written as %s\n", pname, name);
 			    		(void)fclose(fp);
 			    }
@@ -727,6 +741,7 @@ main(int argc, char **argv) {
 			 * Read in CA cert, private key and certificate
 			 * request in global variables.
 			 */
+
 		        read_ca_cert();
 
 			if (!k_flag) {
@@ -739,6 +754,7 @@ main(int argc, char **argv) {
 			} else {
 				read_key(&rsa, k_char);
 			}
+
 
 			if ((K_flag && !O_flag) || (!K_flag && O_flag)) {
 			  fprintf(stderr, "%s: -O also requires -K (and vice-versa)\n", pname);
