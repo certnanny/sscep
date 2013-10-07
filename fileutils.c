@@ -159,7 +159,7 @@ write_local_cert(struct scep *s) {
 		exit (SCEP_PKISTATUS_FILE);
 	}
 	if (v_flag)
-		printf("%s: writing cert\n", pname);
+		printf("%s: certificate written as %s\n", pname, l_char);
 	if (d_flag)
 		PEM_write_X509(stdout, localcert);
 	if (PEM_write_X509(fp, localcert) != 1) {
@@ -168,7 +168,6 @@ write_local_cert(struct scep *s) {
 		ERR_print_errors_fp(stderr);
 		exit (SCEP_PKISTATUS_FILE);
 	}
-	printf("%s: certificate written as %s\n", pname, l_char);
 	(void)fclose(fp);
 }
 
@@ -225,7 +224,7 @@ write_other_cert(struct scep *s) {
 		exit (SCEP_PKISTATUS_FILE);
 	}
 	if (v_flag)
-		printf("%s: writing cert\n", pname);
+		printf("%s: certificate written as %s\n", pname, w_char);
 	if (d_flag)
 		PEM_write_X509(stdout, othercert);
 	if (PEM_write_X509(fp, othercert) != 1) {
@@ -234,7 +233,6 @@ write_other_cert(struct scep *s) {
 		ERR_print_errors_fp(stderr);
 		exit (SCEP_PKISTATUS_FILE);
 	}
-	printf("%s: certificate written as %s\n", pname, w_char);
 	(void)fclose(fp);
 }
 
@@ -294,9 +292,12 @@ write_ca_ra(struct http_reply *s) {
 		snprintf(name, 1024, "%s-%d", c_char, i);
 
 		/* Read and print certificate information */
+		if (v_flag){
 		printf("\n%s: found certificate with\n  subject: %s\n", pname,
 		X509_NAME_oneline(X509_get_subject_name(cert),
 					buffer, sizeof(buffer)));
+		}
+		if (v_flag)
 		printf("  issuer: %s\n", 
 			X509_NAME_oneline(X509_get_issuer_name(cert),
 					buffer, sizeof(buffer)));
@@ -313,14 +314,17 @@ write_ca_ra(struct http_reply *s) {
 			/* exit (SCEP_PKISTATUS_FILE); */
 		} else {
 			ext = X509_get_ext(cert, index);
-			printf("  usage: ");
-			X509V3_EXT_print_fp(stdout, ext, 0, 0);
-			printf("\n");
+			if (v_flag){
+				printf("  usage: ");
+				X509V3_EXT_print_fp(stdout, ext, 0, 0);
+				printf("\n");
+			}
 		}
-
-		printf("  %s fingerprint: ", OBJ_nid2sn(EVP_MD_type(fp_alg)));
-		for (c = 0; c < (int)n; c++) {
-			printf("%02X%c",md[c], (c + 1 == (int)n) ?'\n':':');
+		if (v_flag){
+			printf("  %s fingerprint: ", OBJ_nid2sn(EVP_MD_type(fp_alg)));
+			for (c = 0; c < (int)n; c++) {
+				printf("%02X%c",md[c], (c + 1 == (int)n) ?'\n':':');
+			}
 		}
 
 		/* Write PEM-formatted file: */
@@ -335,7 +339,7 @@ write_ca_ra(struct http_reply *s) {
 			exit (SCEP_PKISTATUS_FILE);
 		}
 		if (v_flag)
-			printf("%s: writing cert\n", pname);
+			printf("%s: certificate written as %s\n", pname, name);
 		if (d_flag)
 			PEM_write_X509(stdout, cert);
 		if (PEM_write_X509(fp, cert) != 1) {
@@ -344,7 +348,7 @@ write_ca_ra(struct http_reply *s) {
 			ERR_print_errors_fp(stderr);
 			exit (SCEP_PKISTATUS_FILE);
 		}
-		printf("%s: certificate written as %s\n", pname, name);
+
 	}
 	(void)fclose(fp);
 	exit (SCEP_PKISTATUS_SUCCESS);

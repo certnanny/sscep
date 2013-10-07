@@ -478,6 +478,7 @@ int pkcs7_verify_unwrap(struct scep *s , char * cachainfile ) {
 			ERR_print_errors_fp(stderr);
 			exit (SCEP_PKISTATUS_FILE);
 		}else{
+			if(v_flag)
 			printf("%s: certificate written as %s\n", pname, w_char);
 		}
 
