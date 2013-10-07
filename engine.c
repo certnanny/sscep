@@ -162,10 +162,10 @@ ENGINE *scep_engine_load_dynamic(ENGINE *e) {
 void sscep_engine_read_key(EVP_PKEY **key, char *id, ENGINE *e) {
 	*key = ENGINE_load_private_key(e, id, NULL, NULL);
 	//ERR_print_errors_fp(stderr);
-	
+
 	if(*key == 0) {
 		if(v_flag)
-			printf("%s: Pivate key %s could not be loaded via engine %s, trying file load\n", pname, id, scep_conf->engine->engine_id);
+			printf("%s: Pivate key %s could not be loaded via engine, trying file load\n", pname);
 		read_key(key, id);
 		if(*key != 0)
 			printf("%s: Found private key %s as file. If the engine can handle it, loading the file\n", pname, id);
