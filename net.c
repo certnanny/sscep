@@ -197,6 +197,7 @@ send_msg(struct http_reply *http,char *msg,char *host,int port,int operation) {
 	return (0);
 
 mime_err:
+if (v_flag)
 	fprintf(stderr, "%s: wrong (or missing) MIME content type\n", pname);
 	return (1);
 
