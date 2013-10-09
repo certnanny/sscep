@@ -639,10 +639,12 @@ main(int argc, char **argv) {
 				reply.payload = NULL;
 				if ((c = send_msg (&reply, http_string, host_name,
 						host_port, operation_flag)) == 1) {
+					if(v_flag){
 					fprintf(stderr, "%s: error while sending "
 						"message\n", pname);
 					fprintf(stderr, "%s: getnextCA might be not available"
 											"\n", pname);
+					}
 					exit (SCEP_PKISTATUS_NET);
 				}
 				if (reply.payload == NULL) {

@@ -597,7 +597,7 @@ int pkcs7_unwrap(struct scep *s) {
 		fprintf(stderr, "%s: cannot find transId\n", pname);
 		exit (SCEP_PKISTATUS_P7);
 	}
-	if (v_flag)
+//	if (v_flag)
 		printf("%s: reply transaction id: %s\n", pname, p);
 	if (strncmp(s->transaction_id, p, strlen(p))) {
 		fprintf(stderr, "%s: transaction id mismatch\n", pname);
