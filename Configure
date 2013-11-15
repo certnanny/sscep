@@ -1,0 +1,44 @@
+#!/bin/sh
+#
+# Configure.sh
+#
+# Configure sscep
+#
+
+solaris () {
+  ln -fs Solaris/Makefile Makefile
+  echo "Done."
+  echo "Run 'make' to build sscep."
+  echo "Run 'make package' to build sscep and create a Solaris installation package."
+}
+
+aix () {
+  ln -fs AIX/Makefile Makefile
+}
+
+linux () {
+  ln -fs Linux/Makefile Makefile
+}
+
+
+##### MAIN #####
+
+OS=`uname -s`
+
+if [ x"$OS" = "xSunOS" ]
+then
+  echo "Configuring for $OS..."
+  solaris
+elif [ x"$OS" = "xLinux" ]
+then
+  echo "Configuring for $OS..."
+  linux
+elif [ x"$OS" = "xAIX" ]
+then
+  echo "Configuring for $OS..."
+  aix
+else
+  echo "OS $OS not supported, aborting..." 1&>2
+  exit 1
+fi
+

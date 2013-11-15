@@ -7,4 +7,7 @@
 /pkcs7.o
 /sceputils.o
 /sscep
+/sscep_static
+/sscep_dyn
 /sscep.o
+/.git_checkout

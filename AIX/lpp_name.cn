@@ -1,0 +1,40 @@
+4 R I CertNanny.rte {
+CertNanny.rte.rte 00.11.0000.0000 01 N U en_US CertNanny.rte CertNanny automatic renewal of certificates using the SCEP protocol
+[
+*prereq bos.rte 6.1.0.0
+%
+/opt 1
+/opt/CertNanny 59
+/opt/CertNanny/bin 6087
+/opt/CertNanny/lib 3
+/opt/CertNanny/lib/java 10
+/opt/CertNanny/lib/perl 156
+/opt/CertNanny/lib/perl/CertNanny 314
+/opt/CertNanny/lib/perl/CertNanny/Enroll 35
+/opt/CertNanny/lib/perl/CertNanny/HSM 45
+/opt/CertNanny/lib/perl/CertNanny/Keystore 548
+/opt/CertNanny/lib/perl/__Win32 145
+/usr 3
+/usr/local 4
+/usr/local/bin 
+/usr/local/lib 1
+/usr/local/lib/CertNanny-0.9.0 
+/usr/local/man 
+/usr/lpp 1
+/usr/lpp/CertNanny.rte 
+/var 1
+/var/CertNanny 9
+/var/CertNanny/AutoritativeRootcerts 
+/var/CertNanny/etc 37
+/var/CertNanny/logs 
+/var/CertNanny/quarantine 
+/var/CertNanny/state 
+/var/CertNanny/tmp 
+INSTWORK 232 232
+%
+%
+%
+%
+]
+}
+
