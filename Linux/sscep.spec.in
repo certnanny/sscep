@@ -1,0 +1,44 @@
+# 
+# SSCEP spec file 
+# 
+
+Name:         sscep 
+License:      GPL 
+Group:        Productivity/Security 
+Autoreqprov:  on 
+Summary:      Simple SCEP client
+Version:      VERSIONINFO
+Release:      1 
+Source:       %{name}-%{version}.tar.gz 
+URL:          https://github.com/certnanny/sscep
+BuildRoot:    %{_tmppath}/%{name}-build 
+Requires:     openssl, sscep 
+
+%description 
+Simple SCEP (Simple Certificate Enrollment Protocol) client.
+
+%prep 
+%setup -n %{name}-%{version} 
+
+%build 
+make 
+
+%install 
+mkdir -p $RPM_BUILD_ROOT 
+install -D -m 755 sscep_dyn $RPM_BUILD_ROOT/opt/CertNanny/bin/sscep_dyn 
+install -D -m 755 sscep_static $RPM_BUILD_ROOT/opt/CertNanny/bin/sscep_static 
+install -D -m 644 COPYRIGHT $RPM_BUILD_ROOT/opt/CertNanny/COPYRIGHT.sscep
+/bin/ln -fs sscep_static $RPM_BUILD_ROOT/opt/CertNanny/bin/sscep 
+
+%clean 
+rm -rf $RPM_BUILD_ROOT 
+
+%files 
+%defattr(-,root,root) 
+%doc README
+
+/opt/CertNanny/bin/sscep
+/opt/CertNanny/bin/sscep_dyn
+/opt/CertNanny/bin/sscep_static 
+/opt/CertNanny/COPYRIGHT.sscep
+

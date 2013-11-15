@@ -1,0 +1,12 @@
+PKG="CertNanny-sscep"
+NAME="CertNanny SSCEP vVERSIONINFO"
+VERSION="VERSIONINFO"
+PSTAMP="DATETIMESTAMP"
+ARCH="UNAME-P-ARCHITECTURE"
+CLASSES="none"
+CATEGORY="utility"
+VENDOR="https://github.com/certnanny/sscep"
+ISTATES="S s 1 2 3"
+RSTATES="S s 1 2 3"
+BASEDIR="/"
+
