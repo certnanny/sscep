@@ -1,0 +1,12 @@
+i pkginfo
+d none /opt ? ? ?
+d none /opt/CertNanny 0755 root root
+d none /opt/CertNanny/bin 0755 root root
+f none /opt/CertNanny/bin/sscep_static 0755 root root
+f none /opt/CertNanny/bin/sscep_dyn 0755 root root
+s none /opt/CertNanny/bin/sscep=/opt/CertNanny/bin/sscep_static
+f none /opt/CertNanny/COPYRIGHT.sscep 0644 root root
+d none /usr ? ? ?
+d none /usr/bin ? ? ?
+s none /usr/bin/sscep=/opt/CertNanny/bin/sscep_static
+

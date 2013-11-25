@@ -1,0 +1,36 @@
+Compiling and packaging sscep
+
+GENERAL
+=======
+Makefile assumes that you have unpacked and compiled the
+OpenSSL source in a separate directory called "openssl"
+(can be a link) next to the sscep directory. You need to
+change the Makefile if this is not the case.
+
+Running make with no arguments will create two binaries,
+one statically linked "sscep_static" and one dynamically
+linked "sscep_dyn".
+
+OpenSSL:
+On some platforms, you need to request the build of 
+shared libs explicitly:
+openssl$ ./config --shared
+
+
+Solaris
+=======
+Make sure you compile the openssl library as 64bit, 
+otherwise the link step will fail.
+
+
+AIX
+===
+To create a package the mkinstallp is used. This command is
+part of the fileset bos.adt.insttools which is not installed
+by default. You need to install this package to generate lpp
+packages
+
+Furthermore, to run mkinstallp (and therefore "make package")
+you need to be root or a member of the system group.
+
+
