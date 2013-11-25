@@ -1,0 +1,23 @@
+Package Name: CertNanny
+Package VRMF: VERSIONINFO
+Update: N
+Fileset
+  Fileset Name: CertNanny.sscep
+  Fileset VRMF: VERSIONINFO
+  Fileset Description: Simple SCEP client
+  Bosboot required: N
+  License agreement acceptance required: N
+  Include license files in this package: N
+  Requisites:
+  USRFiles
+    /opt/CertNanny
+    /opt/CertNanny/COPYRIGHT.sscep
+    /opt/CertNanny/bin
+    /opt/CertNanny/bin/sscep_static
+    /opt/CertNanny/bin/sscep_dyn
+  EOUSRFiles
+  ROOT Part: N
+  ROOTFiles
+  EOROOTFiles
+EOFileset
+
