@@ -79,6 +79,7 @@ main(int argc, char **argv) {
 	X509 				*cert=NULL;
 	PKCS7 p7;
 	int i;
+	int required_option_space;
 	
 
 
@@ -209,8 +210,27 @@ main(int argc, char **argv) {
 				m_char = optarg;
 				break;
 			case 'M':
-				M_flag = 1;
-				M_char = optarg;
+				if(!M_flag) {
+					/* if this is the first time the option appears, create a
+					 * new string.
+					 */
+					required_option_space = strlen(optarg) + 1;
+					M_char = malloc(required_option_space);
+					if(!M_char)
+						error_memory();
+					strncpy(M_char, optarg, required_option_space);
+					// set the flag, so we already have a string
+					M_flag = 1;
+				} else {
+					/* we already have a string, just extend it. */
+					// old part + new part + &-sign + null byte
+					required_option_space = strlen(M_char) + strlen(optarg) + 2;
+					M_char = realloc(M_char, required_option_space);
+					if(!M_char)
+						error_memory();
+					strncat(M_char, "&", 1);
+					strncat(M_char, optarg, strlen(optarg));
+				}
 				break;
 			case 'n':
 				n_flag = 1;
