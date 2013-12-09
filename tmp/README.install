@@ -1,0 +1,25 @@
+To install SSCEP on AIX, perform the following steps:
+
+1. Go to the directory where the installation package is located
+
+2. Create the .toc file using the inutoc command 
+	inutoc .
+
+3. Install the SSCEP package using the installp command
+	installp -acd. CertNanny.sscep
+
+4. (Optional) Verify the installation with lslpp
+	lslpp -l CertNanny.sscep
+
+Exampe session:
+
+# cd /usr/sys/inst.images
+# inutoc .
+# installp -acd. CertNanny.sscep
+# lslpp -l CertNanny.sscep      
+  Fileset                      Level  State      Description         
+  ----------------------------------------------------------------------------
+Path: /usr/lib/objrepos
+  CertNanny.sscep            a.b.c.d  COMMITTED  Simple SCEP client
+# 
+
