@@ -9,6 +9,10 @@ Fileset
   License agreement acceptance required: N
   Include license files in this package: N
   Requisites:
+  USRLIBLPPFiles
+    Pre-installation Script: __PACKAGINGDIR__/AIX/sscep.preinstall.sh
+    Pre-deinstall Script: __PACKAGINGDIR__/AIX/sscep.postinstall.sh
+  EOUSRLIBLPPFiles
   USRFiles
     /opt/CertNanny
     /opt/CertNanny/COPYRIGHT.sscep

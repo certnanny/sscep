@@ -2,14 +2,15 @@
 
 echo "Creating package..."
 mkdir -p opt/CertNanny/bin
+mkdir -p opt/CertNanny/inst
 mkdir -p usr/bin
 cp COPYRIGHT opt/CertNanny/COPYRIGHT.sscep
 cp sscep_static opt/CertNanny/bin
 cp sscep_dyn opt/CertNanny/bin
-#arch=$(uname -p)
-#ts=$(date +'%Y%m%d%H%M%S')
+cp AIX/sscep.preinstall.sh opt/CertNanny/inst
+cp AIX/sscep.postinstall.sh opt/CertNanny/inst
 version=$(head -n 1 VERSION)
 version="$version.0"
-sed "s/VERSIONINFO/$version/" < AIX/lpp_template.in > AIX/lpp_template
+sed "s/VERSIONINFO/$version/" < AIX/lpp_template.in | sed "s#__PACKAGINGDIR__#$PWD#" > AIX/lpp_template
 mkinstallp -d . -T AIX/lpp_template
 

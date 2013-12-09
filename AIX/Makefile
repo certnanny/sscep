@@ -32,5 +32,6 @@ install:
 	echo "TODO: install target"
 
 package: all 
-	echo "TODO: packaging..."
+	rm -rf .info
+	AIX/make_AIX_package.sh
 
