@@ -10,8 +10,8 @@ Fileset
   Include license files in this package: N
   Requisites:
   USRLIBLPPFiles
-    Pre-installation Script: __PACKAGINGDIR__/AIX/sscep.preinstall.sh
-    Pre-deinstall Script: __PACKAGINGDIR__/AIX/sscep.postinstall.sh
+    Pre-installation Script: __PACKAGINGDIR__/AIX/sscep.pre-install.sh
+    Pre-deinstall Script: __PACKAGINGDIR__/AIX/sscep.pre-deinstall.sh
   EOUSRLIBLPPFiles
   USRFiles
     /opt/CertNanny
