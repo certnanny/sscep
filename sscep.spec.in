@@ -1,0 +1,47 @@
+# RPM Spec file for sscep
+
+%define name      sscep
+%define summary   SCEP client
+%define license   None
+%define version   @PACKAGE_VERSION@
+%define release   1
+%define group     Applications/System
+%define source    %{name}-%{version}.tar.bz2
+%define packager  Graham Leggett
+%define buildroot %{_builddir}/%{name}-root
+
+Name:      %{name}
+Version:   %{version}
+Release:   %{release}
+Packager:  %{packager}
+Summary:   %{summary}
+License:  %{license}
+Group:     %{group}
+Source:   %{source}
+Prefix:    %{_prefix}
+Buildroot: %{buildroot}
+BuildRequires: openssl-devel
+
+%description
+The sscep client requests digital certificates from a SCEP server.
+
+%prep
+%setup -q
+%build
+%configure --exec-prefix=%{_prefix} \
+           --bindir=%{_bindir} \
+           --sbindir=%{_sbindir} \
+           --mandir=%{_mandir} \
+           --libdir=%{_libdir}
+
+#make
+
+%install
+rm -rf $RPM_BUILD_ROOT
+make install DESTDIR=$RPM_BUILD_ROOT
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+%files
+%attr(0755,root,root) %{_bindir}/sscep
+
