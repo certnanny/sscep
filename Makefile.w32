@@ -11,22 +11,24 @@ CC = cl
 #OPENSSL_LIB=$(OPENSSL_PATH)\lib\VC
 #OPENSSL_INC=$(OPENSSL_PATH)\include
 
+#if you compile OpenSSL from source set the Enviroment Variable OPENSSL_SRC to your openssl source directory
 
-#if you compile OpenSSL from source use the following definitions
-OPENSSL_PATH=Z:\projects\github\openSSL\openssl-1.0.1c
-OPENSSL_LIB=$(OPENSSL_PATH)\out32dll
-OPENSSL_INC=$(OPENSSL_PATH)\inc32
-WINLIBS_PATH="C:\Program Files\Microsoft SDKs\Windows\v6.0A\Lib\"
+OPENSSL_LIB=$(OPENSSL_SRC)\out32dll
+OPENSSL_INC=$(OPENSSL_SRC)\inc32
+#WINLIBS_PATH="C:\Program Files\Microsoft SDKs\Windows\v6.0A\Lib\"
+#The windows sdkdir variable should be automatically set by the Visual Studio enviroment vsvars32.bat
+WINLIBS_PATH=$(WINDOWSSDKDIR)
 
 #change to your scep URL
 TEST_URL=http://pkiserver.com/cgi-bin/scep/scep
 
 LINK=link
 LFLAGS=/nologo /subsystem:console /opt:ref /debug
-EX_LIBS=/libpath:"$(OPENSSL_LIB)" libeay32.lib "C:\Program Files\Microsoft SDKs\Windows\v6.0A\Lib\wsock32.lib" "C:\Program Files\Microsoft SDKs\Windows\v6.0A\Lib\user32.lib" "C:\Program Files\Microsoft SDKs\Windows\v6.0A\Lib\gdi32.lib"
+EX_LIBS=/libpath:"$(OPENSSL_LIB)" libeay32.lib  "$(WINLIBS_PATH)lib\wsock32.lib" "$(WINLIBS_PATH)lib\user32.lib" "$(WINLIBS_PATH)lib\gdi32.lib"
 
 #DEBUG_OPT   =  /MDd /Od /GS /RTCcsu -D_DEBUG -DDEBUG
 DEBUG_OPT   =  /MD /O2
+DIR_OUT = "./out"
 
 CFLAGS	= /W3 /Zi /Yd /nologo -DWIN32 $(DEBUG_OPT) -I. -I"$(OPENSSL_INC)"
 
@@ -37,15 +39,21 @@ EXPF = *.exp
 LIII  = *.lib
 MANI = *.manifest
 
-all: $(PROG)
+all: create_dirs $(PROG)
 
-$(PROG): $(OBJS)
-	$(LINK) $(LFLAGS) /out:$(PROG) $(OBJS) $(EX_LIBS)
-
+# create output directories
+create_dirs:
+	@if not exist $(DIR_OUT) mkdir $(DIR_OUT)
+	
+# delete output directories
 clean:
+	@if exist $(DIR_OUT) rmdir /S /Q $(DIR_OUT)
 	del $(PROG) $(OBJS) $(PDB) $(LIII) $(EXPF) $(MANI)
 
+$(PROG): $(OBJS)
+	$(LINK) $(LFLAGS) /out:$(DIR_OUT)/$(PROG) $(OBJS) $(EX_LIBS)
+
 test: all
-	sscep.exe getca -v -u $(TEST_URL) -c cacert
+	$(DIR_OUT)\sscep.exe getca -v -u $(TEST_URL) -c cacert
 
 
