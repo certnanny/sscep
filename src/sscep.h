@@ -38,8 +38,6 @@
 
 /* Global defines */
 
-#define	VERSION	"20081211"
-
 /* SCEP operations */
 int operation_flag;
 #define	SCEP_OPERATION_GETCA	1
