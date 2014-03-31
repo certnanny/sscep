@@ -1,4 +1,3 @@
-
 /*
  * sscep -- Simple SCEP client implementation
  * Copyright (c) Jarkko Turkulainen 2003. All rights reserved.
@@ -489,6 +488,8 @@ main(int argc, char **argv) {
 		enc_alg = (EVP_CIPHER *)EVP_des_cbc();
 	} else if (!strncmp(E_char, "3des", 4)) {
 		enc_alg = (EVP_CIPHER *)EVP_des_ede3_cbc();
+	} else if (!strncmp(E_char, "aes", 3)) {
+		enc_alg = (EVP_CIPHER *)EVP_aes_256_cbc();
 	} else {
 		fprintf(stderr, "%s: unsupported algorithm: %s\n",
 			pname, E_char);
@@ -1105,7 +1106,7 @@ usage() {
 	"  -h				 Keyforme=ID. \n"//TODO
 	"  -f <file>         Use configuration file\n"
 	"  -c <file>         CA certificate file (write if OPERATION is getca or getnextca)\n"
-	"  -E <name>         PKCS#7 encryption algorithm (des|3des|blowfish)\n"
+	"  -E <name>         PKCS#7 encryption algorithm (des|3des|blowfish|aes)\n"
 	"  -S <name>         PKCS#7 signature algorithm (md5|sha1)\n"
 	"  -v                Verbose operation\n"
 	"  -d                Debug (even more verbose operation)\n"
