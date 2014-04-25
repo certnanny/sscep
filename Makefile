@@ -14,7 +14,7 @@ PROG	= sscep
 OBJS    = sscep.o init.o net.o sceputils.o pkcs7.o ias.o fileutils.o
 
 $(PROG): $(OBJS)
-	$(CC) $(CFLAGS) -lcrypto -o $(PROG) $(OBJS) 
+	$(CC) $(CFLAGS) -o $(PROG) $(OBJS) -lcrypto
 
 clean:
 	rm -f $(PROG) $(OBJS) $(MAN) core
