@@ -23,5 +23,6 @@ Fileset
   ROOT Part: N
   ROOTFiles
   EOROOTFiles
+  OVERRIDE_INVENTORY: /tmp/override_inventory
 EOFileset
 
