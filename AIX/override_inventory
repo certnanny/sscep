@@ -1,0 +1,46 @@
+/opt/CertNanny:
+	owner = root
+	group = system
+	mode = 755
+	type =
+	class =
+	size =
+	checksum =
+
+/opt/CertNanny/COPYRIGHT.sscep:
+	owner = root
+	group = system
+	mode = 644
+	type =
+	class =
+	size =
+	checksum =
+
+/opt/CertNanny/bin:
+	owner = root
+	group = system
+	mode = 755
+	type =
+	class =
+	size =
+	checksum =
+
+/opt/CertNanny/bin/sscep_static:
+	owner = root
+	group = system
+	mode = 755
+	type =
+	class =
+	size =
+	checksum =
+
+/opt/CertNanny/bin/sscep_dyn:
+	owner = root
+	group = system
+	mode = 755
+	type =
+	class =
+	size =
+	checksum =
+
+

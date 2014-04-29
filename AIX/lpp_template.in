@@ -1,4 +1,4 @@
-Package Name: CertNanny
+Package Name: CertNanny.sscep
 Package VRMF: VERSIONINFO
 Update: N
 Fileset
@@ -23,5 +23,6 @@ Fileset
   ROOT Part: N
   ROOTFiles
   EOROOTFiles
+  OVERRIDE_INVENTORY: /tmp/override_inventory
 EOFileset
 
