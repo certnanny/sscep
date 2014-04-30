@@ -10,7 +10,7 @@ WITH_DEBUG   = -g
 OPENSSL = ../openssl
 CFLAGS	= -O $(WITH_DEBUG) -I $(OPENSSL)/include 
 
-LDFLAGS = -L$(OPENSSL)/lib
+LDFLAGS = -L$(OPENSSL)
 LDLIBS = -lcrypto
 
 MAN	= sscep.8
