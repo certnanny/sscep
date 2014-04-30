@@ -8,5 +8,5 @@ s none /opt/CertNanny/bin/sscep=/opt/CertNanny/bin/sscep_static
 f none /opt/CertNanny/COPYRIGHT.sscep 0644 root root
 d none /usr ? ? ?
 d none /usr/bin ? ? ?
-s none /usr/bin/sscep=/opt/CertNanny/bin/sscep_static
+#s none /usr/bin/sscep=/opt/CertNanny/bin/sscep_static
 
