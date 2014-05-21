@@ -16,5 +16,12 @@ version="$version.0"
 cp AIX/override_inventory /tmp
 # create the template and building the package
 sed "s/VERSIONINFO/$version/" < AIX/lpp_template.in | sed "s#__PACKAGINGDIR__#$PWD#" > AIX/lpp_template
-mkinstallp -d . -T AIX/lpp_template
+# make sure we can execute mkinstallp ... if not, try sudo
+if [ -x /usr/sbin/mkinstallp ]
+then
+  mkinstallp=/usr/sbin/mkinstallp
+else
+  mkinstallp="sudo /usr/sbin/mkinstallp"
+fi
+$mkinstallp -d . -T AIX/lpp_template
 
