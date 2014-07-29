@@ -21,7 +21,8 @@ Simple SCEP (Simple Certificate Enrollment Protocol) client.
 %setup -n %{name}-%{version} 
 
 %build 
-make 
+#make 
+echo "No build, packaging only..."
 
 %install 
 mkdir -p $RPM_BUILD_ROOT 
