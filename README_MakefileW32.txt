@@ -36,7 +36,7 @@ In order to use Microsofts nmake to build a sscep.exe:
 	
 	Go to your sscep directory and run: 
 	
-	namke -f Makfile.w32 
+	nmake -f Makefile.w32 
 	
 	The resulting output will be located in sscep\out . 
 
