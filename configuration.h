@@ -79,10 +79,6 @@
 #define SCEP_CONFIGURATION_PARAM_MONITORINFO            "MonitorInformation"
 #define SCEP_CONFIGURATION_PARAM_SIGNERCERTIFICATE      "SignerCertificateFile"
 
-#ifdef WIN32
-#define SCEP_CONFIGURATION_DEFAULT_DYNAMICPATH_WINDOWS	"%s\\System32\\%s.dll"
-#endif
-
 /*
  * Holds the configuration of all parts that are new,
  * e.g. mostly engine stuff. In the futurue possibly
@@ -119,5 +115,26 @@ int scep_conf_load_operation_getcrl(CONF *conf);
 int scep_conf_load_operation_getnextca(CONF *conf);
 void scep_dump_conf(void);
 void error_memory(void);
+
+#ifdef WIN32
+// the maximum argument length supported by the "createEnginePath" function,
+// this should be enough to cover even the longest file paths under Windows
+#define CREATE_ENGINE_PATH_MAXIMUM_ARGUMENT_LENGTH 32768
+// this function basically works like "strlen", but its behavior is not undefined
+// if the first argument does not contain a terminating null character; basically
+// this function just iterates over the first argument until it either hits a null
+// character or exceeds the supported length; if successful, the resulting argument
+// length is written to the last argument
+int calculateArgumentLength(const char *_string, int *_length);
+// this function is supposed to emulate what the old implementation did, but without
+// passing environment variables (%WINDIR%) into the application unchecked; it takes
+// three character pointers as arguments, the Windows directory (which should be
+// injected using the %WINDIR% environment variable), the Windows system directory
+// (something like "System32"), and the name of the engine (an arbitrary string);
+// the result is written to the fourth argument, the required memory is implicity
+// allocated
+// EXAMPLE: "C:\Windows", "System32", "foobar" => "C:\Windows\System32\foobar.dll"
+int createEnginePath(const char *_directoryWindows, const char *_directorySystem, const char *_nameEngine, char **_result);
+#endif
 
 #endif /* ifndef CONFIGURATION_H */

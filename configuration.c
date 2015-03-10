@@ -244,11 +244,13 @@ int scep_conf_load(CONF *conf) {
 			if(v_flag)
 				printf("%s: Not setting a dynamic path. Not dynamic loading supported for engine %s\n", pname, scep_conf->engine->engine_id);
 #ifdef WIN32
-			//fallback does not work yet!
-			//TODO: find out why it did not find the C:\Windows\System32\capi.dll
-			windir = getenv("WINDIR");
-			scep_conf->engine->dynamic_path = (char *) malloc(sizeof(SCEP_CONFIGURATION_DEFAULT_DYNAMICPATH_WINDOWS) + sizeof(scep_conf->engine->engine_id) + sizeof(windir));
-			sprintf(scep_conf->engine->dynamic_path, SCEP_CONFIGURATION_DEFAULT_DYNAMICPATH_WINDOWS, getenv("WINDIR"), scep_conf->engine->engine_id);
+			// this function creates the dynamic path to the engine based on
+			// the "%WINDIR%" environment variable, the system directory, and
+			// the engine identifier; in case it succeeds, the function writes
+			// the result into the last argument
+			if(!createEnginePath(getenv("WINDIR"), "System32", scep_conf->engine->engine_id, &scep_conf->engine->dynamic_path)) {
+				return 0;
+			}
 #else
 			scep_conf->engine->dynamic_path = NULL;
 #endif
@@ -509,3 +511,43 @@ void scep_dump_conf() {
 	}
 	exit(0);
 }
+
+#ifdef WIN32
+// see header for details
+int calculateArgumentLength(const char *_string, int *_length) {
+  int i;
+  for(i=0; i<CREATE_ENGINE_PATH_MAXIMUM_ARGUMENT_LENGTH; i++) {
+    if(_string[i] == 0) {
+      *_length = i;
+      return 1;
+    }
+  }
+  return 0;
+}
+// see header for details
+int createEnginePath(const char *_directoryWindows, const char *_directorySystem, const char *_nameEngine, char **_result) {
+  int lengthDirectoryWindows = 0;
+  int lengthDirectorySystem = 0;
+  int lengthNameEngine = 0;
+  int lengthEnginePath = 0;
+  // try to calculate the argument lengths-- if any of the argument
+  // lengths exceed the supported argument length, we dump an error
+  // and return zero right away
+  if(!calculateArgumentLength(_directoryWindows, &lengthDirectoryWindows) || !calculateArgumentLength(_directorySystem, &lengthDirectorySystem) || !calculateArgumentLength(_nameEngine, &lengthNameEngine)) {
+    fprintf(stderr, "%s: one of the arguments (Windows directory, Windows system directory, or engine name) exceeds the maximum argument length\n", pname);
+    return 0;
+  }
+  // calculate total length of engine path, and allocate and initialize memory
+  lengthEnginePath = lengthDirectoryWindows + strlen("\\") + lengthDirectorySystem + strlen("\\") + lengthNameEngine + strlen(".dll");
+  *_result = (char*)(malloc(lengthEnginePath + 1));
+  memset(*_result, 0, lengthEnginePath + 1);
+  // construct engine path
+  memcpy(*_result + 0, _directoryWindows, lengthDirectoryWindows);
+  memcpy(*_result + lengthDirectoryWindows, "\\", strlen("\\"));
+  memcpy(*_result + lengthDirectoryWindows + strlen("\\"), _directorySystem, lengthDirectorySystem);
+  memcpy(*_result + lengthDirectoryWindows + strlen("\\") + lengthDirectorySystem, "\\", strlen("\\"));
+  memcpy(*_result + lengthDirectoryWindows + strlen("\\") + lengthDirectorySystem + strlen("\\"), _nameEngine, lengthNameEngine);
+  memcpy(*_result + lengthDirectoryWindows + strlen("\\") + lengthDirectorySystem + strlen("\\") + lengthNameEngine, ".dll", strlen(".dll"));
+  return 1;
+}
+#endif
