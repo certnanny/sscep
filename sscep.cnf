@@ -1,0 +1,192 @@
+# Sample sscep configuration file
+# Depending on the operation, the according section will be loaded
+# For engine support specifiy the engine option with a section name (see example below)
+
+# sscep is the default section. Do not alter its name
+[sscep]
+# Available options follow below including explanation
+# 
+# If "engine" is defined, sscep will use the engine instead of the filesystem.
+# It will uses OpenSSL's engine interface
+# Supported engines are all that are supported by OpenSSL as well
+# Some engines need special functions. List of currently supported "special engines":
+# - capi (Microsoft CryptoAPI)
+# engine = 
+engine = sscep_engine
+
+# SCEP server URL
+URL = 
+
+# Use proxy server at host:port
+# Proxy = 
+
+# CA certificate file (write if OPERATION is getca)
+# CACertFile = 
+
+# PKCS#7 encryption algorithm (des|3des|blowfish)
+# EncAlgorithm = 
+
+# PKCS#7 signature algorithm (md5|sha1)
+# SigAlgorithm = 
+
+# Verbose operation
+# possible Values:
+# true
+# Any value other than true will be treated as false
+Verbose = true
+
+# Debug (even more verbose operation)
+# possible Values:
+# true
+# Any value other than true will be treated as false
+Debug = true
+
+
+[sscep_engine]
+################################################################
+# This section defines options for engines
+# It can have any name, as long as the name is referenced
+# by the "engine" option in the [sscep] section.
+# The parameter engine_id is mandatory, or sscep and thus
+# OpenSSL do not know which engine to load.
+# Special Options for engines are defined in their corresponding
+# sections, always named [sscep_engine_*] where * is the defined
+# engine id. You can see currently supported special options in
+# each of these sections. If a section does not exist, it does 
+# not mean the engine is not supported, there are just no special
+# options avaiable for it.
+################################################################
+
+# ID of the engine for OpenSSL
+# Refer to OpenSSL / Engine documentation
+engine_id = capi
+
+# If the engine needs to be loaded dynamically, specify the path to the SO file here.
+# It is possible to provide paths relative to the sscep binary
+# Note: On Windows use double slashes, see example
+# Note: You HAVE to specify this unless you *know* it will be found otherwise. On
+# Windows this can lead to problems since OpenSSL is often compiled with a Unix-
+# Search-Path. In this case this can't be omitted at all.
+dynamic_path = ..\\capi\\capi.dll
+
+
+# Some Engines require an additional module (take PKCS#11 interface for example)
+# For these engines you can specify an additional module path here
+# Note: On Windows use double slashes, see "dynamic_path" option
+# MODULE_PATH = 
+
+[sscep_engine_capi]
+# This section defines CryptoAPI specific settings
+# Only if the [engine]-section's engine_id is set to
+# capi, this will be loaded, otherwise it will be 
+# ignored
+
+# Specific CryptoAPI option: Set this option to whatever
+# location your newly generated key will reside in.
+# In case of certreq creating your key, it will be in REQUEST.
+new_key_location = REQUEST
+
+# Which store should be used for all operations.
+# The basic layout is storelocation\storename, e.g.
+# LOCAL_MACHINE\MY and LOCAL_MACHINE\REQUEST
+# The following options are accepted here:
+# CURRENT_USER - default option, user store
+# LOCAL_MACHINE - system store
+storelocation = LOCAL_MACHINE
+
+[sscep_engine_jksengine]
+# This section defines JKSEngine specific settings
+# Only if engine_id is set to "JKSEngine" this will
+# be loaded, otherwise ignored
+
+# Password of Java KeyStore (Default: 123456)
+# See JKSEngine for further documentation
+# KeyStorePass = 
+
+# Path of Java tool (Path to ConnJKSEngine)
+# JavaConnectorPath = 
+
+# Java Cryptography Provider of used Keystore
+# KeyStoreProvider = 
+
+# Path of Java Runtime Environment
+# This is normally not necessary
+# JavaPath = 
+
+
+[sscep_getca]
+# Options for retrieving CA Certificates (operation getca)
+
+
+# CA identifier string
+# CAIdentifier = 
+
+# Fingerprint algorithm
+# FingerPrint = 
+
+[sscep_enroll]
+# Operation for Certificate Enrollment (see SCEP documentation for details)
+
+
+# Private key file
+# PrivateKeyFile = 
+
+# Certificate request file
+# CertReqFile = 
+
+# Signature private key file, use with SignCertFile
+# SignKeyFile = 
+
+# Signature certificate (used instead of self-signed)
+# SignCertFile = 
+
+# Write enrolled certificate in file
+# LocalCertFile = 
+
+# Use different CA cert for encryption
+# EncCertFile = 
+
+# Write selfsigned certificate in file
+# SelfSignedFile = 
+
+# Polling interval in seconds
+# PollInterval = 
+
+# Max polling time in seconds
+# MaxPollTime = 
+
+# Max number of GetCertInitial requests
+# MaxPollCount = 
+
+# Resume interrupted enrollment
+# possible Values:
+# true
+# Any value other than true will be treated as false
+# Resume = 
+
+
+[sscep_getcert]
+# Private key file
+# PrivateKeyFile = 
+
+# Local certificate file
+# LocalCertFile = 
+
+# Certificate serial number
+# GetCertSerial = 
+
+# Write certificate in file
+# GetCertFile = 
+
+[sscep_getcrl]
+# Private key file
+# PrivateKeyFile = 
+
+# Local certificate file
+# LocalCertFile = 
+
+# Write CRL in file
+# GetCrlFile = 
+
+[sscep_getnextca]
+#NYI

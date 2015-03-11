@@ -1,0 +1,13 @@
+/configuration.o
+/engine.o
+/fileutils.o
+/ias.o
+/init.o
+/net.o
+/pkcs7.o
+/sceputils.o
+/sscep
+/sscep_static
+/sscep_dyn
+/sscep.o
+/.git_checkout

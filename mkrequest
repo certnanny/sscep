@@ -134,7 +134,7 @@ fi
 if [ "$ORGANIZATION" ]; then
 	echo "O=$ORGANIZATION" >> $CONFIG
 fi
-if [ "$OUNIT" ]; then
+if [ "$ORGANIZATIONAL_UNIT" ]; then
 	echo "OU=$ORGANIZATIONAL_UNIT" >> $CONFIG
 fi
 if [ ! "$UNSTRUCTURED_NAME" ]; then

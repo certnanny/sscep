@@ -248,7 +248,7 @@ key_fingerprint(X509_REQ *req) {
 		sprintf((char *)str, "%02X", md[c]);
 
 	}
-	*(str+2) = '\0';
+	*(str) = '\0';
 	return(ret);
 }
 

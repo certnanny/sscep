@@ -62,6 +62,48 @@ o OpenCA (getca, enroll, getcrl and automatic approval works)****
 HOW TO COMPILE
 ==============
 
+The program should compile on the following systems:
+
+OpenBSD
+AIX
+Darwin (PowerPC, no universal binaries yet)
+Tandem NonStop (Guardian), OSS environment, MIPS processor
+Linux x86
+z/OS (USS environment)
+Solaris
+Windows, compiled with VC6, statically linked with OpenSSL 0.9.7i
+
+Unix:
+
+To compile run: 
+$ make
+
+Windows:
+
+The Win32 version of sscep has been tested with OpenSSL-v0.9.7i.
+For Win32 environment you can choose two ways to compile the sscep program.
+
+1. Dynamically linked against the binary OpenSSL distribution: 
+	http://www.slproweb.com/download/Win32OpenSSL-v0.9.7i.exe
+For this you need the binaries from OpenSSL-v0.9.7i and change the paths
+in the makefile Makefile.w32.
+This works with VC6.0 but not with VC7.0.
+
+2. Statically linked against OpenSSL-v0.9.7i.
+You can download the source from the OpenSSL Homepage and you have to change the 
+paths in the makefile Makefile.w32. This OpenSSL Version needs to be compiled with the same
+compiler as sscep, because otherwise you can get some trouble with diffrent LIBs.
+
+If you want to use a debug version of sscep, then you need to compile a debug version
+of OpenSSL.
+
+To compile run:
+C:\...> vcvars32.bat
+C:\...> nmake -f Makefile.w32 
+
+Copy binary file sscep and configuration file sscep.conf to somewhere.
+
+=======
 The program should compile on OpenBSD system without problems. Uncompress
 the package and run command
 
@@ -70,6 +112,7 @@ $ make
 Copy binary file sscep and configuration file sscep.conf to somewhere.
 
 
+>>>>>>> feat/getnextca
 HOW TO USE
 ==========
 

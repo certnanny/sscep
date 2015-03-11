@@ -1,0 +1,59 @@
+#
+# $Id: Makefile,v 1.0 2003/01/12 13:17:37 jt Exp $
+#
+
+CC = cl
+
+#for dynamically linking against binary OpenSSL distribution
+#http://www.slproweb.com/download/Win32OpenSSL-v0.9.7i.exe
+#works with VC 6.0 but not with VC 7.0
+#OPENSSL_PATH=C:\Program Files (x86)\OpenSSL-Win32
+#OPENSSL_LIB=$(OPENSSL_PATH)\lib\VC
+#OPENSSL_INC=$(OPENSSL_PATH)\include
+
+#if you compile OpenSSL from source set the Enviroment Variable OPENSSL_SRC to your openssl source directory
+
+OPENSSL_LIB=$(OPENSSL_SRC)\out32dll
+OPENSSL_INC=$(OPENSSL_SRC)\inc32
+#WINLIBS_PATH="C:\Program Files\Microsoft SDKs\Windows\v6.0A\Lib\"
+#The windows sdkdir variable should be automatically set by the Visual Studio enviroment vsvars32.bat
+WINLIBS_PATH=$(WINDOWSSDKDIR)
+
+#change to your scep URL
+TEST_URL=http://pkiserver.com/cgi-bin/scep/scep
+
+LINK=link
+LFLAGS=/nologo /subsystem:console /opt:ref /debug
+EX_LIBS=/libpath:"$(OPENSSL_LIB)" libeay32.lib  "$(WINLIBS_PATH)lib\wsock32.lib" "$(WINLIBS_PATH)lib\user32.lib" "$(WINLIBS_PATH)lib\gdi32.lib"
+
+#DEBUG_OPT   =  /MDd /Od /GS /RTCcsu -D_DEBUG -DDEBUG
+DEBUG_OPT   =  /MD /O2
+DIR_OUT = "./out"
+
+CFLAGS	= /W3 /Zi /Yd /nologo -DWIN32 $(DEBUG_OPT) -I. -I"$(OPENSSL_INC)"
+
+PROG	= sscep.exe
+OBJS    = sscep.obj init.obj net.obj sceputils.obj pkcs7.obj ias.obj fileutils.obj getopt.obj engine.obj configuration.obj applink.obj
+PDB = *.pdb
+EXPF = *.exp
+LIII  = *.lib
+MANI = *.manifest
+
+all: create_dirs $(PROG)
+
+# create output directories
+create_dirs:
+	@if not exist $(DIR_OUT) mkdir $(DIR_OUT)
+	
+# delete output directories
+clean:
+	@if exist $(DIR_OUT) rmdir /S /Q $(DIR_OUT)
+	del $(PROG) $(OBJS) $(PDB) $(LIII) $(EXPF) $(MANI)
+
+$(PROG): $(OBJS)
+	$(LINK) $(LFLAGS) /out:$(DIR_OUT)/$(PROG) $(OBJS) $(EX_LIBS)
+
+test: all
+	$(DIR_OUT)\sscep.exe getca -v -u $(TEST_URL) -c cacert
+
+

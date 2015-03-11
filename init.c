@@ -7,6 +7,9 @@
 /* Configuration file initialization */
 
 #include "sscep.h"
+#ifdef WIN32
+#define strdup(str) _strdup(str)
+#endif
 
 void
 init_config(FILE *conf) {
@@ -225,10 +228,10 @@ get_string(char *str) {
 	return retstr;
 }
 
-void
+/*void
 error_memory() {
 	fprintf(stderr, "%s: memory allocation failure, errno: %d\n",
 		pname, errno);
 	exit(1);
-}
+}*/
 

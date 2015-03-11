@@ -4,7 +4,8 @@
  * Copyright (c) Jarkko Turkulainen 2003. All rights reserved.
  * See the file COPYRIGHT for licensing information.
  */
-
+#ifndef SSCEP_H
+#define SSCEP_H
 
 #include "conf.h"
 #include "cmd.h"
@@ -16,13 +17,39 @@
 #include <ctype.h>
 #include <signal.h>
 #include <setjmp.h>
+#include "getopt.h"
+#include "fileutils_capi.h"
+#include "configuration.h"
+#include "engine.h"
+
+#ifdef WIN32
+
+#include <winsock.h>
+#include <io.h>
+
+#ifdef _DEBUG
+#include <crtdbg.h>
+#endif
+
+#define snprintf _snprintf
+#define close _close
+#define sleep(t_num) Sleep((t_num)*1000)
+#pragma comment(lib, "crypt32.lib")
+
+#else
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include <unistd.h> 
-#include <errno.h> 
+#include <unistd.h>
+#include <errno.h>
+
+#endif
+
 #include <openssl/evp.h>
+#include <openssl/bio.h>
+#include <openssl/engine.h>
 #include <openssl/crypto.h>
 #include <openssl/buffer.h>
 #include <openssl/asn1.h>
@@ -35,10 +62,10 @@
 #include <openssl/md5.h>
 #include <openssl/objects.h>
 #include <openssl/asn1_mac.h>
-
+#include <openssl/ssl.h>
 /* Global defines */
 
-#define	VERSION	"20081211"
+#define	VERSION	"0.5"
 
 /* SCEP operations */
 int operation_flag;
@@ -46,10 +73,13 @@ int operation_flag;
 #define	SCEP_OPERATION_ENROLL	3
 #define	SCEP_OPERATION_GETCERT	5
 #define	SCEP_OPERATION_GETCRL	7
+#define SCEP_OPERATION_GETNEXTCA 15
 
 /* SCEP MIME headers */
 #define MIME_GETCA	"application/x-x509-ca-cert"
 #define MIME_GETCA_RA	"application/x-x509-ca-ra-cert"
+#define MIME_GETNEXTCA "application/x-x509-next-ca-cert"
+
 /* Entrust VPN connector uses different MIME types */
 #define MIME_PKI	"x-pki-message"
 #define MIME_GETCA_RA_ENTRUST	"application/x-x509-ra-ca-certs"
@@ -58,6 +88,7 @@ int operation_flag;
 #define	SCEP_MIME_GETCA		1
 #define	SCEP_MIME_GETCA_RA	3
 #define	SCEP_MIME_PKI		5
+#define	SCEP_MIME_GETNEXTCA	7
 
 /* SCEP request types */
 #define	SCEP_REQUEST_NONE		0
@@ -110,6 +141,9 @@ int operation_flag;
 #define SCEP_FAILINFO_BADCERTID		4
 #define SCEP_FAILINFO_BADCERTID_STR 	\
 	"No certificate could be identified matching"
+
+//define encoding for capi engine support
+#define MY_ENCODING_TYPE  (PKCS_7_ASN_ENCODING | X509_ASN_ENCODING)
 
 /* End of Global defines */
 
@@ -213,7 +247,7 @@ struct scep {
 
 	/* Request */
 	PKCS7 *request_p7;
-	unsigned char *request_payload;	
+	unsigned char *request_payload;
 	int request_len;
 	pkcs7_issuer_and_subject *ias_getcertinit;
 	PKCS7_ISSUER_AND_SERIAL *ias_getcert;
@@ -223,6 +257,9 @@ struct scep {
 	PKCS7 *reply_p7;
 	unsigned char *reply_payload;	
 	int reply_len;
+
+	/* Engine */
+	ENGINE *e;
 
 };
 /* End of structures */
@@ -254,11 +291,17 @@ int init_scep(void);
 /* Read RSA private key file */
 void read_key(EVP_PKEY** key, char* filename);
 
+/* Read RSA private key using hwcrhk */
+void read_key_Engine(EVP_PKEY** key, char* filename, ENGINE *e);
+
 /* Read CA certificate file */
 void read_ca_cert(void);
 
 /* Read local certificate file */
 void read_cert(X509** cert, char* filename);
+
+/* Read certificate from engine */
+/*void read_cert_Engine(X509** cert, char* id, ENGINE *e, char* filename);*/
 
 /* Read certificate request and private key */
 void read_request(void);
@@ -300,9 +343,11 @@ int add_attribute_octet(STACK_OF(X509_ATTRIBUTE) *, int, char *, int);
 int get_signed_attribute(STACK_OF(X509_ATTRIBUTE) *, int, int, char **);
 int get_attribute(STACK_OF(X509_ATTRIBUTE) *, int, ASN1_TYPE **);
 
+/*PKCS#7 decode message without SCEP attribute verification*/
+int pkcs7_verify_unwrap(struct scep *s, char * cachainfile );
+
 /* URL-endcode */
 char *url_encode (char *, size_t);
 
 /* End of Functions */
-
-
+#endif
