@@ -853,7 +853,7 @@ main(int argc, char **argv) {
 			}
 not_enroll:
 			if (!(scep_t.ias_getcertinit->issuer =
-					 X509_get_issuer_name(cacert))) {
+					 X509_get_subject_name(cacert))) {
 				fprintf(stderr, "%s: error getting issuer "
 					"for GetCertInitial\n", pname);
 				ERR_print_errors_fp(stderr);
