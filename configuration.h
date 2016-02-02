@@ -51,6 +51,7 @@
 #define SCEP_CONFIGURATION_ENGINE_PKCS11_PIN			"PIN"
 #define SCEP_CONFIGURATION_ENGINE_DYNPATH				"dynamic_path"
 #define SCEP_CONFIGURATION_ENGINE_MODULEPATH			"MODULE_PATH"
+#define SCEP_CONFIGURATION_ENGINE_CMDS					"cmds"
 #define SCEP_CONFIGURATION_PARAM_CACERTFILE				"CACertFile"
 #define SCEP_CONFIGURATION_PARAM_NEXTCACERTFILE			"NextCACertFile"
 #define SCEP_CONFIGURATION_PARAM_CERTROOTCHAINFILE		"ChainRootCACertFile"
@@ -91,6 +92,11 @@ typedef struct {
 	char *engine_str;
 } SCEP_CONF;
 
+typedef struct {
+	char* name;
+	char* value;
+} NAME_VALUE_PAIR;
+
 struct scep_engine_conf_st{
 	char *engine_id; // ID of the engine according to OpenSSL (e.g. pkcs11, capi, chil, ...)
 	char *new_key_location; // CryptoAPI only option: Which storename to set for the new key, default: REQUEST
@@ -102,6 +108,7 @@ struct scep_engine_conf_st{
 	char *javapath; // Path to Java (JKSEngine)
 	char *pin; //the PIN used for the PKCS11 token, default: will be prompted (pkcs11)
 	char *module_path; // see OpenSSL ctrl MODULE_PATH for engines (example: PKCS#11)
+	NAME_VALUE_PAIR **cmds; // NULL terminated array of engine init commands (or NULL)
 };
 
 SCEP_CONF *scep_conf;
