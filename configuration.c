@@ -5,6 +5,19 @@
 #define itoa _itoa
 #endif
 
+NAME_VALUE_PAIR* NAME_VALUE_PAIR_new(char *name, char *value) {
+	NAME_VALUE_PAIR *ret = OPENSSL_malloc(sizeof(NAME_VALUE_PAIR));
+	ret->name = OPENSSL_strdup(name);
+	ret->value = OPENSSL_strdup(value);
+	return ret;
+}
+
+void NAME_VALUE_PAIR_free(NAME_VALUE_PAIR *nvp) {
+	OPENSSL_free(nvp->name);
+	OPENSSL_free(nvp->value);
+	OPENSSL_free(nvp);
+}
+
 int scep_conf_init(char *filename) {
 	long err;
 	CONF *conf;
@@ -265,6 +278,42 @@ int scep_conf_load(CONF *conf) {
 			scep_conf->engine->module_path = NULL;
 			if(v_flag)
 				printf("%s: No module path defined, not using/loading any module\n", pname);
+		}
+
+		// If there is a section specified in 'engine_section/cmds', store all those commands IN ORDER
+		char *cmds_section;
+		if(cmds_section = NCONF_get_string(conf, engine_section, SCEP_CONFIGURATION_ENGINE_CMDS)) {
+			if(!NCONF_get_section(conf, cmds_section)) {
+				fprintf(stderr, "%s: Section %s defined but not found!\n", pname, cmds_section);
+				exit(SCEP_PKISTATUS_FILE);
+			}
+
+			// A cmds section was specified. Read all values in there and store for later passing to the engine
+			if(d_flag)
+				printf("%s: Engine Cmds Section %s found and processing it\n", pname, cmds_section);
+
+			STACK_OF(CONF_VALUE) *section;
+			section = NCONF_get_section(conf, cmds_section);
+			int number_of_cmds = sk_CONF_VALUE_num(section);
+			if(d_flag)
+				printf("%s: There are %d engine commands\n", pname, number_of_cmds);
+			scep_conf->engine->cmds = OPENSSL_malloc((number_of_cmds+1) * sizeof(NAME_VALUE_PAIR*));
+
+			int i;
+			for(i=0; i<number_of_cmds; i++) {
+				CONF_VALUE* conf_value;
+				conf_value = sk_CONF_VALUE_value(section, i);
+				if(d_flag)
+					printf("%s: Engine cmd: %s = %s\n", pname, conf_value->name, conf_value->value);
+				scep_conf->engine->cmds[i] = NAME_VALUE_PAIR_new(conf_value->name, conf_value->value);
+			}
+
+			// NULL terminate the array to indicate where it ends
+			scep_conf->engine->cmds[number_of_cmds] = NULL;
+		} else {
+			scep_conf->engine->cmds = NULL;
+			if(v_flag)
+				printf("%s: No engine cmds section defined\n", pname);
 		}
 
 	}

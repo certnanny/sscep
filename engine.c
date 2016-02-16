@@ -153,6 +153,22 @@ ENGINE *scep_engine_load_dynamic(ENGINE *e) {
 	} else if(v_flag)
 		printf("%s: Loading engine %s succeeded\n", pname, g_char);
 
+	// Now issue any dynamic engine init cmds if any are configured
+	if(scep_conf->engine->cmds != NULL) {
+        int i=0;
+        while(scep_conf->engine->cmds[i] != NULL) {
+                 NAME_VALUE_PAIR *cmd = scep_conf->engine->cmds[i];
+                 if(ENGINE_ctrl_cmd_string(e, cmd->name, cmd->value, 0) == 0) {
+                         fprintf(stderr, "%s: Executing %s=%s failed\n", pname, cmd->name, cmd->value);
+                         sscep_engine_report_error();
+                         exit (SCEP_PKISTATUS_ERROR);
+                 } else if(v_flag) {
+                         fprintf(stderr, "%s: Engine command %s=%s succeeded\n", pname, cmd->name, cmd->value);
+                 }
+                 i++;
+         }
+	}
+
 	//all these functions were only needed if we loaded dynamically. Otherwise we could just skip this step.
 
 	return e;
