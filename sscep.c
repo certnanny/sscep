@@ -71,7 +71,7 @@ main(int argc, char **argv) {
 	struct http_reply	reply;
 	unsigned int		n;
 	unsigned char		md[EVP_MAX_MD_SIZE];
-	struct scep		scep_t= {0};;
+	struct scep		scep_t= {0};
 	FILE			*fp = NULL;
 	BIO			*bp;
 	STACK_OF(X509)		*nextcara = NULL;
