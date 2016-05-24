@@ -71,7 +71,7 @@ main(int argc, char **argv) {
 	struct http_reply	reply;
 	unsigned int		n;
 	unsigned char		md[EVP_MAX_MD_SIZE];
-	struct scep		scep_t;
+	struct scep		scep_t= {0};
 	FILE			*fp = NULL;
 	BIO			*bp;
 	STACK_OF(X509)		*nextcara = NULL;
@@ -609,7 +609,7 @@ main(int argc, char **argv) {
 					"writing\n", pname);
 				exit (SCEP_PKISTATUS_ERROR);
 			}
-			if (PEM_write_X509(fp, c_char) != 1) {
+			if (PEM_write_X509(fp, cacert) != 1) {
 				fprintf(stderr, "%s: error while writing CA "
 					"file\n", pname);
 				ERR_print_errors_fp(stderr);
@@ -619,7 +619,7 @@ main(int argc, char **argv) {
 			printf("%s: CA certificate written as %s\n",
 				pname, c_char);
 			(void)fclose(fp);
-			pkistatus = SCEP_PKISTATUS_SUCCESS;
+			scep_t.pki_status = pkistatus = SCEP_PKISTATUS_SUCCESS;
 			break;
 
 		case SCEP_OPERATION_GETNEXTCA:
