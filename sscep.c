@@ -252,7 +252,7 @@ main(int argc, char **argv) {
 				break;
 			case 's':
 				s_flag = 1;
-				/*s_char = optarg;*/
+				/* s_char = optarg; */
 				s_char = handle_serial(optarg);
 				break;
 			case 'S':
@@ -268,8 +268,11 @@ main(int argc, char **argv) {
 				T_num = atoi(optarg);
 				break;
 			case 'u':
-				u_flag = 1;
 				url_char = optarg;
+				/* Test for Url with Query String (contains ?) */
+				int has_query = NULL != strchr (url_char, '?');
+				/* set u_flag = 2 for param urls */
+				u_flag = has_query ? 2 : 1;
 				break;
 			case 'v':
 				v_flag = 1;
@@ -533,21 +536,19 @@ main(int argc, char **argv) {
 				i_char = CA_IDENTIFIER;
 
 			/* Forge the HTTP message */
-
 			if(!M_flag){
 				snprintf(http_string, sizeof(http_string),
-				 "GET %s%s?operation=GetCACert&message=%s "
-				 "HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,
+				 "GET %s%s%soperation=GetCACert&message=%s "
+				 "HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name, (u_flag == 2 ? "&" : "?"),
 						i_char);
 
 			}else{
 				snprintf(http_string, sizeof(http_string),
-					"GET %s%s?operation=GetCACert&message=%s&%s "
-					"HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,
+					"GET %s%s%soperation=GetCACert&message=%s&%s "
+					"HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name, (u_flag == 2 ? "&" : "?"),
 						i_char, M_char);
 
 			}
-
 
 
 			if (d_flag){
@@ -965,16 +966,15 @@ not_enroll:
 
 			if(!M_flag){
 				snprintf(http_string, sizeof(http_string),
-				 "GET %s%s?operation=PKIOperation&message=%s "
-				 "HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name, p);
+				 "GET %s%s%soperation=PKIOperation&message=%s "
+				 "HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name, (u_flag == 2 ? "&" : "?"), p);
 
 			}else{
 				snprintf(http_string, sizeof(http_string),
-					"GET %s%s?operation=PKIOperation&message=%s&%s "
-					"HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,p, M_char);
+					"GET %s%s%soperation=PKIOperation&message=%s&%s "
+					"HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name, (u_flag == 2 ? "&" : "?"), p, M_char);
 
 			}
-
 			if (d_flag)
 				fprintf(stdout, "%s: scep msg: %s",
 					pname, http_string);
