@@ -65,7 +65,7 @@
 #include <openssl/ssl.h>
 /* Global defines */
 
-#define	VERSION	"0.6.1"
+#define	VERSION	"0.6.1.ipv6.1"
 
 /* SCEP operations */
 int operation_flag;

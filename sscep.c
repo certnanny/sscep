@@ -65,7 +65,7 @@ handle_serial (char * serial)
 int
 main(int argc, char **argv) {
 	//ENGINE *e = NULL;
-	int			c, host_port = 80, count = 1;
+	int			c, host_port = 80, count = 1, cnt = 0;
 	char			*host_name, *p, *dir_name = NULL;
 	char			http_string[16384];
 	struct http_reply	reply;
@@ -452,15 +452,35 @@ main(int argc, char **argv) {
 		error_memory();
 	p = host_name;
 	c = 0;
+	cnt =0;
 	while (*p != '\0') {
 		if (*p == '/' && !p_flag && !c) {
 			*p = '\0';
 			if (*(p+1)) dir_name = p + 1;
 			c = 1;
 		}
-		if (*p == ':') {
-			*p = '\0';
-			if (*(p+1)) host_port = atoi(p+1);
+		if (*p == '[') { //For IPv6 starts from here
+			dir_name =  (p+1);
+			host_name = dir_name;
+			while (*p != '\0') {
+				if (*p == ']') {
+					*p = '\0';
+					if (*(p+1) == ':') {
+						*(p+1)  = '\0';
+						host_port = atoi(p+2);
+					}
+				}
+				p++;
+			}
+		} else {
+			if (!cnt && !c) {
+				dir_name = p;
+				cnt = 1;
+			}
+			if (*p == ':') {
+				*p = '\0';
+				if (*(p+1)) host_port = atoi(p+1);
+			}
 		}
 		p++;
 	}
