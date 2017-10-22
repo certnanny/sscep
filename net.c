@@ -29,9 +29,11 @@ void perror_w32 (const char *message)
 int
 send_msg(struct http_reply *http,char *msg,size_t msg_len,char *host,int port,int operation) {
 	int			sd, rc, used, bytes;
-	struct sockaddr_in	localAddr, servAddr;
-	struct hostent		*h;
 	char			tmp[1024], *buf, *p;
+
+	char			port_str[6]; /* Range-checked to be max. 5-digit number */
+        struct			addrinfo hints;
+        struct			addrinfo* res=0;
 
 #ifdef WIN32
 	int tv=timeout*1000;
@@ -42,39 +44,28 @@ send_msg(struct http_reply *http,char *msg,size_t msg_len,char *host,int port,in
 #endif
 
 	/* resolve name */
-	h = gethostbyname(host);
-	if (h == NULL) {
-		printf("unknown host '%s'\n", host);
+	sprintf(port_str, "%d", port);
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = 0;
+	hints.ai_flags = (AI_ADDRCONFIG | AI_V4MAPPED);
+	rc = getaddrinfo(host, port_str, &hints, &res);
+	if (rc!=0) {
+		fprintf(stderr, "failed to resolve remote host address %s (err=%d)\n", host, rc);
 		return (1);
 	}
 
-	/* fill in server socket structure: */
-	servAddr.sin_family = h->h_addrtype;
-	memcpy((char *) &servAddr.sin_addr.s_addr,
-		h->h_addr_list[0], h->h_length);
-	servAddr.sin_port = htons(port);
-
-	/* create socket */
-	sd = socket(AF_INET, SOCK_STREAM, 0);
+	sd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 	if (sd < 0) {
 		perror("cannot open socket ");
 		return (1);
 	}
-	/* bind any port number */
-	localAddr.sin_family = AF_INET;
-	localAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	localAddr.sin_port = htons(0);
-	rc = bind(sd, (struct sockaddr *) &localAddr, sizeof(localAddr));
-	if (rc < 0) {
-		printf("cannot bind port TCP %u\n", port);
-		perror("error ");
-		return (1);
-	}
-	
+
 	/* connect to server */
 	/* The two socket options SO_RCVTIMEO and SO_SNDTIMEO do not work with connect
 	   connect has a default timeout of 120 */
-	rc = connect(sd, (struct sockaddr *) &servAddr, sizeof(servAddr));
+	rc = connect(sd, res->ai_addr, res->ai_addrlen);
 	if (rc < 0) {
 		perror("cannot connect");
 		return (1);
