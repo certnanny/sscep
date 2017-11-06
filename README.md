@@ -125,8 +125,6 @@ Copy binary file sscep and configuration file sscep.conf to somewhere.
 Copy binary file sscep and configuration file sscep.conf to somewhere.
 
 
->>>>>>> feat/getnextca
-
 ## HOW TO USE
 
 Running the command "sscep" without any arguments should give you a list
