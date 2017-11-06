@@ -111,8 +111,6 @@ $ make
 
 Copy binary file sscep and configuration file sscep.conf to somewhere.
 
-
->>>>>>> feat/getnextca
 HOW TO USE
 ==========
 
