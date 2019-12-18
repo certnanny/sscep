@@ -133,6 +133,7 @@ Available OPERATIONs are
   enroll            Enroll certificate
   getcert           Query certificate
   getcrl            Query CRL
+  getcaps           Query SCEP capabilities
 
 General OPTIONS
   -u <url>          SCEP server URL

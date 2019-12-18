@@ -162,6 +162,8 @@ main(int argc, char **argv) {
 		usage();
 	} else if (!strncmp(argv[1], "getca", 5)) {
 		operation_flag = SCEP_OPERATION_GETCA;
+		if (!strncmp(argv[1], "getcaps", 7))
+			operation_flag = SCEP_OPERATION_GETCAPS;
 	} else if (!strncmp(argv[1], "enroll", 6)) {
 		operation_flag = SCEP_OPERATION_ENROLL;
 	} else if (!strncmp(argv[1], "getcert", 7)) {
@@ -359,7 +361,7 @@ main(int argc, char **argv) {
 	/*
 	 * Check argument logic.
 	 */
-	if (!c_flag) {
+	if (!c_flag && operation_flag != SCEP_OPERATION_GETCAPS) {
 		if (operation_flag == SCEP_OPERATION_GETCA) {
 			fprintf(stderr,
 			  "%s: missing CA certificate filename (-c)\n", pname);
@@ -974,6 +976,21 @@ not_enroll:
 				 scep_t.ias_getcert->serial = ai;
 			}
 		break;
+
+		case SCEP_OPERATION_GETCAPS:
+			if (v_flag)
+				fprintf(stdout, "%s: SCEP_OPERATION_GETCAPS\n",
+					pname);
+
+			fprintf(stdout, "%s: scep capabilities: ", pname);
+			for ( i = 0 ; i < SCEP_CAPS ; ++i )
+				if (ca_caps & scep_caps[i].cap)
+					fprintf(stdout, "%s%s",
+							count++ > 1 ? ", " : "",
+							scep_caps[i].str);
+			fprintf(stdout, "\n");
+			scep_t.pki_status = pkistatus = SCEP_PKISTATUS_SUCCESS;
+			break;
 	}
 
 	switch(operation_flag) {
@@ -1188,6 +1205,7 @@ usage() {
 	"  enroll            Enroll certificate\n"
 	"  getcert           Query certificate\n"
 	"  getcrl            Query CRL\n"
+	"  getcaps           Query SCEP capabilities\n"
 	"\nGeneral OPTIONS\n"
 	"  -u <url>          SCEP server URL\n"
 	"  -p <host:port>    Use proxy server at host:port\n"
