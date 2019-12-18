@@ -559,7 +559,7 @@ main(int argc, char **argv) {
 			p_flag ? "" : "/", dir_name);
 
 	reply.payload = NULL;
-	if ((c = send_msg (&reply, http_string,
+	if ((c = send_msg (&reply, http_string, strlen(http_string),
 					host_name, host_port,
 					SCEP_OPERATION_GETCAPS)) == 1) {
 		fprintf(stderr, "%s: error while sending "
@@ -653,8 +653,9 @@ main(int argc, char **argv) {
 			 * Response is written to http_response struct "reply".
 			 */
 			reply.payload = NULL;
-			if ((c = send_msg (&reply, http_string, host_name,
-					host_port, operation_flag)) == 1) {
+			if ((c = send_msg (&reply, http_string, strlen(http_string),
+							host_name, host_port,
+							operation_flag)) == 1) {
 				fprintf(stderr, "%s: error while sending "
 					"message\n", pname);
 				exit (SCEP_PKISTATUS_NET);
@@ -750,8 +751,9 @@ main(int argc, char **argv) {
 				 * Response is written to http_response struct "reply".
 				 */
 				reply.payload = NULL;
-				if ((c = send_msg (&reply, http_string, host_name,
-						host_port, operation_flag)) == 1) {
+				if ((c = send_msg (&reply, http_string, strlen(http_string),
+								host_name, host_port,
+								operation_flag)) == 1) {
 					if(v_flag){
 					fprintf(stderr, "%s: error while sending "
 						"message\n", pname);
@@ -1034,12 +1036,13 @@ not_enroll:
 
 		/* Enter polling loop */
 		while (scep_t.pki_status != SCEP_PKISTATUS_SUCCESS) {
-			/* create payload */
-			pkcs7_wrap(&scep_t);
+			const char * http_method = "GET";
 
-			/* URL-encode */
-			p = url_encode((char *)scep_t.request_payload,
-				scep_t.request_len);
+			if (SUP_CAP_POST_PKI(ca_caps))
+				http_method = "POST";
+
+			/* create payload */
+			pkcs7_wrap(&scep_t, !SUP_CAP_POST_PKI(ca_caps));
 
 			/*Test mode print SCEP request and don't send it*/
 			if(m_flag){
@@ -1070,25 +1073,89 @@ not_enroll:
 				"%s HTTP/1.0\r\n\r\n",
 				p_flag ? "" : "/", dir_name, p);*/
 
-			if(!M_flag){
-				snprintf(http_string, sizeof(http_string),
-				 "GET %s%s?operation=PKIOperation&message=%s "
-				 "HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name, p);
+			i = snprintf(http_string, sizeof(http_string),
+					"%s %s%s?operation=PKIOperation",
+					http_method, p_flag ? "" : "/", dir_name);
 
-			}else{
-				snprintf(http_string, sizeof(http_string),
-					"GET %s%s?operation=PKIOperation&message=%s&%s "
-					"HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,p, M_char);
+			if (i >= sizeof(http_string)) {
+				fprintf(stderr, "%s: not enough buffer space "
+					"to construct HTTP request\n", pname);
+				exit (SCEP_PKISTATUS_NET);
+			}
 
+			if (! SUP_CAP_POST_PKI(ca_caps)) {
+				/* URL-encode */
+				i += snprintf(http_string+i, sizeof(http_string)-i,
+						"&message=%s",
+						url_encode(
+							(char *)scep_t.request_payload,
+							scep_t.request_len));
+
+				if (i >= sizeof(http_string)) {
+					fprintf(stderr, "%s: not enough buffer space "
+							"to construct HTTP request\n", pname);
+					exit (SCEP_PKISTATUS_NET);
+				}
+			}
+
+			if(M_flag){
+				i += snprintf(http_string+i, sizeof(http_string)-i,
+						"&%s", M_char);
+
+				if (i >= sizeof(http_string)) {
+					fprintf(stderr, "%s: not enough buffer space "
+							"to construct HTTP request\n",
+							pname);
+					exit (SCEP_PKISTATUS_NET);
+				}
+			}
+
+			i += snprintf(http_string+i, sizeof(http_string)-i,
+					" HTTP/1.0\r\n");
+
+			if (i >= sizeof(http_string)) {
+				fprintf(stderr, "%s: not enough buffer space "
+					"to construct HTTP request\n", pname);
+				exit (SCEP_PKISTATUS_NET);
+			}
+
+			if (SUP_CAP_POST_PKI(ca_caps)) {
+				i += snprintf(http_string+i, sizeof(http_string)-i,
+						"Content-Length: %d\r\n",
+						scep_t.request_len);
+
+				if (i >= sizeof(http_string)) {
+					fprintf(stderr, "%s: not enough buffer space "
+							"to construct HTTP request\n",
+							pname);
+					exit (SCEP_PKISTATUS_NET);
+				}
+			}
+
+			i += snprintf(http_string+i, sizeof(http_string)-i, "\r\n");
+
+			if (i >= sizeof(http_string)) {
+				fprintf(stderr, "%s: not enough buffer space "
+					"to construct HTTP request\n", pname);
+				exit (SCEP_PKISTATUS_NET);
+			}
+
+			if (SUP_CAP_POST_PKI(ca_caps)) {
+				/* concat post data */
+				memcpy(http_string+i,
+					 scep_t.request_payload,
+					 scep_t.request_len);
+
+				i += scep_t.request_len;
 			}
 
 			if (d_flag)
-				fprintf(stdout, "%s: scep msg: %s",
-					pname, http_string);
+				fprintf(stdout, "%s: scep msg: %.*s",
+					pname, i, http_string);
 
 			/* send http */
 			reply.payload = NULL;
-			if ((c = send_msg (&reply, http_string, host_name,
+			if ((c = send_msg (&reply, http_string, (i+1), host_name,
 					host_port, operation_flag)) == 1) {
 				fprintf(stderr, "%s: error while sending "
 					"message\n", pname);

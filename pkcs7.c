@@ -15,7 +15,7 @@
  * structure in GetCertInitial and PKCS7_ISSUER_AND_SERIAL in
  * GetCert and GETCrl.
  */
-int pkcs7_wrap(struct scep *s) {
+int pkcs7_wrap(struct scep *s, int enc_base64) {
 	BIO			*databio = NULL;
 	BIO			*encbio = NULL;
 	BIO			*pkcs7bio = NULL;
@@ -307,13 +307,16 @@ int pkcs7_wrap(struct scep *s) {
 	}
 
 	/* base64-encode the data */
-	if (v_flag)
+	if (v_flag && enc_base64)
 		printf("%s: applying base64 encoding\n",pname);
 
 	/* Create base64 filtering bio */
 	memorybio = BIO_new(BIO_s_mem());
 	base64bio = BIO_new(BIO_f_base64());
-	outbio = BIO_push(base64bio, memorybio);
+	if (enc_base64)
+		outbio = BIO_push(base64bio, memorybio);
+	else
+		outbio = memorybio;
 
 	/* Copy PKCS#7 */
 	i2d_PKCS7_bio(outbio, s->request_p7);
@@ -321,8 +324,10 @@ int pkcs7_wrap(struct scep *s) {
 	BIO_set_flags(memorybio, BIO_FLAGS_MEM_RDONLY);
 	s->request_len = BIO_get_mem_data(memorybio, &s->request_payload);
 	if (v_flag)
-		printf("%s: base64 encoded payload size: %d bytes\n",
-				pname, s->request_len);
+		printf("%s: %spayload size: %d bytes\n",
+				pname,
+				enc_base64 ? "base64 encoded " : "",
+				s->request_len);
 	BIO_free(outbio);
 	BIO_free(databio);
 	return (0);

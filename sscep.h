@@ -293,7 +293,7 @@ typedef struct {
 void usage(void);
 
 /* Send HTTP message */
-int send_msg (struct http_reply *, char *, char *, int, int);
+int send_msg (struct http_reply *, char *, size_t, char *, int, int);
 
 /* Catch SIGALRM */
 void catchalarm (int);
@@ -350,7 +350,7 @@ int new_selfsigned(struct scep *);
 char * key_fingerprint(X509_REQ *);
 
 /* PKCS#7 encode message */
-int pkcs7_wrap(struct scep *);
+int pkcs7_wrap(struct scep *, int enc_base64);
 
 /* PKCS#7 decode message */
 int pkcs7_unwrap(struct scep *);
