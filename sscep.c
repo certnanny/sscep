@@ -10,6 +10,37 @@
 
 #include "sscep.h"
 
+static SCEP_CAP scep_caps[SCEP_CAPS] = {
+	{ .cap = SCEP_CAP_AES,      .str = "AES" },
+	{ .cap = SCEP_CAP_3DES,     .str = "DES3" },
+	{ .cap = SCEP_CAP_NEXT_CA,  .str = "GetNextCACert" },
+	{ .cap = SCEP_CAP_POST_PKI, .str = "POSTPKIOperation" },
+	{ .cap = SCEP_CAP_RENEWAL,  .str = "Renewal" },
+	{ .cap = SCEP_CAP_SHA_1,    .str = "SHA-1" },
+	{ .cap = SCEP_CAP_SHA_256,  .str = "SHA-256" },
+	{ .cap = SCEP_CAP_SHA_512,  .str = "SHA-512" },
+	{ .cap = SCEP_CAP_STA,      .str = "SCEPStandard" },
+};
+
+#define SUP_CAP_AES(cap) \
+	((cap & SCEP_CAP_AES) || (cap & SCEP_CAP_STA))
+#define SUP_CAP_3DES(cap) \
+	(cap & SCEP_CAP_3DES)
+#define SUP_CAP_NEXT_CA(cap) \
+	(cap & SCEP_CAP_NEXT_CA)
+#define SUP_CAP_POST_PKI(cap) \
+	((cap & SCEP_CAP_POST_PKI) || (cap & SCEP_CAP_STA))
+#define SUP_CAP_RENEWAL(cap) \
+	(cap & SCEP_CAP_RENEWAL)
+#define SUP_CAP_SHA_1(cap) \
+	(cap & SCEP_CAP_SHA_1)
+#define SUP_CAP_SHA_256(cap) \
+	((cap & SCEP_CAP_SHA_256) || (cap & SCEP_CAP_STA))
+#define SUP_CAP_SHA_512(cap) \
+	(cap & SCEP_CAP_SHA_512)
+#define SUP_CAP_STA(cap) \
+	(cap & SCEP_CAP_STA)
+
 static char *
 handle_serial (char * serial)
 {
@@ -79,6 +110,7 @@ main(int argc, char **argv) {
 	PKCS7 p7;
 	int i;
 	int required_option_space;
+	int ca_caps = 0;
 	
 
 
@@ -517,6 +549,64 @@ main(int argc, char **argv) {
 		fprintf(stderr, "%s: unsupported algorithm: %s\n",
 			pname, F_char);
 		exit (SCEP_PKISTATUS_ERROR);
+	}
+
+	/* Get server capabilities */
+	snprintf(http_string, sizeof(http_string),
+			"GET %s%s?operation=GetCACaps HTTP/1.0\r\n\r\n",
+			p_flag ? "" : "/", dir_name);
+
+	reply.payload = NULL;
+	if ((c = send_msg (&reply, http_string,
+					host_name, host_port,
+					SCEP_OPERATION_GETCAPS)) == 1) {
+		fprintf(stderr, "%s: error while sending "
+				"message\n", pname);
+		exit (SCEP_PKISTATUS_NET);
+	}
+
+	if (reply.status == 200 && reply.payload != NULL) {
+		for ( i = 0 ; i < reply.bytes ; ) {
+			int _ca_caps = 0;
+			int j = i, k;
+
+			while (j < reply.bytes && !
+					(reply.payload[j] == '\r' ||
+					 reply.payload[j] == '\n'))
+				++j;
+
+			while (j < reply.bytes &&
+					(reply.payload[j] == '\r' ||
+					 reply.payload[j] == '\n'))
+			{
+				reply.payload[j] = '\0';
+				++j;
+			}
+
+			/* parse capabilities */
+			for ( k = 0 ; k < SCEP_CAPS ; ++k ) {
+				if (reply.payload[i] != scep_caps[k].str[0])
+					continue;
+
+				if (strcmp(&reply.payload[i], scep_caps[k].str) != 0)
+					continue;
+
+				_ca_caps |= scep_caps[k].cap;
+			}
+
+			if (_ca_caps == 0)
+				fprintf(stderr, "%s: unknown "
+						"capability %s\n",
+						pname, &reply.payload[i]);
+			else
+				ca_caps |= _ca_caps;
+
+			i = ( j == i ? j + 1 : j );
+		}
+
+		if (d_flag)
+			fprintf(stdout, "%s: scep caps bitmask: 0x%04x\n",
+					pname, ca_caps);
 	}
 
 	/*
