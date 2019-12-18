@@ -155,6 +155,19 @@ send_msg(struct http_reply *http,char *msg,char *host,int port,int operation) {
 				goto mime_err;
 			}
 			break;
+		case SCEP_OPERATION_GETCAPS:
+			if (strstr(buf, MIME_GETCAPS)) {
+				http->type = SCEP_MIME_GETCAPS;
+				if (v_flag)
+					printf("%s: MIME header: %s\n",
+							pname, MIME_GETCAPS);
+			} else {
+				if (v_flag)
+					printf("%s: mime_err: %s\n", pname,buf);
+
+				goto mime_err;
+			}
+			break;
 		default:
 			if (!strstr(buf, MIME_PKI)) {
 				if (v_flag)

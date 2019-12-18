@@ -74,11 +74,13 @@ int operation_flag;
 #define	SCEP_OPERATION_GETCERT	5
 #define	SCEP_OPERATION_GETCRL	7
 #define SCEP_OPERATION_GETNEXTCA 15
+#define SCEP_OPERATION_GETCAPS  31
 
 /* SCEP MIME headers */
 #define MIME_GETCA	"application/x-x509-ca-cert"
 #define MIME_GETCA_RA	"application/x-x509-ca-ra-cert"
 #define MIME_GETNEXTCA "application/x-x509-next-ca-cert"
+#define MIME_GETCAPS	"text/plain"
 
 /* Entrust VPN connector uses different MIME types */
 #define MIME_PKI	"x-pki-message"
@@ -89,6 +91,7 @@ int operation_flag;
 #define	SCEP_MIME_GETCA_RA	3
 #define	SCEP_MIME_PKI		5
 #define	SCEP_MIME_GETNEXTCA	7
+#define	SCEP_MIME_GETCAPS	15
 
 /* SCEP request types */
 #define	SCEP_REQUEST_NONE		0
@@ -144,6 +147,19 @@ int operation_flag;
 
 //define encoding for capi engine support
 #define MY_ENCODING_TYPE  (PKCS_7_ASN_ENCODING | X509_ASN_ENCODING)
+
+/* SCEP capabilities */
+#define SCEP_CAP_AES      0x001
+#define SCEP_CAP_3DES     0x002
+#define SCEP_CAP_NEXT_CA  0x004
+#define SCEP_CAP_POST_PKI 0x008
+#define SCEP_CAP_RENEWAL  0x010
+#define SCEP_CAP_SHA_1    0x020
+#define SCEP_CAP_SHA_256  0x040
+#define SCEP_CAP_SHA_512  0x080
+#define SCEP_CAP_STA      0x100
+
+#define SCEP_CAPS 9
 
 /* End of Global defines */
 
@@ -262,6 +278,12 @@ struct scep {
 	ENGINE *e;
 
 };
+
+typedef struct {
+	int cap;
+	const char * str;
+} SCEP_CAP;
+
 /* End of structures */
 
 
