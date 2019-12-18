@@ -27,7 +27,7 @@ void perror_w32 (const char *message)
 #endif
 
 int
-send_msg(struct http_reply *http,char *msg,char *host,int port,int operation) {
+send_msg(struct http_reply *http,char *msg,size_t msg_len,char *host,int port,int operation) {
 	int			sd, rc, used, bytes;
 	struct sockaddr_in	localAddr, servAddr;
 	struct hostent		*h;
@@ -82,14 +82,14 @@ send_msg(struct http_reply *http,char *msg,char *host,int port,int operation) {
 	setsockopt(sd,SOL_SOCKET, SO_RCVTIMEO,(void *)&tv, sizeof(tv));
 	setsockopt(sd,SOL_SOCKET, SO_SNDTIMEO,(void *)&tv, sizeof(tv));
 	/* send data */ 
-	rc = send(sd, msg,strlen(msg), 0);
+	rc = send(sd, msg,msg_len, 0);
 
 	if (rc < 0) {
 		perror("cannot send data ");
 		close(sd);
 		return (1);
 	}
-	else if(rc != strlen(msg))
+	else if(rc != msg_len)
 	{
 		fprintf(stderr,"incomplete send\n");
 		close(sd);
