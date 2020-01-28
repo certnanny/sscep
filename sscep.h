@@ -233,10 +233,10 @@ struct scep {
 
 	/* SCEP transaction attributes */
 	char *transaction_id;
-	unsigned char *sender_nonce;
+	char *sender_nonce;
 	int sender_nonce_len;
-	unsigned char *reply_recipient_nonce;
-	unsigned char *reply_sender_nonce;
+	char *reply_recipient_nonce;
+	char *reply_sender_nonce;
 	int recipient_nonce_len;
 
 	/* Certificates */

@@ -9,6 +9,12 @@
 #include "sscep.h"
 #include "ias.h"
 
+char* generate_nonce(int len) {
+	unsigned char * nonce = malloc(len);
+	RAND_bytes(nonce, len);
+	return (char *) nonce;
+}
+
 /*
  * Wrap data in PKCS#7 envelopes and base64-encode the result.
  * Data is PKCS#10 request in PKCSReq, or PKCS7_ISSUER_AND_SUBJECT
@@ -35,8 +41,7 @@ int pkcs7_wrap(struct scep *s) {
 	/* Create a new sender nonce for all messages 
 	 * XXXXXXXXXXXXXX should it be per transaction? */
 	s->sender_nonce_len = 16;
-	s->sender_nonce = malloc(s->sender_nonce_len); 
-	RAND_bytes(s->sender_nonce, s->sender_nonce_len);
+	s->sender_nonce = generate_nonce(s->sender_nonce_len);
 
 	/* Prepare data payload */
 	switch(s->request_type) {
