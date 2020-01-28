@@ -9,8 +9,8 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: install dependencies
-      run: sudo apt-get install libpthread-stubs0-dev openssl && openssl version
+      run: sudo apt-get install libpthread-stubs0-dev openssl mingw-w32 mingw-w64 
     - name: setup build environment
       run: find /usr/lib -iname 'libcrypto.a' -exec sh -c 'ln -s $(dirname "$@") ../openssl' _ {} \; -quit
     - name: build executables for Linux
-      run: ln -s Linux/Makefile && make
+      run: openssl version && ln -s Linux/Makefile && make
