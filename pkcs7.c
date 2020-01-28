@@ -452,19 +452,19 @@ int pkcs7_verify_unwrap(struct scep *s , char * cachainfile ) {
 	{
 
 #ifdef WIN32
-	if ((fopen_s(&fp, w_char, "w")))
+		if ((fopen_s(&fp, w_char, "w")))
 #else
-	if (!(fp = fopen(w_char, "w")))
+		if (!(fp = fopen(w_char, "w")))
 #endif
-	{
-		fprintf(stderr, "%s: cannot open cert file for writing\n",
-				w_char);
-		exit (SCEP_PKISTATUS_FILE);
-	}
-	if (v_flag)
-		printf("%s: writing cert\n", w_char);
-	if (d_flag)
-		PEM_write_X509(stdout, signercert);
+		{
+			fprintf(stderr, "%s: cannot open cert file for writing\n",
+					w_char);
+			exit (SCEP_PKISTATUS_FILE);
+		}
+		if (v_flag)
+			printf("%s: writing cert\n", w_char);
+		if (d_flag) 
+			PEM_write_X509(stdout, signercert);
 
 		if (PEM_write_X509(fp, signercert) != 1) {
 			fprintf(stderr, "%s: error while writing certificate "
