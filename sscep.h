@@ -53,6 +53,7 @@
 #include <openssl/crypto.h>
 #include <openssl/buffer.h>
 #include <openssl/asn1.h>
+#include <openssl/asn1t.h>
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
 #include <openssl/pkcs7.h>
@@ -61,7 +62,6 @@
 #include <openssl/rand.h>
 #include <openssl/md5.h>
 #include <openssl/objects.h>
-#include <openssl/asn1_mac.h>
 #include <openssl/ssl.h>
 /* Global defines */
 
