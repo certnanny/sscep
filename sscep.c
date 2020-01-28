@@ -226,7 +226,7 @@ main(int argc, char **argv) {
 					M_char = realloc(M_char, required_option_space);
 					if(!M_char)
 						error_memory();
-					strncat(M_char, "&", 1);
+					strcat(M_char, "&");
 					strncat(M_char, optarg, strlen(optarg));
 				}
 				break;
