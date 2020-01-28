@@ -182,7 +182,7 @@ int pkcs7_wrap(struct scep *s) {
 
 	/* Create BIO for encryption  */
 	if (d_flag){
-		printf("\n %s: hexdump request payload \n", pname , i);
+		printf("\n %s: hexdump request payload\n", pname);
 		for(i=0; i < s->request_len; i++ ){
 			printf("%02x", s->request_payload[i]);
 		}
