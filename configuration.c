@@ -54,8 +54,6 @@ int scep_conf_load(CONF *conf) {
 	char *windir;
 #endif
 
-	int ret;
-
 	//load global scep vars
 	if((var = NCONF_get_string(conf, SCEP_CONFIGURATION_SECTION, SCEP_CONFIGURATION_PARAM_CACERTFILE)) && !c_flag) {
 		c_flag = 1;
@@ -112,23 +110,22 @@ int scep_conf_load(CONF *conf) {
 	//loading options for specific operation
 	switch(operation_flag) {
 		case SCEP_OPERATION_ENROLL:
-			ret = scep_conf_load_operation_enroll(conf);
+			scep_conf_load_operation_enroll(conf);
 			break;
 		case SCEP_OPERATION_GETCA:
-			ret = scep_conf_load_operation_getca(conf);
+			scep_conf_load_operation_getca(conf);
 			break;
 		case SCEP_OPERATION_GETCERT:
-			ret = scep_conf_load_operation_getcert(conf);
+			scep_conf_load_operation_getcert(conf);
 			break;
 		case SCEP_OPERATION_GETCRL:
-			ret = scep_conf_load_operation_getcrl(conf);
+			scep_conf_load_operation_getcrl(conf);
 			break;
 		case SCEP_OPERATION_GETNEXTCA:
-			ret = scep_conf_load_operation_getnextca(conf);
+			scep_conf_load_operation_getnextca(conf);
 			break;
 		default:
 			fprintf(stderr, "No operation specified, can't load specific settings!\n");
-			ret = -1;
 			break;
 	}
 
