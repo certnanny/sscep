@@ -11,4 +11,4 @@ jobs:
     - name: Install dependencies
       run: sudo apt-get install libpthread-stubs0-dev
     - name: make
-      run: make
+      run: make -C Linux
