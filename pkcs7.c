@@ -865,7 +865,7 @@ int get_signed_attribute(STACK_OF(X509_ATTRIBUTE) *attribs, int nid,int type, ch
 			pname);	
 		exit (SCEP_PKISTATUS_P7);
 	}
-	memcpy(*buffer, ASN1_STRING_data(asn1_type->value.asn1_string), len);
+	memcpy(*buffer, ASN1_STRING_get0_data(asn1_type->value.asn1_string), len);
 
 	/* Add null terminator if it's a PrintableString */
 	if (type == V_ASN1_PRINTABLESTRING) {
