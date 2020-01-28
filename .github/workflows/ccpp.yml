@@ -8,7 +8,7 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
-    - name: Install dependencies
-      run: sudo apt-get install libpthread-stubs0-dev
-    - name: make
-      run: make -C Linux
+    - name: install dependencies
+      run: sudo apt-get install libpthread-stubs0-dev openssl
+    - name: build executables for Linux
+      run: ln -s Linux/Makefile && make
