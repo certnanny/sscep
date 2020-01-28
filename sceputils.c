@@ -47,7 +47,6 @@ int new_transaction(struct scep *s) {
  * Set also subjectAltName extension if found from request.
  */
 int new_selfsigned(struct scep *s) {
-	unsigned char		 *ptr;
 	X509			 *cert;
 	X509_NAME		 *subject;
 	ASN1_INTEGER		 *serial;
@@ -98,7 +97,7 @@ int new_selfsigned(struct scep *s) {
 		exit (SCEP_PKISTATUS_SS);
 	}
 	/* Get serial no from transaction id */
-	ptr = (unsigned char *)s->transaction_id;
+	const unsigned char *ptr = (unsigned char *) s->transaction_id;
 	if (!(serial = d2i_ASN1_INTEGER(NULL, &ptr, 32))) {
 		fprintf(stderr, "%s: error converting serial\n", pname);
 		ERR_print_errors_fp(stderr);
