@@ -86,8 +86,8 @@ int pkcs7_wrap(struct scep *s) {
 
 			/* Read data in memory bio */
 			databio = BIO_new(BIO_s_mem());
-			if ((rc = i2d_pkcs7_issuer_and_subject_bio(databio,
-						s->ias_getcertinit)) <= 0) {
+			if ((rc = pkcs7_issuer_and_subject_print_ctx(databio,
+						s->ias_getcertinit, 0, NULL)) <= 0) {
 				fprintf(stderr, "%s: error writing "
 					"GetCertInitial data in bio\n", pname);
 				ERR_print_errors_fp(stderr);
@@ -105,8 +105,8 @@ int pkcs7_wrap(struct scep *s) {
 
 			/* Read data in memory bio */
 			databio = BIO_new(BIO_s_mem());
-			if ((rc = i2d_PKCS7_ISSUER_AND_SERIAL_bio(databio,
-						s->ias_getcert)) <= 0) {
+			if ((rc = PKCS7_ISSUER_AND_SERIAL_print_ctx(databio,
+						s->ias_getcert, 0, NULL)) <= 0) {
 				fprintf(stderr, "%s: error writing "
 					"GetCert data in bio\n", pname);
 				ERR_print_errors_fp(stderr);
@@ -124,8 +124,8 @@ int pkcs7_wrap(struct scep *s) {
 
 			/* Read data in memory bio */
 			databio = BIO_new(BIO_s_mem());
-			if ((rc = i2d_PKCS7_ISSUER_AND_SERIAL_bio(databio,
-						s->ias_getcrl)) <= 0) {
+			if ((rc = PKCS7_ISSUER_AND_SERIAL_print_ctx(databio,
+						s->ias_getcrl, 0, NULL)) <= 0) {
 				fprintf(stderr, "%s: error writing "
 					"GetCert data in bio\n", pname);
 				ERR_print_errors_fp(stderr);
@@ -895,16 +895,14 @@ int get_attribute(STACK_OF(X509_ATTRIBUTE) *attribs, int required_nid,
 	/* Find attribute */
 	for (i = 0; i < sk_X509_ATTRIBUTE_num(attribs); i++) {
 		x509_attrib = sk_X509_ATTRIBUTE_value(attribs, i);
-		if (OBJ_cmp(x509_attrib->object, asn1_obj) == 0) {
-			if ((x509_attrib->value.set) &&
-			  (sk_ASN1_TYPE_num(x509_attrib->value.set) != 0)) {
+		if (OBJ_cmp(X509_ATTRIBUTE_get0_object(x509_attrib), asn1_obj) == 0) {
+			if (X509_ATTRIBUTE_count(x509_attrib) != 0) {
 				if (*asn1_type != NULL) {
 					fprintf(stderr, "%s: no value found",
 							pname);
 					exit (SCEP_PKISTATUS_P7);
 				}
-			*asn1_type =
-				sk_ASN1_TYPE_value(x509_attrib->value.set, 0);
+				*asn1_type = X509_ATTRIBUTE_get0_type(x509_attrib, 0);
 			}
 		}
 	}

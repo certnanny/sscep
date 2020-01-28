@@ -99,7 +99,7 @@ int new_selfsigned(struct scep *s) {
 	}
 	/* Get serial no from transaction id */
 	ptr = (unsigned char *)s->transaction_id;
-	if (!(serial = c2i_ASN1_INTEGER(NULL, &ptr, 32))) {
+	if (!(serial = d2i_ASN1_INTEGER(NULL, &ptr, 32))) {
 		fprintf(stderr, "%s: error converting serial\n", pname);
 		ERR_print_errors_fp(stderr);
 		exit (SCEP_PKISTATUS_SS);
