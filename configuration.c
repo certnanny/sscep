@@ -282,7 +282,7 @@ int scep_conf_load(CONF *conf) {
 
 		// If there is a section specified in 'engine_section/cmds', store all those commands IN ORDER
 		char *cmds_section;
-		if(cmds_section = NCONF_get_string(conf, engine_section, SCEP_CONFIGURATION_ENGINE_CMDS)) {
+		if((cmds_section = NCONF_get_string(conf, engine_section, SCEP_CONFIGURATION_ENGINE_CMDS))) {
 			if(!NCONF_get_section(conf, cmds_section)) {
 				fprintf(stderr, "%s: Section %s defined but not found!\n", pname, cmds_section);
 				exit(SCEP_PKISTATUS_FILE);
