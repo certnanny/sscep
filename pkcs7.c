@@ -31,7 +31,6 @@ int pkcs7_wrap(struct scep *s) {
 	STACK_OF(X509_ATTRIBUTE) *attributes;
 	X509			*signercert = NULL;
 	EVP_PKEY		*signerkey = NULL;
-	X509_REQ *reqcsr = NULL;
 
 	/* Create a new sender nonce for all messages 
 	 * XXXXXXXXXXXXXX should it be per transaction? */
@@ -333,15 +332,10 @@ int pkcs7_verify_unwrap(struct scep *s , char * cachainfile ) {
 	BIO				*memorybio;
 	BIO				*outbio;
 	BIO				*pkcs7bio;
-	int				i, len, bytes, used;
+	int				len, bytes, used;
 	STACK_OF(PKCS7_SIGNER_INFO)	*sk;
-	PKCS7				*p7;
 	PKCS7_SIGNER_INFO		*si;
-	STACK_OF(X509_ATTRIBUTE)	*attribs;
-	char				*p;
 	unsigned char			buffer[1024];
-	X509				*recipientcert;
-	EVP_PKEY			*recipientkey;
     X509   				*signercert;
     FILE 				*fp;
 
