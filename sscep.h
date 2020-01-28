@@ -255,7 +255,7 @@ struct scep {
 
 	/* Reply */
 	PKCS7 *reply_p7;
-	unsigned char *reply_payload;	
+	char *reply_payload;	
 	int reply_len;
 
 	/* Engine */

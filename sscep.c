@@ -998,7 +998,7 @@ not_enroll:
 
 			/* Check payload */
 			scep_t.reply_len = reply.bytes;
-			scep_t.reply_payload = (unsigned char *)reply.payload;
+			scep_t.reply_payload = reply.payload;
 			pkcs7_unwrap(&scep_t);
 			pkistatus = scep_t.pki_status;
 
