@@ -229,7 +229,7 @@ key_fingerprint(X509_REQ *req) {
 	MD5_CTX		ctx;
 	
 	/* Assign space for ASCII presentation of the digest */
-	str = (unsigned char *)malloc(2 * MD5_DIGEST_LENGTH + 1);
+	str = (char *)malloc(2 * MD5_DIGEST_LENGTH + 1);
 	ret = str;
 
 	/* Create new memory bio for reading the public key */
