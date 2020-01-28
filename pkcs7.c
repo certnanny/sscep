@@ -11,7 +11,7 @@
 
 /*
  * Wrap data in PKCS#7 envelopes and base64-encode the result.
- * Data is PKCS#10 request in PKCSReq, or pkcs7_issuer_and_subject
+ * Data is PKCS#10 request in PKCSReq, or PKCS7_ISSUER_AND_SUBJECT
  * structure in GetCertInitial and PKCS7_ISSUER_AND_SERIAL in
  * GetCert and GETCrl.
  */
@@ -86,7 +86,7 @@ int pkcs7_wrap(struct scep *s) {
 
 			/* Read data in memory bio */
 			databio = BIO_new(BIO_s_mem());
-			if ((rc = pkcs7_issuer_and_subject_print_ctx(databio,
+			if ((rc = PKCS7_ISSUER_AND_SUBJECT_print_ctx(databio,
 						s->ias_getcertinit, 0, NULL)) <= 0) {
 				fprintf(stderr, "%s: error writing "
 					"GetCertInitial data in bio\n", pname);

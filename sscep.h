@@ -195,10 +195,10 @@ int pkistatus;
 
 /* GETCertInital data structure */
 
-typedef struct {
+typedef struct PKCS7_ISSUER_AND_SUBJECT_st {
 	X509_NAME *issuer;
 	X509_NAME *subject;
-} pkcs7_issuer_and_subject;
+} PKCS7_ISSUER_AND_SUBJECT;
 
 /* HTTP reply structure */
 struct http_reply {
@@ -249,7 +249,7 @@ struct scep {
 	PKCS7 *request_p7;
 	unsigned char *request_payload;
 	int request_len;
-	pkcs7_issuer_and_subject *ias_getcertinit;
+	PKCS7_ISSUER_AND_SUBJECT *ias_getcertinit;
 	PKCS7_ISSUER_AND_SERIAL *ias_getcert;
 	PKCS7_ISSUER_AND_SERIAL *ias_getcrl;
 

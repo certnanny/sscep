@@ -27,7 +27,7 @@ int new_transaction(struct scep *s) {
 	s->fail_info_str = NULL;
 
 	/* Set other variables */
-	s->ias_getcertinit = pkcs7_issuer_and_subject_new();
+	s->ias_getcertinit = PKCS7_ISSUER_AND_SUBJECT_new();
 	s->ias_getcert = PKCS7_ISSUER_AND_SERIAL_new();
 	s->ias_getcrl = PKCS7_ISSUER_AND_SERIAL_new();
 
