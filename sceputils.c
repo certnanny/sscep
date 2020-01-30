@@ -97,8 +97,8 @@ int new_selfsigned(struct scep *s) {
 		exit (SCEP_PKISTATUS_SS);
 	}
 	/* Get serial no from transaction id */
-	const unsigned char *ptr = (unsigned char *) s->transaction_id;
-	if (!(serial = d2i_ASN1_INTEGER(NULL, &ptr, 32))) {
+	read_serial(&serial, (unsigned char **) &s->transaction_id, 32);
+	if (!serial) {
 		fprintf(stderr, "%s: error converting serial\n", pname);
 		ERR_print_errors_fp(stderr);
 		exit (SCEP_PKISTATUS_SS);
@@ -251,4 +251,16 @@ key_fingerprint(X509_REQ *req) {
 	return(ret);
 }
 
+/**
+ * c2i_ASN1_INTERNAL is not supported anymore since openssl 1.1.x. The only way to
+ * still get the ASN1_INTEGER is by using d2i_ASN1_INTERNAL instead. However, this requires
+ * the string to start with two additional octets. One for the type (integer: 0x02) and another
+ * one representing the data length (source_length).
+ */
+void read_serial(ASN1_INTEGER** target, unsigned char ** source, int source_len) {
+    const unsigned char * buffer = malloc(sizeof(unsigned char[source_len + 2]));
 
+    sprintf((char *) buffer, "%c%c%s", 2, source_len, *source);
+
+    *target = d2i_ASN1_INTEGER(NULL, &buffer, source_len + 2);
+}

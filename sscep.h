@@ -306,6 +306,9 @@ void read_cert(X509** cert, char* filename);
 /* Read certificate request and private key */
 void read_request(void);
 
+/* reads the serialnumber from a hex encoded string */
+void read_serial(ASN1_INTEGER** target, unsigned char ** source, int source_len);
+
 /* Write CRL */
 void write_crl(struct scep *);
 
