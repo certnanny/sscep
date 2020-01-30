@@ -9,10 +9,10 @@
 #include "sscep.h"
 #include "ias.h"
 
-char* generate_nonce(int len) {
+unsigned char* generate_nonce(int len) {
 	unsigned char * nonce = malloc(len);
 	RAND_bytes(nonce, len);
-	return (char *) nonce;
+	return nonce;
 }
 
 /*
@@ -624,7 +624,7 @@ int pkcs7_unwrap(struct scep *s) {
 		/* XXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 		exit (SCEP_PKISTATUS_P7); */
 	}
-	s->reply_sender_nonce = p;
+	s->reply_sender_nonce = (unsigned char *) p;
 	if (v_flag) {
 		printf("%s: senderNonce in reply: ", pname);
 		for (i = 0; i < 16; i++) {
@@ -637,7 +637,7 @@ int pkcs7_unwrap(struct scep *s) {
 		fprintf(stderr, "%s: cannot find recipientNonce\n", pname);
 		exit (SCEP_PKISTATUS_P7);
 	}
-	s->reply_recipient_nonce = p;
+	s->reply_recipient_nonce = (unsigned char *) p;
 	if (v_flag) {
 		printf("%s: recipientNonce in reply: ", pname);
 		for (i = 0; i < 16; i++) {
@@ -806,7 +806,7 @@ int add_attribute_string(STACK_OF(X509_ATTRIBUTE) *attrs, int nid, char *buffer)
 	return (0);
 
 }
-int add_attribute_octet(STACK_OF(X509_ATTRIBUTE) *attrs, int nid, char *buffer,
+int add_attribute_octet(STACK_OF(X509_ATTRIBUTE) *attrs, int nid, unsigned char *buffer,
 		int len) {
 	ASN1_STRING     *asn1_string = NULL;
 	X509_ATTRIBUTE  *x509_a;

@@ -233,10 +233,10 @@ struct scep {
 
 	/* SCEP transaction attributes */
 	char *transaction_id;
-	char *sender_nonce;
+	unsigned char *sender_nonce;
 	int sender_nonce_len;
-	char *reply_recipient_nonce;
-	char *reply_sender_nonce;
+	unsigned char *reply_recipient_nonce;
+	unsigned char *reply_sender_nonce;
 	int recipient_nonce_len;
 
 	/* Certificates */
@@ -340,7 +340,7 @@ int pkcs7_unwrap(struct scep *);
 int add_attribute_string(STACK_OF(X509_ATTRIBUTE) *, int, char *);
 
 /* Add signed octet attribute */
-int add_attribute_octet(STACK_OF(X509_ATTRIBUTE) *, int, char *, int);
+int add_attribute_octet(STACK_OF(X509_ATTRIBUTE) *, int, unsigned char *, int);
 
 /* Find signed attributes */
 int get_signed_attribute(STACK_OF(X509_ATTRIBUTE) *, int, int, char **);
