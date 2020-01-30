@@ -258,9 +258,10 @@ key_fingerprint(X509_REQ *req) {
  * one representing the data length (source_length).
  */
 void read_serial(ASN1_INTEGER** target, unsigned char ** source, int source_len) {
-    const unsigned char * buffer = malloc(sizeof(unsigned char[source_len + 2]));
+    const int buffer_len = source_len + 2;
+    const unsigned char * buffer = malloc(sizeof(unsigned char[buffer_len]));
 
-    sprintf((char *) buffer, "%c%c%s", 2, source_len, *source);
+    snprintf((char *) buffer, buffer_len, "%c%c%s", 2, source_len, *source);
 
-    *target = d2i_ASN1_INTEGER(NULL, &buffer, source_len + 2);
+    *target = d2i_ASN1_INTEGER(NULL, &buffer, buffer_len);
 }
