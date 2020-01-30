@@ -15,7 +15,7 @@ void
 init_config(FILE *conf) {
 	char	buff[1024];
 	char	*str1, *str2;
-	int	k, i, lines;
+	int		i, lines;
 
  	lines = 0;
 	while (fgets(buff, 1024, conf)) {
@@ -38,12 +38,11 @@ init_config(FILE *conf) {
 
 		/* fetch key and value: */
 
-		k = 0;
 		str1 = get_string(&buff[i]);
 		i += strlen(&buff[i])+1;
 		for ( ; isspace(buff[i]) ; i++ )
 			;
-		k = 1;
+
 		str2 = get_string(&buff[i]);
 
 		/* if not found... */

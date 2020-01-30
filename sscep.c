@@ -76,7 +76,6 @@ main(int argc, char **argv) {
 	BIO			*bp;
 	STACK_OF(X509)		*nextcara = NULL;
 	X509 				*cert=NULL;
-	PKCS7 p7;
 	int i;
 	int required_option_space;
 	
@@ -227,7 +226,7 @@ main(int argc, char **argv) {
 					M_char = realloc(M_char, required_option_space);
 					if(!M_char)
 						error_memory();
-					strncat(M_char, "&", 1);
+					strcat(M_char, "&");
 					strncat(M_char, optarg, strlen(optarg));
 				}
 				break;
@@ -696,7 +695,6 @@ main(int argc, char **argv) {
 
 
 				/* Get certs */
-				p7 = *(scep_t.reply_p7);
 				nextcara = scep_t.reply_p7->d.sign->cert;
 
 			    if (v_flag) {
@@ -1000,7 +998,7 @@ not_enroll:
 
 			/* Check payload */
 			scep_t.reply_len = reply.bytes;
-			scep_t.reply_payload = (unsigned char *)reply.payload;
+			scep_t.reply_payload = reply.payload;
 			pkcs7_unwrap(&scep_t);
 			pkistatus = scep_t.pki_status;
 

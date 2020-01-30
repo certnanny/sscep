@@ -53,6 +53,7 @@
 #include <openssl/crypto.h>
 #include <openssl/buffer.h>
 #include <openssl/asn1.h>
+#include <openssl/asn1t.h>
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
 #include <openssl/pkcs7.h>
@@ -61,7 +62,6 @@
 #include <openssl/rand.h>
 #include <openssl/md5.h>
 #include <openssl/objects.h>
-#include <openssl/asn1_mac.h>
 #include <openssl/ssl.h>
 /* Global defines */
 
@@ -195,10 +195,10 @@ int pkistatus;
 
 /* GETCertInital data structure */
 
-typedef struct {
+typedef struct PKCS7_ISSUER_AND_SUBJECT_st {
 	X509_NAME *issuer;
 	X509_NAME *subject;
-} pkcs7_issuer_and_subject;
+} PKCS7_ISSUER_AND_SUBJECT;
 
 /* HTTP reply structure */
 struct http_reply {
@@ -249,13 +249,13 @@ struct scep {
 	PKCS7 *request_p7;
 	unsigned char *request_payload;
 	int request_len;
-	pkcs7_issuer_and_subject *ias_getcertinit;
+	PKCS7_ISSUER_AND_SUBJECT *ias_getcertinit;
 	PKCS7_ISSUER_AND_SERIAL *ias_getcert;
 	PKCS7_ISSUER_AND_SERIAL *ias_getcrl;
 
 	/* Reply */
 	PKCS7 *reply_p7;
-	unsigned char *reply_payload;	
+	char *reply_payload;	
 	int reply_len;
 
 	/* Engine */
@@ -306,6 +306,9 @@ void read_cert(X509** cert, char* filename);
 /* Read certificate request and private key */
 void read_request(void);
 
+/* reads the serialnumber from a hex encoded string */
+void read_serial(ASN1_INTEGER** target, unsigned char ** source, int source_len);
+
 /* Write CRL */
 void write_crl(struct scep *);
 
@@ -337,7 +340,7 @@ int pkcs7_unwrap(struct scep *);
 int add_attribute_string(STACK_OF(X509_ATTRIBUTE) *, int, char *);
 
 /* Add signed octet attribute */
-int add_attribute_octet(STACK_OF(X509_ATTRIBUTE) *, int, char *, int);
+int add_attribute_octet(STACK_OF(X509_ATTRIBUTE) *, int, unsigned char *, int);
 
 /* Find signed attributes */
 int get_signed_attribute(STACK_OF(X509_ATTRIBUTE) *, int, int, char **);

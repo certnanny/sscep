@@ -63,7 +63,7 @@ compare_subject(X509 * cert)
 	char buffer[1024];
 	int rc = X509_NAME_cmp(X509_get_subject_name(cert), X509_REQ_get_subject_name(request));
 	if(d_flag) {
-		fprintf(stderr, "Subject of the returned certificate: %s\n", X509_get_subject_name(cert));
+		fprintf(stderr, "Subject of the returned certificate: %s\n", X509_NAME_oneline(X509_get_subject_name(cert), NULL, 0));
 		fprintf(stderr, "Subject of the request: %s\n",
 				X509_NAME_oneline(X509_REQ_get_subject_name(request), buffer, sizeof(buffer))
 			);

@@ -9,9 +9,15 @@
 #include "sscep.h"
 #include "ias.h"
 
+unsigned char* generate_nonce(int len) {
+	unsigned char * nonce = malloc(len);
+	RAND_bytes(nonce, len);
+	return nonce;
+}
+
 /*
  * Wrap data in PKCS#7 envelopes and base64-encode the result.
- * Data is PKCS#10 request in PKCSReq, or pkcs7_issuer_and_subject
+ * Data is PKCS#10 request in PKCSReq, or PKCS7_ISSUER_AND_SUBJECT
  * structure in GetCertInitial and PKCS7_ISSUER_AND_SERIAL in
  * GetCert and GETCrl.
  */
@@ -31,13 +37,11 @@ int pkcs7_wrap(struct scep *s) {
 	STACK_OF(X509_ATTRIBUTE) *attributes;
 	X509			*signercert = NULL;
 	EVP_PKEY		*signerkey = NULL;
-	X509_REQ *reqcsr = NULL;
 
 	/* Create a new sender nonce for all messages 
 	 * XXXXXXXXXXXXXX should it be per transaction? */
 	s->sender_nonce_len = 16;
-	s->sender_nonce = malloc(s->sender_nonce_len); 
-	RAND_bytes(s->sender_nonce, s->sender_nonce_len);
+	s->sender_nonce = generate_nonce(s->sender_nonce_len);
 
 	/* Prepare data payload */
 	switch(s->request_type) {
@@ -86,8 +90,8 @@ int pkcs7_wrap(struct scep *s) {
 
 			/* Read data in memory bio */
 			databio = BIO_new(BIO_s_mem());
-			if ((rc = i2d_pkcs7_issuer_and_subject_bio(databio,
-						s->ias_getcertinit)) <= 0) {
+			if ((rc = PKCS7_ISSUER_AND_SUBJECT_print_ctx(databio,
+						s->ias_getcertinit, 0, NULL)) <= 0) {
 				fprintf(stderr, "%s: error writing "
 					"GetCertInitial data in bio\n", pname);
 				ERR_print_errors_fp(stderr);
@@ -105,8 +109,8 @@ int pkcs7_wrap(struct scep *s) {
 
 			/* Read data in memory bio */
 			databio = BIO_new(BIO_s_mem());
-			if ((rc = i2d_PKCS7_ISSUER_AND_SERIAL_bio(databio,
-						s->ias_getcert)) <= 0) {
+			if ((rc = PKCS7_ISSUER_AND_SERIAL_print_ctx(databio,
+						s->ias_getcert, 0, NULL)) <= 0) {
 				fprintf(stderr, "%s: error writing "
 					"GetCert data in bio\n", pname);
 				ERR_print_errors_fp(stderr);
@@ -124,8 +128,8 @@ int pkcs7_wrap(struct scep *s) {
 
 			/* Read data in memory bio */
 			databio = BIO_new(BIO_s_mem());
-			if ((rc = i2d_PKCS7_ISSUER_AND_SERIAL_bio(databio,
-						s->ias_getcrl)) <= 0) {
+			if ((rc = PKCS7_ISSUER_AND_SERIAL_print_ctx(databio,
+						s->ias_getcrl, 0, NULL)) <= 0) {
 				fprintf(stderr, "%s: error writing "
 					"GetCert data in bio\n", pname);
 				ERR_print_errors_fp(stderr);
@@ -182,7 +186,7 @@ int pkcs7_wrap(struct scep *s) {
 
 	/* Create BIO for encryption  */
 	if (d_flag){
-		printf("\n %s: hexdump request payload \n", pname , i);
+		printf("\n %s: hexdump request payload\n", pname);
 		for(i=0; i < s->request_len; i++ ){
 			printf("%02x", s->request_payload[i]);
 		}
@@ -333,15 +337,10 @@ int pkcs7_verify_unwrap(struct scep *s , char * cachainfile ) {
 	BIO				*memorybio;
 	BIO				*outbio;
 	BIO				*pkcs7bio;
-	int				i, len, bytes, used;
+	int				len, bytes, used;
 	STACK_OF(PKCS7_SIGNER_INFO)	*sk;
-	PKCS7				*p7;
 	PKCS7_SIGNER_INFO		*si;
-	STACK_OF(X509_ATTRIBUTE)	*attribs;
-	char				*p;
 	unsigned char			buffer[1024];
-	X509				*recipientcert;
-	EVP_PKEY			*recipientkey;
     X509   				*signercert;
     FILE 				*fp;
 
@@ -458,19 +457,19 @@ int pkcs7_verify_unwrap(struct scep *s , char * cachainfile ) {
 	{
 
 #ifdef WIN32
-	if ((fopen_s(&fp, w_char, "w")))
+		if ((fopen_s(&fp, w_char, "w")))
 #else
-	if (!(fp = fopen(w_char, "w")))
+		if (!(fp = fopen(w_char, "w")))
 #endif
-	{
-		fprintf(stderr, "%s: cannot open cert file for writing\n",
-				w_char);
-		exit (SCEP_PKISTATUS_FILE);
-	}
-	if (v_flag)
-		printf("%s: writing cert\n", w_char);
-	if (d_flag)
-		PEM_write_X509(stdout, signercert);
+		{
+			fprintf(stderr, "%s: cannot open cert file for writing\n",
+					w_char);
+			exit (SCEP_PKISTATUS_FILE);
+		}
+		if (v_flag)
+			printf("%s: writing cert\n", w_char);
+		if (d_flag) 
+			PEM_write_X509(stdout, signercert);
 
 		if (PEM_write_X509(fp, signercert) != 1) {
 			fprintf(stderr, "%s: error while writing certificate "
@@ -625,7 +624,7 @@ int pkcs7_unwrap(struct scep *s) {
 		/* XXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 		exit (SCEP_PKISTATUS_P7); */
 	}
-	s->reply_sender_nonce = p;
+	s->reply_sender_nonce = (unsigned char *) p;
 	if (v_flag) {
 		printf("%s: senderNonce in reply: ", pname);
 		for (i = 0; i < 16; i++) {
@@ -638,7 +637,7 @@ int pkcs7_unwrap(struct scep *s) {
 		fprintf(stderr, "%s: cannot find recipientNonce\n", pname);
 		exit (SCEP_PKISTATUS_P7);
 	}
-	s->reply_recipient_nonce = p;
+	s->reply_recipient_nonce = (unsigned char *) p;
 	if (v_flag) {
 		printf("%s: recipientNonce in reply: ", pname);
 		for (i = 0; i < 16; i++) {
@@ -807,7 +806,7 @@ int add_attribute_string(STACK_OF(X509_ATTRIBUTE) *attrs, int nid, char *buffer)
 	return (0);
 
 }
-int add_attribute_octet(STACK_OF(X509_ATTRIBUTE) *attrs, int nid, char *buffer,
+int add_attribute_octet(STACK_OF(X509_ATTRIBUTE) *attrs, int nid, unsigned char *buffer,
 		int len) {
 	ASN1_STRING     *asn1_string = NULL;
 	X509_ATTRIBUTE  *x509_a;
@@ -865,7 +864,7 @@ int get_signed_attribute(STACK_OF(X509_ATTRIBUTE) *attribs, int nid,int type, ch
 			pname);	
 		exit (SCEP_PKISTATUS_P7);
 	}
-	memcpy(*buffer, ASN1_STRING_data(asn1_type->value.asn1_string), len);
+	memcpy(*buffer, ASN1_STRING_get0_data(asn1_type->value.asn1_string), len);
 
 	/* Add null terminator if it's a PrintableString */
 	if (type == V_ASN1_PRINTABLESTRING) {
@@ -895,16 +894,14 @@ int get_attribute(STACK_OF(X509_ATTRIBUTE) *attribs, int required_nid,
 	/* Find attribute */
 	for (i = 0; i < sk_X509_ATTRIBUTE_num(attribs); i++) {
 		x509_attrib = sk_X509_ATTRIBUTE_value(attribs, i);
-		if (OBJ_cmp(x509_attrib->object, asn1_obj) == 0) {
-			if ((x509_attrib->value.set) &&
-			  (sk_ASN1_TYPE_num(x509_attrib->value.set) != 0)) {
+		if (OBJ_cmp(X509_ATTRIBUTE_get0_object(x509_attrib), asn1_obj) == 0) {
+			if (X509_ATTRIBUTE_count(x509_attrib) != 0) {
 				if (*asn1_type != NULL) {
 					fprintf(stderr, "%s: no value found",
 							pname);
 					exit (SCEP_PKISTATUS_P7);
 				}
-			*asn1_type =
-				sk_ASN1_TYPE_value(x509_attrib->value.set, 0);
+				*asn1_type = X509_ATTRIBUTE_get0_type(x509_attrib, 0);
 			}
 		}
 	}

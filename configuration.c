@@ -54,8 +54,6 @@ int scep_conf_load(CONF *conf) {
 	char *windir;
 #endif
 
-	int ret;
-
 	//load global scep vars
 	if((var = NCONF_get_string(conf, SCEP_CONFIGURATION_SECTION, SCEP_CONFIGURATION_PARAM_CACERTFILE)) && !c_flag) {
 		c_flag = 1;
@@ -112,23 +110,22 @@ int scep_conf_load(CONF *conf) {
 	//loading options for specific operation
 	switch(operation_flag) {
 		case SCEP_OPERATION_ENROLL:
-			ret = scep_conf_load_operation_enroll(conf);
+			scep_conf_load_operation_enroll(conf);
 			break;
 		case SCEP_OPERATION_GETCA:
-			ret = scep_conf_load_operation_getca(conf);
+			scep_conf_load_operation_getca(conf);
 			break;
 		case SCEP_OPERATION_GETCERT:
-			ret = scep_conf_load_operation_getcert(conf);
+			scep_conf_load_operation_getcert(conf);
 			break;
 		case SCEP_OPERATION_GETCRL:
-			ret = scep_conf_load_operation_getcrl(conf);
+			scep_conf_load_operation_getcrl(conf);
 			break;
 		case SCEP_OPERATION_GETNEXTCA:
-			ret = scep_conf_load_operation_getnextca(conf);
+			scep_conf_load_operation_getnextca(conf);
 			break;
 		default:
 			fprintf(stderr, "No operation specified, can't load specific settings!\n");
-			ret = -1;
 			break;
 	}
 
@@ -156,7 +153,7 @@ int scep_conf_load(CONF *conf) {
 			printf("%s: Engine Section %s found and processing it\n", pname, SCEP_CONFIGURATION_PARAM_ENGINE);
 
 		//getting engine ID
-		if(var = NCONF_get_string(conf, engine_section, SCEP_CONFIGURATION_ENGINE_ID)) {
+		if((var = NCONF_get_string(conf, engine_section, SCEP_CONFIGURATION_ENGINE_ID))) {
 			if(v_flag)
 				printf("%s: Configuration: Engine ID set to %s\n", pname, var);
 			scep_conf->engine->engine_id = var;
@@ -179,7 +176,7 @@ int scep_conf_load(CONF *conf) {
 		//load capi only option
 		//TODO move
 		if(strncmp(scep_conf->engine->engine_id, "capi", 4) == 0) {
-			if(var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_CAPI_NEWKEYLOCATION)) {
+			if((var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_CAPI_NEWKEYLOCATION))) {
 				if(v_flag)
 					printf("%s: Location of the new key will be in %s\n", pname, var);
 				scep_conf->engine->new_key_location = var;
@@ -189,7 +186,7 @@ int scep_conf_load(CONF *conf) {
 				scep_conf->engine->new_key_location = "REQUEST";
 			}
 
-			if(var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_CAPI_STORELOCATION)) {
+			if((var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_CAPI_STORELOCATION))) {
 				if(v_flag)
 					printf("%s: The store used will be %s\n", pname, var);
 				if(!strncmp(var, "LOCAL_MACHINE", 13)) {
@@ -212,25 +209,25 @@ int scep_conf_load(CONF *conf) {
 		//load JKSEngine only option
 		//TODO move
 		if(strncmp(scep_conf->engine->engine_id, "jksengine", 9) == 0) {
-			if(var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_JKSENGINE_KEYSTOREPASS)) {
+			if((var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_JKSENGINE_KEYSTOREPASS))) {
 				if(v_flag)
 					printf("%s: KeyStorePass will be set to %s\n", pname, var);
 				scep_conf->engine->storepass = var;
 			}
 
-			if(var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_JKSENGINE_JCONNPATH)) {
+			if((var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_JKSENGINE_JCONNPATH))) {
 				if(v_flag)
 					printf("%s: JavaConnectorPath will be set to %s\n", pname, var);
 				scep_conf->engine->jconnpath = var;
 			}
 
-			if(var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_JKSENGINE_PROVIDER)) {
+			if((var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_JKSENGINE_PROVIDER))) {
 				if(v_flag)
 					printf("%s: KeyStoreProvider will be set to %s\n", pname, var);
 				scep_conf->engine->provider = var;
 			}
 
-			if(var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_JKSENGINE_JAVAPATH)) {
+			if((var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_JKSENGINE_JAVAPATH))) {
 				if(v_flag)
 					printf("%s: JavaPath will be set to %s\n", pname, var);
 				scep_conf->engine->javapath = var;
@@ -241,7 +238,7 @@ int scep_conf_load(CONF *conf) {
 		//TODO move
 		if(strncmp(scep_conf->engine->engine_id, "pkcs11", 6) == 0) {
 			scep_conf->engine->pin = NULL;
-			if(var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_PKCS11_PIN)) {
+			if((var = NCONF_get_string(conf, engine_special_section, SCEP_CONFIGURATION_ENGINE_PKCS11_PIN))) {
 				if(v_flag)
 					printf("%s: Setting PIN to configuration value\n", pname);
 				scep_conf->engine->pin = var;
@@ -249,7 +246,7 @@ int scep_conf_load(CONF *conf) {
 		}
 
 		//loading dynamic path variable
-		if(var = NCONF_get_string(conf, engine_section, SCEP_CONFIGURATION_ENGINE_DYNPATH)) {
+		if((var = NCONF_get_string(conf, engine_section, SCEP_CONFIGURATION_ENGINE_DYNPATH))) {
 			if(v_flag)
 				printf("%s: Setting dynamic dll path to %s\n", pname, var);
 			scep_conf->engine->dynamic_path = var;
@@ -270,7 +267,7 @@ int scep_conf_load(CONF *conf) {
 		}
 
 		//loading module path variable
-		if(var = NCONF_get_string(conf, engine_section, SCEP_CONFIGURATION_ENGINE_MODULEPATH)) {
+		if((var = NCONF_get_string(conf, engine_section, SCEP_CONFIGURATION_ENGINE_MODULEPATH))) {
 			if(v_flag)
 				printf("%s: Setting module path to %s\n", pname, var);
 			scep_conf->engine->module_path = var;
@@ -282,7 +279,7 @@ int scep_conf_load(CONF *conf) {
 
 		// If there is a section specified in 'engine_section/cmds', store all those commands IN ORDER
 		char *cmds_section;
-		if(cmds_section = NCONF_get_string(conf, engine_section, SCEP_CONFIGURATION_ENGINE_CMDS)) {
+		if((cmds_section = NCONF_get_string(conf, engine_section, SCEP_CONFIGURATION_ENGINE_CMDS))) {
 			if(!NCONF_get_section(conf, cmds_section)) {
 				fprintf(stderr, "%s: Section %s defined but not found!\n", pname, cmds_section);
 				exit(SCEP_PKISTATUS_FILE);
@@ -552,7 +549,7 @@ void scep_dump_conf() {
 				printf("Option: %s, Flag: %i, Value: %s\n", names[i], flags[i], chars[i]);
 		}
 	} else {
-		fprintf(stderr, "Length of Arrays does not match! Flags: %i, Chars: %i, Names: %i\n",
+		fprintf(stderr, "Length of Arrays does not match! Flags: %li, Chars: %li, Names: %li\n",
 			sizeof(flags)/sizeof(int),
 			sizeof(chars)/sizeof(char *),
 			sizeof(names)/sizeof(char *)

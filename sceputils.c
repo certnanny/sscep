@@ -27,7 +27,7 @@ int new_transaction(struct scep *s) {
 	s->fail_info_str = NULL;
 
 	/* Set other variables */
-	s->ias_getcertinit = pkcs7_issuer_and_subject_new();
+	s->ias_getcertinit = PKCS7_ISSUER_AND_SUBJECT_new();
 	s->ias_getcert = PKCS7_ISSUER_AND_SERIAL_new();
 	s->ias_getcrl = PKCS7_ISSUER_AND_SERIAL_new();
 
@@ -47,7 +47,6 @@ int new_transaction(struct scep *s) {
  * Set also subjectAltName extension if found from request.
  */
 int new_selfsigned(struct scep *s) {
-	unsigned char		 *ptr;
 	X509			 *cert;
 	X509_NAME		 *subject;
 	ASN1_INTEGER		 *serial;
@@ -98,8 +97,8 @@ int new_selfsigned(struct scep *s) {
 		exit (SCEP_PKISTATUS_SS);
 	}
 	/* Get serial no from transaction id */
-	ptr = (unsigned char *)s->transaction_id;
-	if (!(serial = c2i_ASN1_INTEGER(NULL, &ptr, 32))) {
+	read_serial(&serial, (unsigned char **) &s->transaction_id, 32);
+	if (!serial) {
 		fprintf(stderr, "%s: error converting serial\n", pname);
 		ERR_print_errors_fp(stderr);
 		exit (SCEP_PKISTATUS_SS);
@@ -230,7 +229,7 @@ key_fingerprint(X509_REQ *req) {
 	MD5_CTX		ctx;
 	
 	/* Assign space for ASCII presentation of the digest */
-	str = (unsigned char *)malloc(2 * MD5_DIGEST_LENGTH + 1);
+	str = (char *)malloc(2 * MD5_DIGEST_LENGTH + 1);
 	ret = str;
 
 	/* Create new memory bio for reading the public key */
@@ -252,4 +251,17 @@ key_fingerprint(X509_REQ *req) {
 	return(ret);
 }
 
+/**
+ * c2i_ASN1_INTERNAL is not supported anymore since openssl 1.1.x. The only way to
+ * still get the ASN1_INTEGER is by using d2i_ASN1_INTERNAL instead. However, this requires
+ * the string to start with two additional octets. One for the type (integer: 0x02) and another
+ * one representing the data length (source_length).
+ */
+void read_serial(ASN1_INTEGER** target, unsigned char ** source, int source_len) {
+    const int buffer_len = source_len + 2;
+    const unsigned char * buffer = malloc(sizeof(unsigned char[buffer_len]));
 
+    snprintf((char *) buffer, buffer_len, "%c%c%s", 2, source_len, *source);
+
+    *target = d2i_ASN1_INTEGER(NULL, &buffer, buffer_len);
+}
