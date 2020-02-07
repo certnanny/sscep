@@ -869,7 +869,15 @@ int get_signed_attribute(STACK_OF(X509_ATTRIBUTE) *attribs, int nid,int type, ch
 			pname);	
 		exit (SCEP_PKISTATUS_P7);
 	}
+/* for compatibility with older openssl versions
+   from: https://wiki.openssl.org/index.php/OpenSSL_1.1.0_Changes
+
+*/
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+	memcpy(*buffer, ASN1_STRING_data(asn1_type->value.asn1_string), len);
+#else
 	memcpy(*buffer, ASN1_STRING_get0_data(asn1_type->value.asn1_string), len);
+#endif
 
 	/* Add null terminator if it's a PrintableString */
 	if (type == V_ASN1_PRINTABLESTRING) {
