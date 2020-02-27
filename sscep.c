@@ -536,14 +536,14 @@ main(int argc, char **argv) {
 			if(!M_flag){
 				snprintf(http_string, sizeof(http_string),
 				 "GET %s%s?operation=GetCACert&message=%s "
-				 "HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,
-						i_char);
+				 "HTTP/1.1\r\nHost: %s\r\n\r\n", p_flag ? "" : "/", dir_name,
+						i_char, host_name);
 
 			}else{
 				snprintf(http_string, sizeof(http_string),
 					"GET %s%s?operation=GetCACert&message=%s&%s "
-					"HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,
-						i_char, M_char);
+					"HTTP/1.1\r\nHost: %s\r\n\r\n", p_flag ? "" : "/", dir_name,
+						i_char, M_char, host_name);
 
 			}
 
@@ -634,14 +634,14 @@ main(int argc, char **argv) {
 				if(!M_flag){
 					snprintf(http_string, sizeof(http_string),
 					 "GET %s%s?operation=GetNextCACert&message=%s "
-					 "HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,
-							i_char);
+					 "HTTP/1.1\r\nHost: %s\r\n\r\n", p_flag ? "" : "/", dir_name,
+							i_char, host_name);
 
 				}else{
 					snprintf(http_string, sizeof(http_string),
 						"GET %s%s?operation=GetNextCACert&message=%s&%s "
-						"HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,
-							i_char, M_char);
+						"HTTP/1.1\r\nHost: %s\r\n\r\n", p_flag ? "" : "/", dir_name,
+							i_char, M_char, host_name);
 
 				}
 
@@ -958,18 +958,18 @@ not_enroll:
 		/*	snprintf(http_string, sizeof(http_string),
 				"GET %s%s?operation="
 				"PKIOperation&message="
-				"%s HTTP/1.0\r\n\r\n",
-				p_flag ? "" : "/", dir_name, p);*/
+				"%s HTTP/1.1\r\nHost: %s\r\n\r\n",
+				p_flag ? "" : "/", dir_name, p, host_name);*/
 
 			if(!M_flag){
 				snprintf(http_string, sizeof(http_string),
 				 "GET %s%s?operation=PKIOperation&message=%s "
-				 "HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name, p);
+				 "HTTP/1.1\r\nHost: %s\r\n\r\n", p_flag ? "" : "/", dir_name, p, host_name);
 
 			}else{
 				snprintf(http_string, sizeof(http_string),
 					"GET %s%s?operation=PKIOperation&message=%s&%s "
-					"HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,p, M_char);
+					"HTTP/1.1\r\nHost: %s\r\n\r\n", p_flag ? "" : "/", dir_name,p, M_char, host_name);
 
 			}
 
