@@ -78,6 +78,17 @@ The program should compile on the following systems:
 To compile run: 
 `$ make`
 
+To generate the configure script when checking out from github source:
+`$ autoheader`
+`$ libtoolize`
+`$ automake -a -c -f`
+`$ autoreconf`
+
+To compile from a tarball created with 'make dist'
+`$ ./configure`
+`$ make`
+`$ make install`
+
 ### Windows:
 
 The Win32 version of sscep has been tested with OpenSSL-v0.9.7i.
