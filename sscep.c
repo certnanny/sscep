@@ -582,8 +582,8 @@ main(int argc, char **argv) {
 
 	/* Get server capabilities */
 	snprintf(http_string, sizeof(http_string),
-			"GET %s%s?operation=GetCACaps HTTP/1.0\r\n\r\n",
-			p_flag ? "" : "/", dir_name);
+			"GET %s%s?operation=GetCACaps HTTP/1.1\r\nHost: %s\r\n\r\n",
+			p_flag ? "" : "/", dir_name, host_name);
 
 	reply.payload = NULL;
 	if ((c = send_msg (&reply, http_string, strlen(http_string),
@@ -656,14 +656,14 @@ main(int argc, char **argv) {
 			if(!M_flag){
 				snprintf(http_string, sizeof(http_string),
 				 "GET %s%s?operation=GetCACert&message=%s "
-				 "HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,
-						i_char);
+				 "HTTP/1.1\r\nHost: %s\r\n\r\n", p_flag ? "" : "/", dir_name,
+						i_char, host_name);
 
 			}else{
 				snprintf(http_string, sizeof(http_string),
 					"GET %s%s?operation=GetCACert&message=%s&%s "
-					"HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,
-						i_char, M_char);
+					"HTTP/1.1\r\nHost: %s\r\n\r\n", p_flag ? "" : "/", dir_name,
+						i_char, M_char, host_name);
 
 			}
 
@@ -755,14 +755,14 @@ main(int argc, char **argv) {
 				if(!M_flag){
 					snprintf(http_string, sizeof(http_string),
 					 "GET %s%s?operation=GetNextCACert&message=%s "
-					 "HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,
-							i_char);
+					 "HTTP/1.1\r\nHost: %s\r\n\r\n", p_flag ? "" : "/", dir_name,
+							i_char, host_name);
 
 				}else{
 					snprintf(http_string, sizeof(http_string),
 						"GET %s%s?operation=GetNextCACert&message=%s&%s "
-						"HTTP/1.0\r\n\r\n", p_flag ? "" : "/", dir_name,
-							i_char, M_char);
+						"HTTP/1.1\r\nHost: %s\r\n\r\n", p_flag ? "" : "/", dir_name,
+							i_char, M_char, host_name);
 
 				}
 
@@ -1096,8 +1096,8 @@ not_enroll:
 		/*	snprintf(http_string, sizeof(http_string),
 				"GET %s%s?operation="
 				"PKIOperation&message="
-				"%s HTTP/1.0\r\n\r\n",
-				p_flag ? "" : "/", dir_name, p);*/
+				"%s HTTP/1.1\r\nHost: %s\r\n\r\n",
+				p_flag ? "" : "/", dir_name, p, host_name);*/
 
 			i = snprintf(http_string, sizeof(http_string),
 					"%s %s%s?operation=PKIOperation",
@@ -1137,7 +1137,7 @@ not_enroll:
 			}
 
 			i += snprintf(http_string+i, sizeof(http_string)-i,
-					" HTTP/1.0\r\n");
+					" HTTP/1.1\r\nHost: %s\r\n", host_name);
 
 			if (i >= sizeof(http_string)) {
 				fprintf(stderr, "%s: not enough buffer space "
