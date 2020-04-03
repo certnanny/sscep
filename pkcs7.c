@@ -15,6 +15,42 @@ unsigned char* generate_nonce(int len) {
 	return nonce;
 }
 
+int i2d_PKCS7_ISSUER_AND_SERIAL_bio(BIO *bio, PKCS7_ISSUER_AND_SERIAL *ias) {
+	unsigned char * pout = NULL;
+	int len = 0;
+
+	if (!bio || !ias)
+		return 0;
+
+	len = i2d_PKCS7_ISSUER_AND_SERIAL(ias, &pout);
+
+	if (len <= 0 || !pout)
+		return 0;
+
+	BIO_write(bio, pout, len);
+	OPENSSL_free(pout);
+
+	return len;
+}
+
+int i2d_PKCS7_ISSUER_AND_SUBJECT_bio(BIO *bio, PKCS7_ISSUER_AND_SUBJECT *ias) {
+	unsigned char * pout = NULL;
+	int len = 0;
+
+	if (!bio || !ias)
+		return 0;
+
+	len = i2d_PKCS7_ISSUER_AND_SUBJECT(ias, &pout);
+
+	if (len <= 0 || !pout)
+		return 0;
+
+	BIO_write(bio, pout, len);
+	OPENSSL_free(pout);
+
+	return len;
+}
+
 /*
  * Wrap data in PKCS#7 envelopes and base64-encode the result.
  * Data is PKCS#10 request in PKCSReq, or PKCS7_ISSUER_AND_SUBJECT
@@ -38,7 +74,7 @@ int pkcs7_wrap(struct scep *s, int enc_base64) {
 	X509			*signercert = NULL;
 	EVP_PKEY		*signerkey = NULL;
 
-	/* Create a new sender nonce for all messages 
+	/* Create a new sender nonce for all messages
 	 * XXXXXXXXXXXXXX should it be per transaction? */
 	s->sender_nonce_len = 16;
 	s->sender_nonce = generate_nonce(s->sender_nonce_len);
@@ -90,8 +126,8 @@ int pkcs7_wrap(struct scep *s, int enc_base64) {
 
 			/* Read data in memory bio */
 			databio = BIO_new(BIO_s_mem());
-			if ((rc = PKCS7_ISSUER_AND_SUBJECT_print_ctx(databio,
-						s->ias_getcertinit, 0, NULL)) <= 0) {
+			if ((rc = i2d_PKCS7_ISSUER_AND_SUBJECT_bio(databio,
+						s->ias_getcertinit)) <= 0) {
 				fprintf(stderr, "%s: error writing "
 					"GetCertInitial data in bio\n", pname);
 				ERR_print_errors_fp(stderr);
@@ -109,8 +145,8 @@ int pkcs7_wrap(struct scep *s, int enc_base64) {
 
 			/* Read data in memory bio */
 			databio = BIO_new(BIO_s_mem());
-			if ((rc = PKCS7_ISSUER_AND_SERIAL_print_ctx(databio,
-						s->ias_getcert, 0, NULL)) <= 0) {
+			if ((rc = i2d_PKCS7_ISSUER_AND_SERIAL_bio(databio,
+						s->ias_getcert)) <= 0) {
 				fprintf(stderr, "%s: error writing "
 					"GetCert data in bio\n", pname);
 				ERR_print_errors_fp(stderr);
@@ -128,8 +164,8 @@ int pkcs7_wrap(struct scep *s, int enc_base64) {
 
 			/* Read data in memory bio */
 			databio = BIO_new(BIO_s_mem());
-			if ((rc = PKCS7_ISSUER_AND_SERIAL_print_ctx(databio,
-						s->ias_getcrl, 0, NULL)) <= 0) {
+			if ((rc = i2d_PKCS7_ISSUER_AND_SERIAL_bio(databio,
+						s->ias_getcrl)) <= 0) {
 				fprintf(stderr, "%s: error writing "
 					"GetCert data in bio\n", pname);
 				ERR_print_errors_fp(stderr);
@@ -260,7 +296,7 @@ int pkcs7_wrap(struct scep *s, int enc_base64) {
 	/* Set signed attributes */
 	if (v_flag)
 		printf("%s: adding signed attributes\n", pname);
-	attributes = sk_X509_ATTRIBUTE_new_null();	
+	attributes = sk_X509_ATTRIBUTE_new_null();
 	add_attribute_string(attributes, nid_transId, s->transaction_id);
 	add_attribute_string(attributes, nid_messageType, s->request_type_str);
 	add_attribute_octet(attributes, nid_senderNonce, s->sender_nonce,
@@ -473,7 +509,7 @@ int pkcs7_verify_unwrap(struct scep *s , char * cachainfile ) {
 		}
 		if (v_flag)
 			printf("%s: writing cert\n", w_char);
-		if (d_flag) 
+		if (d_flag)
 			PEM_write_X509(stdout, signercert);
 
 		if (PEM_write_X509(fp, signercert) != 1) {
@@ -651,7 +687,7 @@ int pkcs7_unwrap(struct scep *s) {
 		printf("\n");
 	}
 	/*
-	 * Compare recipient nonce to original sender nonce 
+	 * Compare recipient nonce to original sender nonce
 	 * The draft says nothing about this, but it makes sense to me..
 	 * XXXXXXXXXXXXXX check
 	 */
@@ -718,7 +754,7 @@ int pkcs7_unwrap(struct scep *s) {
 				printf("%s: reason: %s\n", pname,
 					SCEP_FAILINFO_BADTIME_STR);
 				break;
-			case SCEP_FAILINFO_BADCERTID:		
+			case SCEP_FAILINFO_BADCERTID:
 				s->fail_info = SCEP_FAILINFO_BADCERTID;
 				printf("%s: reason: %s\n", pname,
 					SCEP_FAILINFO_BADCERTID_STR);
@@ -781,7 +817,7 @@ int pkcs7_unwrap(struct scep *s) {
 	if (v_flag)
 		printf("%s: PKCS#7 payload size: %d bytes\n", pname,
 			s->reply_len);
-	BIO_set_flags(outbio, BIO_FLAGS_MEM_RDONLY); 
+	BIO_set_flags(outbio, BIO_FLAGS_MEM_RDONLY);
 	s->reply_p7 = d2i_PKCS7_bio(outbio, NULL);
 
 	return (0);
@@ -837,7 +873,7 @@ int add_attribute_octet(STACK_OF(X509_ATTRIBUTE) *attrs, int nid, unsigned char 
 
 /* Find signed attributes */
 int get_signed_attribute(STACK_OF(X509_ATTRIBUTE) *attribs, int nid,int type, char **buffer){
-	int		rc; 
+	int		rc;
 	ASN1_TYPE	*asn1_type;
 	unsigned int	len;
 
@@ -845,11 +881,11 @@ int get_signed_attribute(STACK_OF(X509_ATTRIBUTE) *attribs, int nid,int type, ch
 	rc = get_attribute(attribs, nid, &asn1_type);
 	if (rc == 1) {
 		if (v_flag)
-			fprintf(stderr, "%s: error finding attribute\n",pname);	
+			fprintf(stderr, "%s: error finding attribute\n",pname);
 		return (1);
 	}
 	if (ASN1_TYPE_get(asn1_type) != type) {
-		fprintf(stderr, "%s: wrong ASN.1 type\n",pname);	
+		fprintf(stderr, "%s: wrong ASN.1 type\n",pname);
 		exit (SCEP_PKISTATUS_P7);
 	}
 
@@ -866,7 +902,7 @@ int get_signed_attribute(STACK_OF(X509_ATTRIBUTE) *attribs, int nid,int type, ch
 	}
 	if (*buffer == NULL) {
 		fprintf(stderr, "%s: cannot malloc space for attribute\n",
-			pname);	
+			pname);
 		exit (SCEP_PKISTATUS_P7);
 	}
 /* for compatibility with older openssl versions
@@ -886,7 +922,7 @@ int get_signed_attribute(STACK_OF(X509_ATTRIBUTE) *attribs, int nid,int type, ch
 	}
 
 	return (0);
-} 
+}
 
 int get_attribute(STACK_OF(X509_ATTRIBUTE) *attribs, int required_nid,
 				ASN1_TYPE **asn1_type) {
@@ -922,4 +958,4 @@ int get_attribute(STACK_OF(X509_ATTRIBUTE) *attribs, int required_nid,
 	if (*asn1_type == NULL)
 		return (1);
 	return (0);
-} 
+}
