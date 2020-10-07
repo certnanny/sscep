@@ -112,6 +112,30 @@ $ make install
    Then copy the sscep binary (Debug or Release) and configuration file sscep.conf somewhere.
 
 
+### macOS:
+
+Install a few packages from Homebrew:
+```cmd
+$ brew install autoconf automake libtool pkg-config openssl
+```
+
+To generate the configure script when checking out from github source:
+```cmd
+$ autoheader
+$ glibtoolize
+$ aclocal
+$ automake -a -c -f
+$ autoreconf
+```
+
+Set PKG_CONFIG_PATH and then the usual will work:
+```cmd
+$ export PKG_CONFIG_PATH="/usr/local/opt/openssl@1.1/lib/pkgconfig"
+$ ./Configure
+$ make
+$ make install
+```
+
 ## HOW TO USE
 
 Running the command "sscep" without any arguments should give you a list
