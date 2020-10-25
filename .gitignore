@@ -1,25 +1,18 @@
-/configuration.o
-/engine.o
-/fileutils.o
-/ias.o
-/init.o
-/net.o
-/pkcs7.o
-/sceputils.o
 /sscep
 /sscep_static
 /sscep_dyn
-/sscep.o
 /.git_checkout
+/src/config.h*
+/src/*.o
 
 .deps
+.dirstamp
 Makefile
 Makefile.in
 aclocal.m4
 autom4te.cache
 build-aux
 compile
-config.h
 config.log
 config.status
 configure
@@ -30,3 +23,8 @@ m4
 missing
 stamp-h1
 
+CMakeCache.txt
+CMakeFiles
+CPackConfig.cmake
+CPackSourceConfig.cmake
+cmake_install.cmake

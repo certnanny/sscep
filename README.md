@@ -79,15 +79,19 @@ To compile run:
 `$ make`
 
 To generate the configure script when checking out from github source:
-`$ autoheader`
-`$ libtoolize`
-`$ automake -a -c -f`
-`$ autoreconf`
+```cmd
+$ libtoolize
+$ autoheader
+$ automake -a -c -f
+$ autoreconf
+```
 
 To compile from a tarball created with 'make dist'
-`$ ./configure`
-`$ make`
-`$ make install`
+```cmd
+$ ./configure
+$ make
+$ make install
+```
 
 ### Windows:
 

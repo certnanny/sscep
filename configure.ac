@@ -4,9 +4,9 @@
 AC_PREREQ([2.69])
 AC_INIT([sscep],[0.7.0],[certnanny@github.com])
 AC_CONFIG_AUX_DIR([build-aux])
-AM_INIT_AUTOMAKE([dist-bzip2])
-AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_SRCDIR([sscep.c])
+AM_INIT_AUTOMAKE([subdir-objects dist-bzip2])
+AC_CONFIG_HEADERS([src/config.h])
+AC_CONFIG_SRCDIR([src/sscep.c])
 AC_CONFIG_MACRO_DIR([m4])
 LT_INIT
 
