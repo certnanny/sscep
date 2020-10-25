@@ -459,30 +459,13 @@ main(int argc, char **argv) {
 		#endif
 		dir_name = url_char;
 	}
-
-	/* Break down the URL */
-	if (!u_flag) {
-		fprintf(stderr, "%s: missing URL (-u)\n", pname);
-		exit (SCEP_PKISTATUS_ERROR);
-	}
-	if (strncmp(url_char, "http://", 7) && !p_flag) {
-		fprintf(stderr, "%s: illegal URL %s\n", pname, url_char);
-		exit (SCEP_PKISTATUS_ERROR);
-	}
-	if (p_flag) {
-		#ifdef WIN32
-		host_name = _strdup(p_char);
-		#else
-		host_name = strdup(p_char);
-		#endif
-		dir_name = url_char;
-	}
 	#ifdef WIN32
 	else if (!(host_name = _strdup(url_char + 7)))
 	#else
 	else if (!(host_name = strdup(url_char + 7)))
 	#endif
 		error_memory();
+
 	p = host_name;
 	c = 0;
 	cnt =0;
