@@ -259,7 +259,7 @@ key_fingerprint(X509_REQ *req) {
  */
 void read_serial(ASN1_INTEGER** target, unsigned char ** source, int source_len) {
     const int buffer_len = source_len + 2;
-    const unsigned char * buffer = malloc(sizeof(unsigned char[buffer_len]));
+    const unsigned char * buffer = malloc(sizeof(unsigned char)*buffer_len);
 
     snprintf((char *) buffer, buffer_len, "%c%c%s", 2, source_len, *source);
 

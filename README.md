@@ -71,7 +71,12 @@ The program should compile on the following systems:
 * Linux x86
 * z/OS (USS environment)
 * Solaris
-* Windows, compiled with VC6, statically linked with OpenSSL 0.9.7i
+* Windows
+
+In general, two build systems are supported:
+
+* GNU Autotools (autoconf, automake, libtool)
+* CMake
 
 ### Unix:
 
@@ -79,12 +84,7 @@ To compile run:
 `$ make`
 
 To generate the configure script when checking out from github source:
-```cmd
-$ libtoolize
-$ autoheader
-$ automake -a -c -f
-$ autoreconf
-```
+`$ libtoolize && aclocal && autoheader && automake --add-missing && autoreconf`
 
 To compile from a tarball created with 'make dist'
 ```cmd
@@ -95,38 +95,16 @@ $ make install
 
 ### Windows:
 
-The Win32 version of sscep has been tested with OpenSSL-v0.9.7i.
-For Win32 environment you can choose two ways to compile the sscep program.
+1. Download and install:
+   * Microsoft Visual Studio (e.g. the Community Edition) from https://visualstudio.microsoft.com/downloads
+   * CMake from https://cmake.org/download
+   * Win32/Win64 OpenSSL from http://slproweb.com/products/Win32OpenSSL.html
 
-1. Dynamically linked against the binary OpenSSL distribution: 
-	http://www.slproweb.com/download/Win32OpenSSL-v0.9.7i.exe
-For this you need the binaries from OpenSSL-v0.9.7i and change the paths
-in the makefile Makefile.w32.
-This works with VC6.0 but not with VC7.0.
+2. Start the CMake GUI, select *Where is the source code* and *Where to put the binaries*
+   (it could be the same), then *Configure* and *Generate* the project files.
 
-2. Statically linked against OpenSSL-v0.9.7i.
-You can download the source from the OpenSSL Homepage and you have to change the 
-paths in the makefile Makefile.w32. This OpenSSL Version needs to be compiled with the same
-compiler as sscep, because otherwise you can get some trouble with diffrent LIBs.
-
-If you want to use a debug version of sscep, then you need to compile a debug version
-of OpenSSL.
-
-To compile run:
-
-```cmd
-C:\...> vcvars32.bat
-C:\...> nmake -f Makefile.w32 
-```
-
-Copy binary file sscep and configuration file sscep.conf to somewhere.
-
-> The program should compile on OpenBSD system without problems. Uncompress
-> the package and run command
-
-`$ make`
-
-Copy binary file sscep and configuration file sscep.conf to somewhere.
+3. Start the Visual Studio, open the generated Solution (sscep.sln) and build the project.
+   Then copy the sscep binary (Debug or Release) and configuration file sscep.conf somewhere.
 
 
 ## HOW TO USE

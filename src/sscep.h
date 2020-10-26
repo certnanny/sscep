@@ -24,7 +24,8 @@
 
 #ifdef WIN32
 
-#include <winsock.h>
+#define NOCRYPT
+#include <winsock2.h>
 #include <io.h>
 
 #ifdef _DEBUG

@@ -108,7 +108,7 @@ main(int argc, char **argv) {
 	STACK_OF(X509)		*nextcara = NULL;
 	X509 				*cert=NULL;
 	int i;
-	int required_option_space;
+	size_t required_option_space;
 	int ca_caps = 0;
 	
 

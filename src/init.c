@@ -15,7 +15,8 @@ void
 init_config(FILE *conf) {
 	char	buff[1024];
 	char	*str1, *str2;
-	int		i, lines;
+	size_t	i;
+	int		lines;
 
  	lines = 0;
 	while (fgets(buff, 1024, conf)) {

@@ -50,10 +50,6 @@ int scep_conf_load(CONF *conf) {
 
 	char *engine_section, *var, *engine_special_section;
 
-#ifdef WIN32
-	char *windir;
-#endif
-
 	//load global scep vars
 	if((var = NCONF_get_string(conf, SCEP_CONFIGURATION_SECTION, SCEP_CONFIGURATION_PARAM_CACERTFILE)) && !c_flag) {
 		c_flag = 1;

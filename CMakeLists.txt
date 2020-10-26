@@ -26,10 +26,8 @@ set(SSCEP_SOURCES
     src/sceputils.c
 )
 
-if (WIN32)
-    list(APPEND SSCEP_SOURCES
-        src/engines/sscep_capi.c
-        src/engines/sscep_capi.h)
+if (MSVC)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif()
 
 add_executable(${PROJECT_NAME} ${SSCEP_SOURCES})
@@ -39,6 +37,10 @@ include_directories(${OPENSSL_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME}
     ${OPENSSL_LIBRARIES}
 )
+
+if (WIN32)
+    target_link_libraries(${PROJECT_NAME} wsock32 ws2_32)
+endif()
 
 install(
     TARGETS ${PROJECT_NAME}

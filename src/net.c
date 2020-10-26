@@ -8,16 +8,17 @@
 
 /* HTTP routine */
 
-
 #include "sscep.h"
 
 #ifdef WIN32
+#include <ws2tcpip.h>
+
 void perror_w32 (const char *message)
 {
     char buffer[BUFSIZ];
 
     /* letzten Fehlertext holen und formatieren */
-    FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, GetLastError(), 0, (LPWSTR) buffer,
+    FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, GetLastError(), 0, (LPSTR) buffer,
 		  sizeof buffer, NULL);
     fprintf(stderr, "%s: %s", message, buffer);
 }

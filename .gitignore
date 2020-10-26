@@ -28,3 +28,11 @@ CMakeFiles
 CPackConfig.cmake
 CPackSourceConfig.cmake
 cmake_install.cmake
+
+/.vs
+/sscep.dir
+/sscep.sln
+*.vcxproj*
+Debug
+Release
+x64
