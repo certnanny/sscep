@@ -9,6 +9,7 @@
 /* HTTP routine */
 
 #include "sscep.h"
+#include "picohttpparser.h"
 
 #ifdef WIN32
 #include <ws2tcpip.h>
@@ -29,12 +30,18 @@ void perror_w32 (const char *message)
 
 int
 send_msg(struct http_reply *http,char *msg,size_t msg_len,char *host,int port,int operation) {
-	int			sd, rc, used, bytes;
-	char			tmp[1024], *buf, *p;
+	int i, sd, rc, used, bytes, http_chunked;
+	char *buf, *mime_type;
 
 	char			port_str[6]; /* Range-checked to be max. 5-digit number */
         struct			addrinfo hints;
         struct			addrinfo* res=0;
+
+	int http_minor;
+	const char *http_msg;
+	size_t msg_size, headers_num, header_size, body_size;
+	struct phr_header headers[100];
+	struct phr_chunked_decoder http_decoder = {0};
 
 #ifdef WIN32
 	int tv=timeout*1000;
@@ -60,6 +67,7 @@ send_msg(struct http_reply *http,char *msg,size_t msg_len,char *host,int port,in
 	sd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 	if (sd < 0) {
 		perror("cannot open socket ");
+		freeaddrinfo(res);
 		return (1);
 	}
 
@@ -67,12 +75,14 @@ send_msg(struct http_reply *http,char *msg,size_t msg_len,char *host,int port,in
 	/* The two socket options SO_RCVTIMEO and SO_SNDTIMEO do not work with connect
 	   connect has a default timeout of 120 */
 	rc = connect(sd, res->ai_addr, res->ai_addrlen);
+	freeaddrinfo(res);
 	if (rc < 0) {
 		perror("cannot connect");
 		return (1);
 	}
 	setsockopt(sd,SOL_SOCKET, SO_RCVTIMEO,(void *)&tv, sizeof(tv));
 	setsockopt(sd,SOL_SOCKET, SO_SNDTIMEO,(void *)&tv, sizeof(tv));
+
 	/* send data */ 
 	rc = send(sd, msg,msg_len, 0);
 
@@ -100,98 +110,88 @@ send_msg(struct http_reply *http,char *msg,size_t msg_len,char *host,int port,in
 		close(sd);
 		return (1);
 	}
-        buf[used] = '\0';
-		
-	
-	/* Fetch the status code: */
-	#ifdef WIN32
-	sscanf(buf, "%s %d ", tmp, &http->status);
-	#else
-	sscanf(buf, "%s %d ", tmp, &http->status);
-	#endif
+
+	headers_num = sizeof(headers) / sizeof(headers[0]);
+	header_size = phr_parse_response(buf, used, &http_minor, &http->status,
+				&http_msg, &msg_size, headers, &headers_num, 0);
+	if (header_size < 0) {
+		fprintf(stderr,"cannot parse response\n");
+		close(sd);
+		return (1);
+	}
+
+	mime_type = NULL;
+	http_chunked = 0;
+	for (i = 0; i < headers_num; i++)
+	{
+		char *ch;
+		/* convert to lowercase as some platforms don't have strcasecmp */
+		for (ch = (char *)headers[i].name; ch < headers[i].name+headers[i].name_len; ch++)
+			*ch = tolower(*ch);
+
+		if (!strncmp("content-type", headers[i].name, headers[i].name_len))
+		{
+			mime_type = (char *)headers[i].value;
+			mime_type[headers[i].value_len] = '\0';
+		}
+		else if (!strncmp("transfer-encoding", headers[i].name, headers[i].name_len) &&
+			!strncmp("chunked", headers[i].value, headers[i].value_len))
+		{
+			http_chunked = 1;
+		}
+	}
+
 	if (v_flag)
-		fprintf(stdout, "%s: server returned status code %d\n", 
-			pname, http->status);
+		fprintf(stdout, "%s: server response status code: %d, MIME header: %s\n",
+			pname, http->status, mime_type);
+
+	http->payload = buf+header_size;
+	body_size = used-header_size;
+
+	if (http_chunked)
+	{
+		rc = phr_decode_chunked(&http_decoder, http->payload, &body_size);
+		if (rc < 0) {
+			fprintf(stderr,"%i cannot decode chunked payload\n", rc);
+			close(sd);
+			return (1);
+		}
+	}
+
+	http->payload[body_size] = '\0';
+	http->bytes = body_size;
 
 	/* Set SCEP reply type */
 	switch (operation) {
 		case SCEP_OPERATION_GETCA:
-			if (strstr(buf, MIME_GETCA)) {
+			if (!strcmp(mime_type, MIME_GETCA)) {
 				http->type = SCEP_MIME_GETCA;
-				if (v_flag)
-					printf("%s: MIME header: %s\n",
-						pname, MIME_GETCA);
-			} else if (strstr(buf, MIME_GETCA_RA) ||
-				strstr(buf, MIME_GETCA_RA_ENTRUST)) {
+			} else if (!strcmp(mime_type, MIME_GETCA_RA) || !strcmp(mime_type, MIME_GETCA_RA_ENTRUST)) {
 				http->type = SCEP_MIME_GETCA_RA;
-				if (v_flag)
-					printf("%s: MIME header: %s\n",
-						pname, MIME_GETCA_RA);
 			} else {
-				if (v_flag)
-					printf("%s: mime_err: %s\n", pname,buf);
-				
 				goto mime_err;
 			}
 			break;
 		case SCEP_OPERATION_GETNEXTCA:
-			if (strstr(buf, MIME_GETNEXTCA)) {
+			if (!strcmp(mime_type, MIME_GETNEXTCA)) {
 				http->type = SCEP_MIME_GETNEXTCA;
-				if (v_flag)
-					printf("%s: MIME header: %s\n",
-						pname, MIME_GETNEXTCA);
-			}else {
-				if (v_flag)
-					printf("%s: mime_err: %s\n", pname,buf);
-
+			} else {
 				goto mime_err;
 			}
 			break;
 		case SCEP_OPERATION_GETCAPS:
-			if (strstr(buf, MIME_GETCAPS)) {
+			if (!strcmp(mime_type, MIME_GETCAPS)) {
 				http->type = SCEP_MIME_GETCAPS;
-				if (v_flag)
-					printf("%s: MIME header: %s\n",
-							pname, MIME_GETCAPS);
 			} else {
-				if (v_flag)
-					printf("%s: mime_err: %s\n", pname,buf);
-
 				goto mime_err;
 			}
 			break;
 		default:
-			if (!strstr(buf, MIME_PKI)) {
-				if (v_flag)
-					printf("%s: mime_err: %s\n", pname,buf);
+			if (strcmp(mime_type, MIME_PKI) != 0) {
 				goto mime_err;
 			}
 			http->type = SCEP_MIME_PKI;
-			if (v_flag)
-				printf("%s: MIME header: %s\n",pname,MIME_PKI);
 			break;
-	}
-
-	/* Find payload */
-	for (p = buf; *buf; buf++) {
-		if (!strncmp(buf, "\n\n", 2) && *(buf + 2)) {
-			http->payload = buf + 2;
-			break;
-		}
-		if (!strncmp(buf, "\n\r\n\r", 4) && *(buf + 4)) {
-			http->payload = buf + 4;
-			break;
-		}
-		if (!strncmp(buf, "\r\n\r\n", 4) && *(buf + 4)) {
-			http->payload = buf + 4;
-			break;
-		}
-	}
-	http->bytes = used - (http->payload - p);
-	if (http->payload == NULL) {
-		/* This is not necessarily error... 
-		 * XXXXXXXXXXXXXXXX check */
-		fprintf(stderr, "%s: cannot find data from http reply\n",pname);
 	}
 
 #ifdef WIN32

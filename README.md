@@ -37,9 +37,12 @@ or by using the query messages defined in SCEP.
 
 ## SSCEP FEATURES
 
-Currently, SSCEP implements all of the SCEP operations using SCEP query
-messages. There's no LDAP support, and probably there will never be
-(that's why it is simple).
+Currently, SSCEP implements:
+* All of the SCEP operations using SCEP query messages
+* HTTP/1.1 queries via IPv4 or IPv6
+
+There's no LDAP support, and probably there will never be (that's why it is
+simple).
 
 SSCEP has been tested successfully against the following CA products:
 
@@ -84,7 +87,9 @@ To compile run:
 `$ make`
 
 To generate the configure script when checking out from github source:
-`$ libtoolize && aclocal && autoheader && automake --add-missing && autoreconf`
+```cmd
+$ libtoolize && aclocal && autoheader && automake --add-missing && autoreconf
+```
 
 To compile from a tarball created with 'make dist'
 ```cmd

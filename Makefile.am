@@ -12,6 +12,8 @@ sscep_SOURCES = src/sscep.c \
                 src/engine.c \
                 src/engine.h \
                 src/net.c \
+                src/picohttpparser.c \
+                src/picohttpparser.h \
                 src/ias.c \
                 src/ias.h \
                 src/pkcs7.c \

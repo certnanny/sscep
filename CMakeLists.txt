@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 2.8.12)
 
 project(sscep)
 
+if (WIN32)
+    set(OPENSSL_USE_STATIC_LIBS TRUE)
+endif()
 find_package(OpenSSL REQUIRED)
 
 # For IDE such as Visual Studio we include also the header files
@@ -18,6 +21,8 @@ set(SSCEP_SOURCES
     src/engine.c
     src/engine.h
     src/net.c
+    src/picohttpparser.c
+    src/picohttpparser.h
     src/ias.c
     src/ias.h
     src/pkcs7.c
