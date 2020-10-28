@@ -66,7 +66,7 @@
 #include <openssl/ssl.h>
 /* Global defines */
 
-#define	VERSION	"0.7"
+#define	VERSION	"0.8.0"
 
 /* SCEP operations */
 int operation_flag;
@@ -84,7 +84,7 @@ int operation_flag;
 #define MIME_GETCAPS	"text/plain"
 
 /* Entrust VPN connector uses different MIME types */
-#define MIME_PKI	"x-pki-message"
+#define MIME_PKI	"application/x-pki-message"
 #define MIME_GETCA_RA_ENTRUST	"application/x-x509-ra-ca-certs"
 
 /* SCEP reply types based on MIME headers */
@@ -294,7 +294,10 @@ typedef struct {
 void usage(void);
 
 /* Send HTTP message */
-int send_msg (struct http_reply *, char *, size_t, char *, int, int);
+int
+send_msg(struct http_reply *http, int do_post, char *scep_operation,
+		int operation, char *M_char, char *payload, size_t payload_len,
+		int p_flag, char *host_name, int host_port, char *dir_name);
 
 /* Catch SIGALRM */
 void catchalarm (int);
@@ -371,9 +374,6 @@ int get_attribute(STACK_OF(X509_ATTRIBUTE) *, int, ASN1_TYPE **);
 
 /*PKCS#7 decode message without SCEP attribute verification*/
 int pkcs7_verify_unwrap(struct scep *s, char * cachainfile );
-
-/* URL-endcode */
-char *url_encode (char *, size_t);
 
 /* End of Functions */
 #endif

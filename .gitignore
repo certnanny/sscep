@@ -4,6 +4,8 @@
 /.git_checkout
 /src/config.h*
 /src/*.o
+/sscep-*.tar.gz
+/sscep-*.tar.bz2
 
 .deps
 .dirstamp
@@ -28,6 +30,7 @@ CMakeFiles
 CPackConfig.cmake
 CPackSourceConfig.cmake
 cmake_install.cmake
+install_manifest.txt
 
 /.vs
 /sscep.dir

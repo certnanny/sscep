@@ -28,8 +28,16 @@ void perror_w32 (const char *message)
 
 #endif
 
+char *url_encode(char *, size_t);
+void exit_string_overflow(size_t);
+
 int
-send_msg(struct http_reply *http,char *msg,size_t msg_len,char *host,int port,int operation) {
+send_msg(struct http_reply *http, int do_post, char *scep_operation,
+		int operation, char *M_char, char *payload, size_t payload_len,
+		int p_flag, char *host_name, int host_port, char *dir_name)
+{
+	char			http_string[16384];
+	size_t			rlen;
 	int i, sd, rc, used, bytes, http_chunked;
 	char *buf, *mime_type;
 
@@ -42,7 +50,6 @@ send_msg(struct http_reply *http,char *msg,size_t msg_len,char *host,int port,in
 	size_t msg_size, headers_num, header_size, body_size;
 	struct phr_header headers[100];
 	struct phr_chunked_decoder http_decoder = {0};
-
 #ifdef WIN32
 	int tv=timeout*1000;
 #else	
@@ -51,16 +58,63 @@ send_msg(struct http_reply *http,char *msg,size_t msg_len,char *host,int port,in
 	tv.tv_usec = 0;
 #endif
 
+	rlen = snprintf(http_string, sizeof(http_string),
+		"%s %s%s?operation=%s",
+		do_post ? "POST" : "GET", p_flag ? "" : "/", dir_name, scep_operation);
+	exit_string_overflow(sizeof(http_string)-rlen);
+
+	if (!do_post && payload_len > 0) {
+		char *encoded = url_encode((char *)payload, payload_len);
+		rlen += snprintf(http_string+rlen, sizeof(http_string)-rlen,
+				"&message=%s", encoded);
+		free(encoded);
+		exit_string_overflow(sizeof(http_string)-rlen);
+	}
+
+	if (M_char != NULL) {
+		rlen += snprintf(http_string+rlen, sizeof(http_string)-rlen,
+				"&%s", M_char);
+		exit_string_overflow(sizeof(http_string)-rlen);
+	}
+
+	rlen += snprintf(http_string+rlen, sizeof(http_string)-rlen,
+			" HTTP/1.1\r\n"
+			"Host: %s\r\n"
+			"Connection: close\r\n", host_name);
+	exit_string_overflow(sizeof(http_string)-rlen);
+
+	if (do_post) {
+		rlen += snprintf(http_string+rlen, sizeof(http_string)-rlen,
+				"Content-Length: %zd\r\n", payload_len);
+		exit_string_overflow(sizeof(http_string)-rlen);
+	}
+
+	rlen += snprintf(http_string+rlen, sizeof(http_string)-rlen,
+			"\r\n");
+	exit_string_overflow(sizeof(http_string)-rlen);
+
+	if (do_post) {
+		/* concat post data */
+		memcpy(http_string+rlen, payload, payload_len);
+
+		rlen += payload_len;
+		exit_string_overflow(sizeof(http_string)-rlen);
+	}
+
+	if (d_flag){
+		fprintf(stdout, "%s: scep request:\n%s", pname, http_string);
+	}
+
 	/* resolve name */
-	sprintf(port_str, "%d", port);
+	sprintf(port_str, "%d", host_port);
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = 0;
 	hints.ai_flags = (AI_ADDRCONFIG | AI_V4MAPPED);
-	rc = getaddrinfo(host, port_str, &hints, &res);
+	rc = getaddrinfo(host_name, port_str, &hints, &res);
 	if (rc!=0) {
-		fprintf(stderr, "failed to resolve remote host address %s (err=%d)\n", host, rc);
+		fprintf(stderr, "failed to resolve remote host address %s (err=%d)\n", host_name, rc);
 		return (1);
 	}
 
@@ -83,15 +137,15 @@ send_msg(struct http_reply *http,char *msg,size_t msg_len,char *host,int port,in
 	setsockopt(sd,SOL_SOCKET, SO_RCVTIMEO,(void *)&tv, sizeof(tv));
 	setsockopt(sd,SOL_SOCKET, SO_SNDTIMEO,(void *)&tv, sizeof(tv));
 
-	/* send data */ 
-	rc = send(sd, msg,msg_len, 0);
+	/* send data */
+	rc = send(sd, http_string, rlen, 0);
 
 	if (rc < 0) {
 		perror("cannot send data ");
 		close(sd);
 		return (1);
 	}
-	else if(rc != msg_len)
+	else if(rc != rlen)
 	{
 		fprintf(stderr,"incomplete send\n");
 		close(sd);
@@ -208,6 +262,14 @@ mime_err:
 	return (1);
 }
 
+void exit_string_overflow(size_t size) {
+	if (size <= 0) {
+		fprintf(stderr, "%s: not enough buffer space "
+				"to construct HTTP request\n", pname);
+		exit (SCEP_PKISTATUS_NET);
+	}
+}
+
 /* URL-encode the input and return back encoded string */
 char * url_encode(char *s, size_t n) {
 	char	*r;
@@ -217,7 +279,7 @@ char * url_encode(char *s, size_t n) {
 
 	/* Allocate 2 times bigger space than the original string */
 	len = 2 * n;
-	r = (char *)malloc(len);	
+	r = (char *)malloc(len);
 	if (r == NULL) {
 		return NULL;
 	}

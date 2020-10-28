@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([sscep],[0.7.0],[certnanny@github.com])
+AC_INIT([sscep],[0.8.0],[certnanny@github.com])
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([subdir-objects dist-bzip2])
 AC_CONFIG_HEADERS([src/config.h])

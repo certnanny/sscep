@@ -98,7 +98,6 @@ main(int argc, char **argv) {
 	//ENGINE *e = NULL;
 	int			c, host_port = 80, count = 1, cnt = 0;
 	char			*host_name, *p, *dir_name = NULL;
-	char			http_string[16384];
 	struct http_reply	reply;
 	unsigned int		n;
 	unsigned char		md[EVP_MAX_MD_SIZE];
@@ -563,15 +562,14 @@ main(int argc, char **argv) {
 		exit (SCEP_PKISTATUS_ERROR);
 	}
 
-	/* Get server capabilities */
-	snprintf(http_string, sizeof(http_string),
-			"GET %s%s?operation=GetCACaps HTTP/1.1\r\nHost: %s\r\n\r\n",
-			p_flag ? "" : "/", dir_name, host_name);
+	if (v_flag)
+		fprintf(stdout, "%s: SCEP_OPERATION_GETCAPS\n",
+			pname);
 
+	/* Get server capabilities */
 	reply.payload = NULL;
-	if ((c = send_msg (&reply, http_string, strlen(http_string),
-					host_name, host_port,
-					SCEP_OPERATION_GETCAPS)) == 1) {
+	if ((c = send_msg(&reply, 0, "GetCACaps", SCEP_OPERATION_GETCAPS, NULL, NULL, 0,
+				p_flag, host_name, host_port, dir_name)) == 1) {
 		fprintf(stderr, "%s: error while sending "
 				"message\n", pname);
 		exit (SCEP_PKISTATUS_NET);
@@ -634,38 +632,14 @@ main(int argc, char **argv) {
 			if (!i_flag)
 				i_char = CA_IDENTIFIER;
 
-			/* Forge the HTTP message */
-
-			if(!M_flag){
-				snprintf(http_string, sizeof(http_string),
-				 "GET %s%s?operation=GetCACert&message=%s "
-				 "HTTP/1.1\r\nHost: %s\r\n\r\n", p_flag ? "" : "/", dir_name,
-						i_char, host_name);
-
-			}else{
-				snprintf(http_string, sizeof(http_string),
-					"GET %s%s?operation=GetCACert&message=%s&%s "
-					"HTTP/1.1\r\nHost: %s\r\n\r\n", p_flag ? "" : "/", dir_name,
-						i_char, M_char, host_name);
-
-			}
-
-
-
-			if (d_flag){
-				printf("%s: requesting CA certificate\n", pname);
-				fprintf(stdout, "%s: scep msg: %s", pname,
-									http_string);
-			}
-
 			/*
 			 * Send http message.
 			 * Response is written to http_response struct "reply".
 			 */
 			reply.payload = NULL;
-			if ((c = send_msg (&reply, http_string, strlen(http_string),
-							host_name, host_port,
-							operation_flag)) == 1) {
+			if ((c = send_msg(&reply, 0, "GetCACert", operation_flag,
+					M_char, i_char, sizeof(i_char),
+					p_flag, host_name, host_port, dir_name)) == 1) {
 				fprintf(stderr, "%s: error while sending "
 					"message\n", pname);
 				exit (SCEP_PKISTATUS_NET);
@@ -734,36 +708,14 @@ main(int argc, char **argv) {
 				if (!i_flag)
 					i_char = CA_IDENTIFIER;
 
-				/* Forge the HTTP message */
-				if(!M_flag){
-					snprintf(http_string, sizeof(http_string),
-					 "GET %s%s?operation=GetNextCACert&message=%s "
-					 "HTTP/1.1\r\nHost: %s\r\n\r\n", p_flag ? "" : "/", dir_name,
-							i_char, host_name);
-
-				}else{
-					snprintf(http_string, sizeof(http_string),
-						"GET %s%s?operation=GetNextCACert&message=%s&%s "
-						"HTTP/1.1\r\nHost: %s\r\n\r\n", p_flag ? "" : "/", dir_name,
-							i_char, M_char, host_name);
-
-				}
-
-
-				if (d_flag){
-					printf("%s: requesting nextCA certificate\n", pname);
-					fprintf(stdout, "%s: scep msg: %s", pname,
-						http_string);
-				}
-
 				/*
 				 * Send http message.
 				 * Response is written to http_response struct "reply".
 				 */
 				reply.payload = NULL;
-				if ((c = send_msg (&reply, http_string, strlen(http_string),
-								host_name, host_port,
-								operation_flag)) == 1) {
+				if ((c = send_msg(&reply, 0, "GetNextCACert", operation_flag,
+						M_char, i_char, sizeof(i_char),
+						p_flag, host_name, host_port, dir_name)) == 1) {
 					if(v_flag){
 					fprintf(stderr, "%s: error while sending "
 						"message\n", pname);
@@ -1041,7 +993,7 @@ not_enroll:
 			scep_t.request_type = SCEP_REQUEST_GETCRL;
 			printf("%s: requesting crl\n",pname);
 			break;
-		}
+	}
 
 		/* Enter polling loop */
 		while (scep_t.pki_status != SCEP_PKISTATUS_SUCCESS) {
@@ -1075,97 +1027,11 @@ not_enroll:
 				return 0;
 			}
 
-			/* Forge the HTTP message */
-		/*	snprintf(http_string, sizeof(http_string),
-				"GET %s%s?operation="
-				"PKIOperation&message="
-				"%s HTTP/1.1\r\nHost: %s\r\n\r\n",
-				p_flag ? "" : "/", dir_name, p, host_name);*/
-
-			i = snprintf(http_string, sizeof(http_string),
-					"%s %s%s?operation=PKIOperation",
-					http_method, p_flag ? "" : "/", dir_name);
-
-			if (i >= sizeof(http_string)) {
-				fprintf(stderr, "%s: not enough buffer space "
-					"to construct HTTP request\n", pname);
-				exit (SCEP_PKISTATUS_NET);
-			}
-
-			if (! SUP_CAP_POST_PKI(ca_caps)) {
-				/* URL-encode */
-				i += snprintf(http_string+i, sizeof(http_string)-i,
-						"&message=%s",
-						url_encode(
-							(char *)scep_t.request_payload,
-							scep_t.request_len));
-
-				if (i >= sizeof(http_string)) {
-					fprintf(stderr, "%s: not enough buffer space "
-							"to construct HTTP request\n", pname);
-					exit (SCEP_PKISTATUS_NET);
-				}
-			}
-
-			if(M_flag){
-				i += snprintf(http_string+i, sizeof(http_string)-i,
-						"&%s", M_char);
-
-				if (i >= sizeof(http_string)) {
-					fprintf(stderr, "%s: not enough buffer space "
-							"to construct HTTP request\n",
-							pname);
-					exit (SCEP_PKISTATUS_NET);
-				}
-			}
-
-			i += snprintf(http_string+i, sizeof(http_string)-i,
-					" HTTP/1.1\r\nHost: %s\r\n", host_name);
-
-			if (i >= sizeof(http_string)) {
-				fprintf(stderr, "%s: not enough buffer space "
-					"to construct HTTP request\n", pname);
-				exit (SCEP_PKISTATUS_NET);
-			}
-
-			if (SUP_CAP_POST_PKI(ca_caps)) {
-				i += snprintf(http_string+i, sizeof(http_string)-i,
-						"Content-Length: %d\r\n",
-						scep_t.request_len);
-
-				if (i >= sizeof(http_string)) {
-					fprintf(stderr, "%s: not enough buffer space "
-							"to construct HTTP request\n",
-							pname);
-					exit (SCEP_PKISTATUS_NET);
-				}
-			}
-
-			i += snprintf(http_string+i, sizeof(http_string)-i, "\r\n");
-
-			if (i >= sizeof(http_string)) {
-				fprintf(stderr, "%s: not enough buffer space "
-					"to construct HTTP request\n", pname);
-				exit (SCEP_PKISTATUS_NET);
-			}
-
-			if (SUP_CAP_POST_PKI(ca_caps)) {
-				/* concat post data */
-				memcpy(http_string+i,
-					 scep_t.request_payload,
-					 scep_t.request_len);
-
-				i += scep_t.request_len;
-			}
-
-			if (d_flag)
-				fprintf(stdout, "%s: scep msg: %.*s",
-					pname, i, http_string);
-
 			/* send http */
 			reply.payload = NULL;
-			if ((c = send_msg (&reply, http_string, (i+1), host_name,
-					host_port, operation_flag)) == 1) {
+			if ((c = send_msg(&reply, SUP_CAP_POST_PKI(ca_caps), "PKIOperation", operation_flag,
+						M_char, scep_t.request_payload, scep_t.request_len,
+						p_flag, host_name, host_port, dir_name)) == 1) {
 				fprintf(stderr, "%s: error while sending "
 					"message\n", pname);
 				exit (SCEP_PKISTATUS_NET);
@@ -1285,7 +1151,7 @@ usage() {
 	"\nGeneral OPTIONS\n"
 	"  -u <url>          SCEP server URL\n"
 	"  -p <host:port>    Use proxy server at host:port\n"
-	"  -M <string>		 Monitor Information String name=value&name=value ...\n"
+	"  -M <string>       Monitor Information String name=value&name=value ...\n"
 	"  -g                Enable Engine support\n"
 	"  -h				 Keyforme=ID. \n"//TODO
 	"  -f <file>         Use configuration file\n"
