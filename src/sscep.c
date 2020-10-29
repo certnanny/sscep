@@ -928,7 +928,7 @@ not_enroll:
 			}
 			/* User supplied serial number */
 			if (s_flag) {
-				BIGNUM *bn;
+				BIGNUM *bn = NULL;
 				ASN1_INTEGER *ai;
 				int len = BN_dec2bn(&bn , s_char);
 				if (!len || !(ai = BN_to_ASN1_INTEGER(bn, NULL))) {
@@ -997,10 +997,6 @@ not_enroll:
 
 		/* Enter polling loop */
 		while (scep_t.pki_status != SCEP_PKISTATUS_SUCCESS) {
-			const char * http_method = "GET";
-
-			if (SUP_CAP_POST_PKI(ca_caps))
-				http_method = "POST";
 
 			/* create payload */
 			pkcs7_wrap(&scep_t, !SUP_CAP_POST_PKI(ca_caps));
