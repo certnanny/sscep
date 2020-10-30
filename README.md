@@ -176,7 +176,7 @@ OPTIONS for OPERATION getca are
 OPTIONS for OPERATION enroll are
   -k <file>         Private key file
   -r <file>         Certificate request file
-  -K <file>         Signature private key file
+  -K <file>         Signature private key file, use with -O
   -O <file>         Signature certificate (used instead of self-signed)
   -l <file>         Write enrolled certificate in file
   -e <file>         Use different CA cert for encryption
@@ -187,14 +187,14 @@ OPTIONS for OPERATION enroll are
   -R                Resume interrupted enrollment
 
 OPTIONS for OPERATION getcert are
-  -k <file>         Private key file
-  -l <file>         Local certificate file
+  -k <file>         Signature private key file
+  -l <file>         Signature local certificate file
   -s <number>       Certificate serial number (decimal)
   -w <file>         Write certificate in file
 
 OPTIONS for OPERATION getcrl are
-  -k <file>         Private key file
-  -l <file>         Local certificate file
+  -k <file>         Signature private key file
+  -l <file>         Signature local certificate file
   -w <file>         Write CRL in file
 ```
 
