@@ -40,6 +40,9 @@ or by using the query messages defined in SCEP.
 Currently, SSCEP implements:
 * All of the SCEP operations using SCEP query messages
 * HTTP/1.1 queries via IPv4 or IPv6
+* Integration with
+  [tpm2-tss-engine](https://github.com/tpm2-software/tpm2-tss-engine)
+  and other OpenSSL cryptographic engines
 
 There's no LDAP support, and probably there will never be (that's why it is
 simple).
@@ -158,6 +161,7 @@ Available OPERATIONs are
 General OPTIONS
   -u <url>          SCEP server URL
   -p <host:port>    Use proxy server at host:port
+  -g <engine>       Use the given cryptographic engine
   -f <file>         Use configuration file
   -c <file>         CA certificate file (write if OPERATION is getca)
   -E <name>         PKCS#7 encryption algorithm (des|3des|blowfish)

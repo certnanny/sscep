@@ -1,7 +1,7 @@
 #include "engine.h"
 
-ENGINE *scep_engine_init(ENGINE *e) {
-	
+ENGINE *scep_engine_init() {
+	ENGINE *e = NULL;
 
 		ENGINE_load_builtin_engines();
 		ENGINE_load_dynamic();
@@ -17,10 +17,10 @@ ENGINE *scep_engine_init(ENGINE *e) {
 		if(e == NULL)
 		{
 			ERR_clear_error();
-			e = scep_engine_load_dynamic(e);
+			e = scep_engine_load_dynamic();
 		}
 
-		if(scep_conf->engine->module_path) {
+		if(scep_conf && scep_conf->engine->module_path) {
 			if(ENGINE_ctrl_cmd_string(e, "MODULE_PATH", scep_conf->engine->module_path, 0) == 0) {
 				fprintf(stderr, "%s: Adding MODULE PATH %s was not successful!\n", pname, scep_conf->engine->module_path);
 				sscep_engine_report_error();
@@ -44,6 +44,8 @@ ENGINE *scep_engine_init(ENGINE *e) {
 		} else if(v_flag)
 			printf("%s: Engine %s initialized\n", pname, g_char);
 
+		if(!scep_conf)
+			return e;
 
 		//TODO: remove capi specific part!
 		if(v_flag && strncmp(scep_conf->engine->engine_id, "capi", 4) == 0) {
@@ -111,7 +113,8 @@ ENGINE *scep_engine_init(ENGINE *e) {
 		return e;
 }
 
-ENGINE *scep_engine_load_dynamic(ENGINE *e) {
+ENGINE *scep_engine_load_dynamic() {
+	ENGINE *e;
 	//it seems OpenSSL did not already have it. In this case we will try to load it dynamically
 	e = ENGINE_by_id("dynamic");
 
@@ -124,7 +127,7 @@ ENGINE *scep_engine_load_dynamic(ENGINE *e) {
 		printf("%s: Engine dynamic was loaded\n", pname);
 
 	//To load dynamically we have to tell openssl where to find it.
-	if(scep_conf->engine->dynamic_path) {
+	if(scep_conf && scep_conf->engine->dynamic_path) {
 		if(ENGINE_ctrl_cmd_string(e, "SO_PATH", scep_conf->engine->dynamic_path, 0) == 0) {
 			fprintf(stderr, "%s: Loading %s did not succeed\n", pname, g_char);
 			sscep_engine_report_error();
@@ -195,7 +198,7 @@ void sscep_engine_read_key(EVP_PKEY **key, char *id, ENGINE *e) {
 }
 
 void sscep_engine_read_key_old(EVP_PKEY **key, char *id, ENGINE *e) {
-	if(scep_conf->engine && !strncmp(scep_conf->engine->engine_id, "capi", 4)) {
+	if(scep_conf && !strncmp(scep_conf->engine->engine_id, "capi", 4)) {
 		sscep_engine_read_key_capi(key, id, e, "MY");
 	} else {
 		sscep_engine_read_key(key, id, e);
@@ -204,7 +207,7 @@ void sscep_engine_read_key_old(EVP_PKEY **key, char *id, ENGINE *e) {
 }
 
 void sscep_engine_read_key_new(EVP_PKEY **key, char *id, ENGINE *e) {
-	if(scep_conf->engine && !strncmp(scep_conf->engine->engine_id, "capi", 4)) {
+	if(scep_conf && !strncmp(scep_conf->engine->engine_id, "capi", 4)) {
 		sscep_engine_read_key_capi(key, id, e, scep_conf->engine->new_key_location);
 	} else {
 		sscep_engine_read_key(key, id, e);

@@ -17,7 +17,6 @@ set(SSCEP_SOURCES
     src/getopt.h
     src/configuration.c
     src/configuration.h
-    src/init.c
     src/engine.c
     src/engine.h
     src/net.c

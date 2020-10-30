@@ -326,19 +326,7 @@ main(int argc, char **argv) {
 	}else{
 		scep_conf = NULL;    //moved init to here otherwise compile error on windows
 	}
-	/* Read in the configuration file: */
-	/*if (f_char) {
-	#ifdef WIN32
-		if ((fopen_s(&fp, f_char, "r")))
-	#else
-		if (!(fp = fopen(f_char, "r")))
-	#endif
-			fprintf(stderr, "%s: cannot open %s\n", pname, f_char);
-		else {
-			init_config(fp);
-			(void)fclose(fp);
-		}
-	}*/
+
 	if (v_flag)
 		fprintf(stdout, "%s: starting sscep, version %s\n",
 			pname, VERSION);
@@ -353,7 +341,7 @@ main(int argc, char **argv) {
 
 	/*enable Engine Support */
 	if (g_flag) {
-		scep_t.e = scep_engine_init(scep_t.e);
+		scep_t.e = scep_engine_init();
 	}
 	
 	/*
@@ -827,7 +815,7 @@ main(int argc, char **argv) {
 			  exit (SCEP_PKISTATUS_FILE);
 			}
 			
-			if(scep_conf != NULL) {
+			if(g_flag) {
 				sscep_engine_read_key_new(&rsa, k_char, scep_t.e);
 			} else {
 				read_key(&rsa, k_char);
@@ -841,7 +829,7 @@ main(int argc, char **argv) {
 
 			if (K_flag) {
 				//TODO auf hwcrhk prfen?
-				if(scep_conf != NULL) {
+				if(g_flag) {
 					sscep_engine_read_key_old(&renewal_key, K_char, scep_t.e);
 				} else {
 					read_key(&renewal_key, K_char);
@@ -1148,7 +1136,7 @@ usage() {
 	"  -u <url>          SCEP server URL\n"
 	"  -p <host:port>    Use proxy server at host:port\n"
 	"  -M <string>       Monitor Information String name=value&name=value ...\n"
-	"  -g                Enable Engine support\n"
+	"  -g <engine>       Use the given cryptographic engine\n"
 	"  -h				 Keyforme=ID. \n"//TODO
 	"  -f <file>         Use configuration file\n"
 	"  -c <file>         CA certificate file (write if OPERATION is getca or getnextca)\n"

@@ -39,6 +39,8 @@ int scep_conf_init(char *filename) {
 	scep_conf = malloc(sizeof(*scep_conf));
 	scep_conf->engine = malloc(sizeof(struct scep_engine_conf_st));
 	scep_conf->engine_str = NULL;
+	memset(scep_conf->engine, 0, sizeof(struct scep_engine_conf_st));
+
 	if(scep_conf_load(conf) == 0 && v_flag) {
 		//report something here?
 	}

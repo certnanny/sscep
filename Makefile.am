@@ -8,7 +8,6 @@ sscep_SOURCES = src/sscep.c \
                 src/getopt.h \
                 src/configuration.c \
                 src/configuration.h \
-                src/init.c \
                 src/engine.c \
                 src/engine.h \
                 src/net.c \
