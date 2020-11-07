@@ -17,7 +17,9 @@ static SCEP_CAP scep_caps[SCEP_CAPS] = {
 	{ .cap = SCEP_CAP_POST_PKI, .str = "POSTPKIOperation" },
 	{ .cap = SCEP_CAP_RENEWAL,  .str = "Renewal" },
 	{ .cap = SCEP_CAP_SHA_1,    .str = "SHA-1" },
+	{ .cap = SCEP_CAP_SHA_224,  .str = "SHA-224" },
 	{ .cap = SCEP_CAP_SHA_256,  .str = "SHA-256" },
+	{ .cap = SCEP_CAP_SHA_384,  .str = "SHA-384" },
 	{ .cap = SCEP_CAP_SHA_512,  .str = "SHA-512" },
 	{ .cap = SCEP_CAP_STA,      .str = "SCEPStandard" },
 };
@@ -34,8 +36,12 @@ static SCEP_CAP scep_caps[SCEP_CAPS] = {
 	(cap & SCEP_CAP_RENEWAL)
 #define SUP_CAP_SHA_1(cap) \
 	(cap & SCEP_CAP_SHA_1)
+#define SUP_CAP_SHA_224(cap) \
+	(cap & SCEP_CAP_SHA_224)
 #define SUP_CAP_SHA_256(cap) \
 	((cap & SCEP_CAP_SHA_256) || (cap & SCEP_CAP_STA))
+#define SUP_CAP_SHA_384(cap) \
+	(cap & SCEP_CAP_SHA_384)
 #define SUP_CAP_SHA_512(cap) \
 	(cap & SCEP_CAP_SHA_512)
 #define SUP_CAP_STA(cap) \
@@ -524,8 +530,12 @@ main(int argc, char **argv) {
 		sig_alg = (EVP_MD *)EVP_md5();
 	} else if (!strncmp(S_char, "sha1", 4)) {
 		sig_alg = (EVP_MD *)EVP_sha1();
+	} else if (!strncmp(S_char, "sha224", 6)) {
+		sig_alg = (EVP_MD *)EVP_sha224();
 	} else if (!strncmp(S_char, "sha256", 6)) {
 		sig_alg = (EVP_MD *)EVP_sha256();
+	} else if (!strncmp(S_char, "sha384", 6)) {
+		sig_alg = (EVP_MD *)EVP_sha384();
 	} else if (!strncmp(S_char, "sha512", 6)) {
 		sig_alg = (EVP_MD *)EVP_sha512();
 	} else {
@@ -540,8 +550,12 @@ main(int argc, char **argv) {
 		fp_alg = (EVP_MD *)EVP_md5();
 	} else if (!strncmp(F_char, "sha1", 4)) {
 		fp_alg = (EVP_MD *)EVP_sha1();
+	} else if (!strncmp(F_char, "sha224", 6)) {
+		fp_alg = (EVP_MD *)EVP_sha224();
 	} else if (!strncmp(F_char, "sha256", 6)) {
 		fp_alg = (EVP_MD *)EVP_sha256();
+	} else if (!strncmp(F_char, "sha384", 6)) {
+		fp_alg = (EVP_MD *)EVP_sha384();
 	} else if (!strncmp(F_char, "sha512", 6)) {
 		fp_alg = (EVP_MD *)EVP_sha512();
 	} else {
@@ -626,7 +640,7 @@ main(int argc, char **argv) {
 			 */
 			reply.payload = NULL;
 			if ((c = send_msg(&reply, 0, "GetCACert", operation_flag,
-					M_char, i_char, sizeof(i_char),
+					M_char, i_char, strlen(i_char),
 					p_flag, host_name, host_port, dir_name)) == 1) {
 				fprintf(stderr, "%s: error while sending "
 					"message\n", pname);
@@ -702,7 +716,7 @@ main(int argc, char **argv) {
 				 */
 				reply.payload = NULL;
 				if ((c = send_msg(&reply, 0, "GetNextCACert", operation_flag,
-						M_char, i_char, sizeof(i_char),
+						M_char, i_char, strlen(i_char),
 						p_flag, host_name, host_port, dir_name)) == 1) {
 					if(v_flag){
 					fprintf(stderr, "%s: error while sending "

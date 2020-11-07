@@ -156,11 +156,13 @@ int operation_flag;
 #define SCEP_CAP_POST_PKI 0x008
 #define SCEP_CAP_RENEWAL  0x010
 #define SCEP_CAP_SHA_1    0x020
-#define SCEP_CAP_SHA_256  0x040
-#define SCEP_CAP_SHA_512  0x080
-#define SCEP_CAP_STA      0x100
+#define SCEP_CAP_SHA_224  0x040
+#define SCEP_CAP_SHA_256  0x080
+#define SCEP_CAP_SHA_384  0x100
+#define SCEP_CAP_SHA_512  0x200
+#define SCEP_CAP_STA      0x400
 
-#define SCEP_CAPS 9
+#define SCEP_CAPS 11
 
 /* End of Global defines */
 
