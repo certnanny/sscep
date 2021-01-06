@@ -1,3 +1,4 @@
+ACLOCAL_AMFLAGS = -I m4
 
 bin_PROGRAMS = sscep
 sscep_SOURCES = src/sscep.c \
@@ -19,3 +20,10 @@ sscep_SOURCES = src/sscep.c \
                 src/fileutils.c \
                 src/fileutils_capi.h \
                 src/sceputils.c
+
+EXTRA_DIST = doc/rfc8894.txt \
+             CMakeLists.txt \
+             README.md \
+             bootstrap.sh \
+             mkrequest \
+             sscep.conf

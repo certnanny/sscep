@@ -89,7 +89,7 @@ To compile run:
 
 To generate the configure script when checking out from github source:
 ```cmd
-$ libtoolize && aclocal && autoheader && automake --add-missing && autoreconf
+$ ./bootstrap.sh
 ```
 
 To compile from a tarball created with 'make dist'
