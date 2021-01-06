@@ -1,0 +1,25 @@
+v0.8.0
+------
+* Added support for HTTP/1.1 (@minfrin)
+* Added support for IPv6 (@carstenkoester)
+* Added GetCACaps (getcaps) operation (Tijs Van Buggenhout)
+* Added support for POST method for PKI operations (Tijs Van Buggenhout)
+* Added options for additional hashing algorithms (@efrohnhoefer)
+* Added support for autoconf/automake and CMake
+* Changed project directory layout to match the conventions
+* Fixed encoding of 'issuer and subject' and 'issuer and serial' (@ovk)
+* Fixed Windows build
+* Fixed crashes when sscep is used with an OpenSSL engine
+* Replaced GNU getopt by a BSD licensed alternative
+
+v0.7.0
+------
+* Added support for issuer CAs other than a self-signed Root CA (@tscherf)
+* Fixed getCA failures (@tscherf)
+* Compilable with OpenSSL 1.1.0
+* Replaced sprintf with snprintf to prevent any buffer overflows
+* Fixed various compiler warnings
+
+v0.6.1
+------
+* Fixed segfaults on some systems when verbose mode is active

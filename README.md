@@ -40,9 +40,7 @@ or by using the query messages defined in SCEP.
 Currently, SSCEP implements:
 * All of the SCEP operations using SCEP query messages
 * HTTP/1.1 queries via IPv4 or IPv6
-* Integration with
-  [tpm2-tss-engine](https://github.com/tpm2-software/tpm2-tss-engine)
-  and other OpenSSL cryptographic engines
+* Integration with OpenSSL cryptographic engines
 
 There's no LDAP support, and probably there will never be (that's why it is
 simple).
