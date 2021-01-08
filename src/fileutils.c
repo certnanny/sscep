@@ -13,6 +13,15 @@
 #endif
 #include "sscep.h"
 
+X509 *cacert;
+X509 *encert;
+X509 *localcert;
+X509 *renewal_cert;
+X509_REQ *request;
+EVP_PKEY *rsa;
+EVP_PKEY *renewal_key;
+X509_CRL *crl;
+
 /* Open the inner, decrypted PKCS7 and try to write CRL.  */ 
 void
 write_crl(struct scep *s) {
@@ -179,8 +188,7 @@ write_other_cert(struct scep *s) {
 	X509			*cert = NULL;
 	FILE			*fp;
 	int			i;
-
-	othercert = NULL;
+	X509 *othercert = NULL;
 
 	/* Get certs */
 	p7 = s->reply_p7;
@@ -358,6 +366,8 @@ write_ca_ra(struct http_reply *s) {
 
 void
 read_ca_cert(void) {
+	FILE *cafile;
+
 	/* Read CA cert file */
 	if (!c_flag || 
 #ifdef WIN32
@@ -504,6 +514,8 @@ read_key(EVP_PKEY** key, char* filename) {
 
 void
 read_request(void) {
+	FILE *reqfile;
+
 	/* Read certificate request file */
 	if (!r_flag || 
 #ifdef WIN32

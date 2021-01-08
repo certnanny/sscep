@@ -9,6 +9,15 @@
 #include "sscep.h"
 #include "ias.h"
 
+/* OpenSSL OID handles */
+int nid_messageType;
+int nid_pkiStatus;
+int nid_failInfo;
+int nid_senderNonce;
+int nid_recipientNonce;
+int nid_transId;
+int nid_extensionReq;
+
 /*
  * Initialize a SCEP transaction
  */

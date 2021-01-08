@@ -10,6 +10,70 @@
 
 #include "sscep.h"
 
+int operation_flag;
+
+char *pname;
+int timeout;
+
+/* configuration options, defined in cmd.h */
+int c_flag;
+char *c_char;
+int C_flag;
+char *C_char;
+int d_flag;
+int e_flag;
+char *e_char;
+char *E_char;
+int E_flag;
+int f_flag;
+char *f_char;
+char *F_char;
+int F_flag;
+char *g_char;
+int g_flag;
+int h_flag;
+int H_flag;
+char *l_char;
+int l_flag;
+char *L_char;
+int L_flag;
+char *i_char;
+int i_flag;
+char *k_char;
+int k_flag;
+char *K_char;
+int K_flag;
+int m_flag;
+char *m_char;
+int M_flag;
+char *M_char;
+int n_flag;
+int n_num;
+char *O_char;
+int O_flag;
+char *p_char;
+int p_flag;
+char *r_char;
+int r_flag;
+int R_flag;
+char *s_char;
+int s_flag;
+char *S_char;
+int S_flag;
+int t_num;
+int t_flag;
+int T_num;
+int T_flag;
+int u_flag;
+char *url_char;
+int v_flag;
+int w_flag;
+char *w_char;
+
+EVP_MD *fp_alg;
+EVP_MD *sig_alg;
+EVP_CIPHER *enc_alg;
+
 static SCEP_CAP scep_caps[SCEP_CAPS] = {
 	{ .cap = SCEP_CAP_AES,      .str = "AES" },
 	{ .cap = SCEP_CAP_3DES,     .str = "DES3" },
@@ -115,8 +179,7 @@ main(int argc, char **argv) {
 	int i;
 	size_t required_option_space;
 	int ca_caps = 0;
-	
-
+	int pkistatus = 0;
 
 #ifdef WIN32
 	WORD wVersionRequested;

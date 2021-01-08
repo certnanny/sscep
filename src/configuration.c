@@ -5,6 +5,8 @@
 #define itoa _itoa
 #endif
 
+SCEP_CONF *scep_conf;
+
 NAME_VALUE_PAIR* NAME_VALUE_PAIR_new(char *name, char *value) {
 	NAME_VALUE_PAIR *ret = OPENSSL_malloc(sizeof(NAME_VALUE_PAIR));
 	ret->name = OPENSSL_strdup(name);

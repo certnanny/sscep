@@ -69,7 +69,7 @@
 #define	VERSION	"0.8.1"
 
 /* SCEP operations */
-int operation_flag;
+extern int operation_flag;
 #define	SCEP_OPERATION_GETCA	1
 #define	SCEP_OPERATION_ENROLL	3
 #define	SCEP_OPERATION_GETCERT	5
@@ -170,42 +170,34 @@ int operation_flag;
 /* Global variables */
 
 /* Program name */
-char *pname;
+extern char *pname;
 
 /* Network timeout */
-int timeout;
+extern int timeout;
 
 /* Certificates, requests, keys.. */
-X509 *cacert;
-X509 *encert;
-X509 *localcert;
-X509 *othercert;
-X509 *renewal_cert;
-X509_REQ *request;
-EVP_PKEY *rsa;
-EVP_PKEY *renewal_key;
-X509_CRL *crl;
-FILE *cafile;
-FILE *reqfile;
-FILE *otherfile;
-FILE *crlfile;
+extern X509 *cacert;
+extern X509 *encert;
+extern X509 *localcert;
+extern X509 *renewal_cert;
+extern X509_REQ *request;
+extern EVP_PKEY *rsa;
+extern EVP_PKEY *renewal_key;
+extern X509_CRL *crl;
 
 /* Fingerprint, signing and encryption algorithms */
-EVP_MD *fp_alg;
-EVP_MD *sig_alg;
-EVP_CIPHER *enc_alg;
+extern EVP_MD *fp_alg;
+extern EVP_MD *sig_alg;
+extern EVP_CIPHER *enc_alg;
 
-/* OpenSSL OID handles */
-int nid_messageType;
-int nid_pkiStatus;
-int nid_failInfo;
-int nid_senderNonce;
-int nid_recipientNonce;
-int nid_transId;
-int nid_extensionReq;
-
-/* Global pkistatus */
-int pkistatus;
+/* OpenSSL OID handles, defined in sceputils.c */
+extern int nid_messageType;
+extern int nid_pkiStatus;
+extern int nid_failInfo;
+extern int nid_senderNonce;
+extern int nid_recipientNonce;
+extern int nid_transId;
+extern int nid_extensionReq;
 
 /* End of Global variables */
 

@@ -111,7 +111,7 @@ struct scep_engine_conf_st{
 	NAME_VALUE_PAIR **cmds; // NULL terminated array of engine init commands (or NULL)
 };
 
-SCEP_CONF *scep_conf;
+extern SCEP_CONF *scep_conf;
 
 int scep_conf_init(char *filename);
 int scep_conf_load(CONF *conf);
