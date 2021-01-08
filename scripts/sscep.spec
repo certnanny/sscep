@@ -4,7 +4,7 @@
 #
 
 Name:         sscep
-Version:      0.8.0
+Version:      0.8.1
 Release:      1
 Summary:      Simple SCEP client
 License:      BSD

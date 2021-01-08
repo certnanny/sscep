@@ -1,6 +1,9 @@
 SSCEP Release history
 ========================================
 
+v0.8.1
+* Fixed handling of Content-Type headers with a charset defined
+
 v0.8.0 (2021-01-08)
 * Added support for HTTP/1.1 (@minfrin)
 * Added support for IPv6 (@carstenkoester)

@@ -185,8 +185,13 @@ send_msg(struct http_reply *http, int do_post, char *scep_operation,
 
 		if (!strncmp("content-type", headers[i].name, headers[i].name_len))
 		{
+			char *ptr;
+
 			mime_type = (char *)headers[i].value;
 			mime_type[headers[i].value_len] = '\0';
+
+			if ((ptr = strchr(mime_type, ';')))
+				*ptr = '\0';
 		}
 		else if (!strncmp("transfer-encoding", headers[i].name, headers[i].name_len) &&
 			!strncmp("chunked", headers[i].value, headers[i].value_len))
