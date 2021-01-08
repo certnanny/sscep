@@ -1,5 +1,7 @@
-v0.8.0
-------
+SSCEP Release history
+========================================
+
+v0.8.0 (2021-01-08)
 * Added support for HTTP/1.1 (@minfrin)
 * Added support for IPv6 (@carstenkoester)
 * Added GetCACaps (getcaps) operation (Tijs Van Buggenhout)
@@ -12,14 +14,53 @@ v0.8.0
 * Fixed crashes when sscep is used with an OpenSSL engine
 * Replaced GNU getopt by a BSD licensed alternative
 
-v0.7.0
-------
+v0.7.0 (2020-01-30)
 * Added support for issuer CAs other than a self-signed Root CA (@tscherf)
 * Fixed getCA failures (@tscherf)
 * Compilable with OpenSSL 1.1.0
 * Replaced sprintf with snprintf to prevent any buffer overflows
 * Fixed various compiler warnings
 
-v0.6.1
-------
+v0.6.1 (2015-04-16)
 * Fixed segfaults on some systems when verbose mode is active
+
+v0.6.0 (2015-03-11)
+* Fixed memory leak in the dynamic engine path generation under Windows (@flomar)
+* Fixed CAPI implementation to avoid potential undefined behaviour (@flomar)
+* Fixed AIX and Solaris builds
+* Fixed RPM packaging
+
+v0.5.0 (2014-04-16)
+* Added AES support (@ramo-j)
+* Changed misleading filenames of AIX pre-/post-install scripts (@aleibl)
+* Created separate RPM packages for static and dynamic versions of sscep
+* Updated Windows build instructions (@rad1us)
+
+v0.4.0 (2014-01-17)
+* Fixed -M option syntax
+* Linux and AIX build enhancements
+
+v0.3.0 (2014-01-17)
+
+
+Release 20081211
+* Patch from Leo Koutikas: set signerkey correctly in pkcs7.c
+
+Release 20071227
+* Patch from Bas ten Berge: OpenSSL-related fix + ability to use cert
+  serial number as hex
+
+Release 20040325
+* Fixed a bug in mkrequest. Thanks for Scott Moynes pointing it out.
+
+Release 20030417
+* Modifications from Fiel Cabral ensure that the URL encoded Base64
+  PKCS7 is NUL-terminated.
+* Manuel Gil Perez pointed out that not all CA's define the
+  certificate usage. Do not exit if such a thing happens, just warn.
+* Changed the misleading error message for missing CA cert (-c) if
+  method "getca" is used.
+
+
+First public release was around Jan 25 2003, I guess that would make it
+a release 20030125.
