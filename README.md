@@ -47,6 +47,7 @@ simple).
 
 SSCEP has been tested successfully against the following CA products:
 
+* [OpenXPKI](https://www.openxpki.org/) (getcaps, getca and enroll works)
 * OpenSCEP server (getca, enroll and getcrl works)\*
 * Windows2000 server CA + Microsoft SCEP module (works)
 * SSH Certifier (getca and enroll works)
@@ -68,11 +69,11 @@ SSCEP has been tested successfully against the following CA products:
 
 The program should compile on the following systems:
 
+* Linux
 * OpenBSD
 * AIX
 * Darwin (PowerPC, no universal binaries yet)
 * Tandem NonStop (Guardian), OSS environment, MIPS processor
-* Linux x86
 * z/OS (USS environment)
 * Solaris
 * Windows
@@ -97,6 +98,12 @@ To compile from a tarball created with 'make dist'
 $ ./configure
 $ make
 $ make install
+```
+
+To build a RPM package from the tarball do
+```cmd
+cp sscep-*.tar.gz ~/rpmbuild/SOURCES
+rpmbuild -ba scripts/sscep.spec
 ```
 
 ### Windows:

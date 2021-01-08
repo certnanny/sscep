@@ -21,9 +21,12 @@ sscep_SOURCES = src/sscep.c \
                 src/fileutils_capi.h \
                 src/sceputils.c
 
+dist_doc_DATA = COPYING \
+                README.md
+
 EXTRA_DIST = doc/rfc8894.txt \
              CMakeLists.txt \
-             README.md \
+             VERSION \
              bootstrap.sh \
              mkrequest \
              sscep.conf
