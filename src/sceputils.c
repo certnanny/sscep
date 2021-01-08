@@ -21,7 +21,7 @@ int nid_extensionReq;
 /*
  * Initialize a SCEP transaction
  */
-int new_transaction(struct scep *s) {
+int new_transaction(struct scep *s, int operation_flag) {
 
 	/* Set the whole struct as 0 */
 	memset(s, 0, sizeof(*s));

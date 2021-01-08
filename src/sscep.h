@@ -69,7 +69,6 @@
 #define	VERSION	"0.8.1"
 
 /* SCEP operations */
-extern int operation_flag;
 #define	SCEP_OPERATION_GETCA	1
 #define	SCEP_OPERATION_ENROLL	3
 #define	SCEP_OPERATION_GETCERT	5
@@ -342,7 +341,7 @@ void write_other_cert(struct scep *);
 int write_ca_ra(struct http_reply *);
 
 /* Create new SCEP session */
-int new_transaction(struct scep *);
+int new_transaction(struct scep *, int operation_flag);
 
 /* Create self-signed certificate */
 int new_selfsigned(struct scep *);

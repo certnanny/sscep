@@ -4,13 +4,9 @@
  * See the file COPYRIGHT for licensing information.
  */
 
-
 /* Main routine */
 
-
 #include "sscep.h"
-
-int operation_flag;
 
 char *pname;
 int timeout;
@@ -166,6 +162,7 @@ handle_serial (char * serial)
 int
 main(int argc, char **argv) {
 	//ENGINE *e = NULL;
+	int operation_flag;
 	int			c, host_port = 80, count = 1, cnt = 0;
 	char			*host_name, *p, *dir_name = NULL;
 	struct http_reply	reply;
@@ -391,7 +388,7 @@ main(int argc, char **argv) {
 		v_flag = 1;
 	
 	if(f_char){
-		scep_conf_init(f_char);
+		scep_conf_init(f_char, operation_flag);
 	}else{
 		scep_conf = NULL;    //moved init to here otherwise compile error on windows
 	}
@@ -406,7 +403,7 @@ main(int argc, char **argv) {
 	*/
 	if (v_flag)
 		fprintf(stdout, "%s: new transaction\n", pname);
-	new_transaction(&scep_t);
+	new_transaction(&scep_t, operation_flag);
 
 	/*enable Engine Support */
 	if (g_flag) {

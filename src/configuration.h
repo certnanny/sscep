@@ -113,13 +113,7 @@ struct scep_engine_conf_st{
 
 extern SCEP_CONF *scep_conf;
 
-int scep_conf_init(char *filename);
-int scep_conf_load(CONF *conf);
-int scep_conf_load_operation_getca(CONF *conf);
-int scep_conf_load_operation_enroll(CONF *conf);
-int scep_conf_load_operation_getcert(CONF *conf);
-int scep_conf_load_operation_getcrl(CONF *conf);
-int scep_conf_load_operation_getnextca(CONF *conf);
+int scep_conf_init(char *filename, int operation_flag);
 void scep_dump_conf(void);
 void error_memory(void);
 
