@@ -239,11 +239,9 @@ send_msg(struct http_reply *http, int do_post, char *scep_operation,
 			}
 			break;
 		case SCEP_OPERATION_GETCAPS:
-			if (!strcmp(mime_type, MIME_GETCAPS)) {
-				http->type = SCEP_MIME_GETCAPS;
-			} else {
-				goto mime_err;
-			}
+			/* RFC8894: Clients SHOULD ignore the Content-type, as older
+                           implementations of SCEP may send various Content-types. */
+			http->type = SCEP_MIME_GETCAPS;
 			break;
 		default:
 			if (strcmp(mime_type, MIME_PKI) != 0) {
