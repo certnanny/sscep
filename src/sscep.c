@@ -1215,7 +1215,7 @@ usage() {
 	"  -f <file>         Use configuration file\n"
 	"  -c <file>         CA certificate file (write if OPERATION is getca or getnextca)\n"
 	"  -E <name>         PKCS#7 encryption algorithm (des|3des|blowfish|aes)\n"
-	"  -S <name>         PKCS#7 signature algorithm (md5|sha1)\n"
+	"  -S <name>         PKCS#7 signature algorithm (md5|sha1|sha224|sha256|sha384|sha512)\n"
 	"  -v                Verbose operation\n"
 	"  -d                Debug (even more verbose operation)\n"
 	"\nOPTIONS for OPERATION getca are\n"

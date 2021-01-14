@@ -169,8 +169,8 @@ General OPTIONS
   -g <engine>       Use the given cryptographic engine
   -f <file>         Use configuration file
   -c <file>         CA certificate file (write if OPERATION is getca)
-  -E <name>         PKCS#7 encryption algorithm (des|3des|blowfish)
-  -S <name>         PKCS#7 signature algorithm (md5|sha1)
+  -E <name>         PKCS#7 encryption algorithm (des|3des|blowfish|aes)
+  -S <name>         PKCS#7 signature algorithm (md5|sha1|sha224|sha256|sha384|sha512)
   -v                Verbose operation
   -d                Debug (even more verbose operation)
 
@@ -228,7 +228,7 @@ Here are the available configuration file keys and example values:
 | CAIdentifier | Some CAs require you to define this.  | `mydomain.com` | `-i` |
 | CertReqFile | Certificate request file created with mkrequest. | `./local.csr` | `-r`
 | Debug |         Debug? Answer "yes" or "no". | | `-d` |
-|EncAlgorithm |	PKCS#7 encryption algorithm. Available algorithms are des, 3des and blowfish. NOTE: this could be very misleading, current SCEP draft provides no mechanism to "negotiate" the algorithm - even if you send 3des, reply might be des (same thing applies to SigAlgorithm). | | `-E` |
+| EncAlgorithm |	PKCS#7 encryption algorithm. Available algorithms are des, 3des, blowfish and aes. NOTE: this could be very misleading, current SCEP draft provides no mechanism to "negotiate" the algorithm - even if you send 3des, reply might be des (same thing applies to SigAlgorithm). | | `-E` |
 | EncCertFile | If your CA/RA uses a different certificate for encyption and signing, define this. CACertFile is used for verifying the signature. | `./enc.crt` | `-e` |
 | SignCertFile | Instead of creating a self-signed certificate from the new key pair use an already existing certficate/key to sign the SCEP request. If the "old" certificate and key is used, the CA can verify that the holder of the private key for an existing certificate re-enrolls for a renewal certificate, allowing for automatic approval of the request. Requires specification of the corresponding signature private key file (-K, SignKeyFile). | `./sig.crt` | `-O` |
 | SignKeyFile |	See SignCertFile. Specifies the corresponding private key. | `./sig.key` | `-K` |
@@ -243,7 +243,7 @@ Here are the available configuration file keys and example values:
 | PrivateKeyFile | Private key created with mkrequest. | `./local.key` | `-k` |
 | Proxy | Use HTTP proxy at host:port. | `localhost:8080` | `-p` |
 | SelfSignedFile | Write optionally the selfsigned certificate in file (needed in SCEP transaction). | `./selfsigned.crt` | `-L` |
-| SigAlgorithm | PKCS#7 signature algorithm. Available algorithms are md5 and sha1. Default is md5. | | `-E` |
+| SigAlgorithm | PKCS#7 signature algorithm. Available algorithms are md5, sha1, sha224, sha256, sha384 and sha512. Default is md5. | | `-S` |
 | URL | URL of the SCEP server. | `http://localhost/cgi-bin/pkiclient.exe` | `-u` |
 | Verbose | Verbose? Answer "yes" or "no" | | `-v`|
 
