@@ -290,11 +290,11 @@ int pkcs7_wrap(struct scep *s, int enc_base64) {
 		ERR_print_errors_fp(stderr);
 		exit (SCEP_PKISTATUS_P7);
 	}
-	if (v_flag)
+	if (d_flag)
 		printf("%s: signature added successfully\n", pname);
 
 	/* Set signed attributes */
-	if (v_flag)
+	if (d_flag)
 		printf("%s: adding signed attributes\n", pname);
 	attributes = sk_X509_ATTRIBUTE_new_null();
 	add_attribute_string(attributes, nid_transId, s->transaction_id);
@@ -622,7 +622,7 @@ int pkcs7_unwrap(struct scep *s) {
 		printf("%s: signature ok\n", pname);
 
 	/* Get signed attributes */
-	if (v_flag)
+	if (d_flag)
 		printf("%s: finding signed attributes\n", pname);
 	attribs = PKCS7_get_signed_attributes(si);
 	if (attribs == NULL) {
@@ -830,7 +830,7 @@ int add_attribute_string(STACK_OF(X509_ATTRIBUTE) *attrs, int nid, char *buffer)
 	X509_ATTRIBUTE  *x509_a;
 	int		c;
 
-	if (v_flag)
+	if (d_flag)
 		printf("%s: adding string attribute %s\n", pname,
 			OBJ_nid2sn(nid));
 
@@ -853,7 +853,7 @@ int add_attribute_octet(STACK_OF(X509_ATTRIBUTE) *attrs, int nid, unsigned char 
 	X509_ATTRIBUTE  *x509_a;
 	int		c;
 
-	if (v_flag)
+	if (d_flag)
 		printf("%s: adding octet attribute %s\n", pname,
 			OBJ_nid2sn(nid));
 
@@ -893,7 +893,7 @@ int get_signed_attribute(STACK_OF(X509_ATTRIBUTE) *attribs, int nid,int type, ch
 	len = ASN1_STRING_length(asn1_type->value.asn1_string);
 	if (len <= 0) {
 		return (1);
-	} else if (v_flag)
+	} else if (d_flag)
 		printf("%s: allocating %d bytes for attribute\n", pname, len);
 	if (type == V_ASN1_PRINTABLESTRING) {
 		*buffer = (char *)malloc(len + 1);
@@ -930,7 +930,7 @@ int get_attribute(STACK_OF(X509_ATTRIBUTE) *attribs, int required_nid,
 	ASN1_OBJECT	*asn1_obj = NULL;
 	X509_ATTRIBUTE	*x509_attrib = NULL;
 
-	if (v_flag)
+	if (d_flag)
 		printf("%s: finding attribute %s\n", pname,
 			OBJ_nid2sn(required_nid));
 	*asn1_type = NULL;
