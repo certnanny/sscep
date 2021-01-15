@@ -173,12 +173,9 @@ int new_selfsigned(struct scep *s) {
  * Initialize SCEP
  */
 int init_scep() {
-	unsigned char   randpool[1024];
-
-	/* Add algorithms and init random pool */
+	/* Initialize OpenSSL crypto */
 	OpenSSL_add_all_algorithms();
 	ERR_load_crypto_strings();
-	RAND_seed(randpool, sizeof(randpool));
 
 	/* Create OpenSSL NIDs */
 
