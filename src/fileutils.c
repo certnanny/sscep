@@ -459,6 +459,20 @@ guess_ca_certs(const char* filename, X509 **sigc, X509 **encc)
 		if (cert[i] != *sigc && cert[i] != *encc)
 			X509_free(cert[i]);
 	}
+
+	if (v_flag) {
+		char buffer[1024];
+
+		if (*sigc)
+			printf("%s: using RA certificate: %s\n", pname,
+				X509_NAME_oneline(X509_get_subject_name(*sigc),
+						buffer, sizeof(buffer)));
+		if (*encc)
+			printf("%s: using RA encryption certificate: %s\n", pname,
+				X509_NAME_oneline(X509_get_subject_name(*encc),
+						buffer, sizeof(buffer)));
+	}
+
 }
 
 /*

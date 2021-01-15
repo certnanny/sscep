@@ -344,7 +344,8 @@ rely on an automated certificate selection. The system:
     * Is at the end of the received chain, i.e. do not sign other certificate.
     * Has key usage "Digital Signature" (for -c) or "Key Encipherment"
       (for -e), or does not have any key usage defined.
- 2. If no such key is found, selects the first certificate in the chain.
+ 2. If no such key is found, selects the first certificate in the chain, which
+    is usually the right certificate anyway.
 
 Currently, SSCEP doesn't verify the CA/RA certificate chain. You can
 do it manually with OpenSSL: 
