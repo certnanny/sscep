@@ -94,7 +94,7 @@ int pkcs7_wrap(struct scep *s, int enc_base64) {
 			signerkey = s->signerkey;
 
 			/* Create inner PKCS#7  */
-			if (v_flag)
+			if (d_flag)
 				printf("%s: creating inner PKCS#7\n", pname);
 
 			/* Read request in memory bio */
@@ -105,7 +105,7 @@ int pkcs7_wrap(struct scep *s, int enc_base64) {
 				ERR_print_errors_fp(stderr);
 				exit (SCEP_PKISTATUS_P7);
 			}else{
-				if (v_flag)
+				if (d_flag)
 					printf("%s: inner PKCS#7 in mem BIO \n", pname);
 
 			}
@@ -121,7 +121,7 @@ int pkcs7_wrap(struct scep *s, int enc_base64) {
 			signerkey = s->signerkey;
 
 			/* Create inner PKCS#7  */
-			if (v_flag)
+			if (d_flag)
 				printf("%s: creating inner PKCS#7\n", pname);
 
 			/* Read data in memory bio */
@@ -788,8 +788,7 @@ int pkcs7_unwrap(struct scep *s) {
 		recipientcert = localcert;
 		recipientkey = rsa;
 	}
-	if (v_flag)
-		printf("%s: reading inner PKCS#7\n",pname);
+
 	p7enc = d2i_PKCS7_bio(outbio, NULL);
 	if (p7enc == NULL) {
 		fprintf(stderr, "%s: cannot read inner PKCS#7\n", pname);
@@ -803,7 +802,7 @@ int pkcs7_unwrap(struct scep *s) {
 
 	/* Decrypt the data  */
 	outbio = BIO_new(BIO_s_mem());
-	if (v_flag)
+	if (d_flag)
 		printf("%s: decrypting inner PKCS#7\n",pname);
 	if (PKCS7_decrypt(p7enc, recipientkey, recipientcert, outbio, 0) == 0) {
 		fprintf(stderr, "%s: error decrypting inner PKCS#7\n", pname);

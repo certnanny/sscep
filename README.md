@@ -152,7 +152,7 @@ of arguments and command line options.
 ```bash
 $ ./sscep
 
-sscep version 2005XXXX
+sscep version 0.8.x
 
 Usage: ./sscep OPERATION [OPTIONS]
 
@@ -171,8 +171,8 @@ General OPTIONS
   -c <file>         CA certificate file (write if OPERATION is getca)
   -E <name>         PKCS#7 encryption algorithm (des|3des|blowfish|aes)
   -S <name>         PKCS#7 signature algorithm (md5|sha1|sha224|sha256|sha384|sha512)
-  -v                Verbose operation
-  -d                Debug (even more verbose operation)
+  -v                Verbose output (for debugging the configuration)
+  -d                Debug output (more verbose, for debugging the implementation)
 
 OPTIONS for OPERATION getca are
   -i <string>       CA identifier string
