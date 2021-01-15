@@ -313,13 +313,24 @@ write_ca_ra(struct http_reply *s) {
 			ERR_print_errors_fp(stderr);
 			exit (SCEP_PKISTATUS_FILE);
 		}
+		/* Print basic constraints: */
+		index = X509_get_ext_by_NID(cert, NID_basic_constraints, -1);
+		if (index < 0) {
+			if (v_flag)
+				printf("  basic constraints: (not included)\n");
+		} else {
+			ext = X509_get_ext(cert, index);
+			if (v_flag){
+				printf("  basic constraints: ");
+				X509V3_EXT_print_fp(stdout, ext, 0, 0);
+				printf("\n");
+			}
+		}
 		/* Print key usage: */
 		index = X509_get_ext_by_NID(cert, NID_key_usage, -1);
 		if (index < 0) {
 			if (v_flag)
-				fprintf(stderr, "%s: cannot find key usage\n",
-					pname);
-			/* exit (SCEP_PKISTATUS_FILE); */
+				printf("  usage: (not included)\n");
 		} else {
 			ext = X509_get_ext(cert, index);
 			if (v_flag){
@@ -357,79 +368,99 @@ write_ca_ra(struct http_reply *s) {
 			exit (SCEP_PKISTATUS_FILE);
 		}
 
+		fclose(fp);
 	}
-	(void)fclose(fp);
+
+	PKCS7_free(p7);
+	BIO_free(bio);
 	exit (SCEP_PKISTATUS_SUCCESS);
+}
+
+/* Read local certificate (GetCert and GetCrl) */
+
+X509 *
+read_cert(const char *filename)
+{
+	FILE *file;
+	X509 *res;
+
+	if (
+#ifdef WIN32
+		(fopen_s(&file, filename, "r"))
+#else
+		!(file = fopen(filename, "r"))
+#endif
+		)
+	{
+		return NULL;
+	}
+
+	if (!(res = PEM_read_X509(file, NULL, NULL, NULL)))
+		ERR_print_errors_fp(stderr);
+
+	fclose(file);
+
+	return res;
 }
 
 /* Read CA cert and optionally, encyption CA cert */
 
 void
-read_ca_cert(void) {
-	FILE *cafile;
+guess_ca_certs(const char* filename, X509 **sigc, X509 **encc)
+{
+	int ccnt, i, j;
+	X509 *cert[20];
 
-	/* Read CA cert file */
-	if (!c_flag || 
-#ifdef WIN32
-		(fopen_s(&cafile, c_char, "r"))
-#else
-		!(cafile = fopen(c_char, "r"))
-#endif
-		)
-	{
-		fprintf(stderr, "%s: cannot open CA cert file\n", pname);
-		exit (SCEP_PKISTATUS_FILE);
-	}
-	if (!PEM_read_X509(cafile, &cacert, NULL, NULL)) {
-		fprintf(stderr, "%s: error while reading CA cert\n", pname);
-		ERR_print_errors_fp(stderr);
-		exit (SCEP_PKISTATUS_FILE);
-	}
-	fclose(cafile);
+	ccnt = 0;
+	/* read all certificates */
+	while (ccnt < 20) {
+		char name[1024];
 
-	/* Read enc CA cert */ 
-	if (e_flag) {
-#ifdef WIN32
-		if ((fopen_s(&cafile, e_char, "r")))
-#else
-		if (!(cafile = fopen(e_char, "r")))
-#endif
-		{
-			fprintf(stderr, "%s: cannot open enc CA cert file\n",
-				pname);
-			exit (SCEP_PKISTATUS_FILE);
+		snprintf(name, sizeof(name)-1, "%s-%d", filename, ccnt);
+		if (!(cert[ccnt] = read_cert(name)))
+			break;
+
+		ccnt++;
+	}
+
+	/* this is either NULL or the first certificate */
+	*sigc = *encc = cert[0];
+
+	for (i = 0; i < ccnt; i++) {
+		X509_NAME *myname = X509_get_subject_name(cert[i]);
+		int is_issuer = 0;
+
+		/* the right CA is the final-one, either leaf or not */
+		for (j = 0; j < ccnt; j++) {
+			X509_NAME *issuer = X509_get_issuer_name(cert[j]);
+			if (!X509_NAME_cmp(myname, issuer)) {
+				is_issuer = 1;
+				break;
+			}
 		}
-		if (!PEM_read_X509(cafile, &encert, NULL, NULL)) {
-			fprintf(stderr,"%s: error while reading enc CA cert\n",
-				pname);
-			ERR_print_errors_fp(stderr);
-			exit (SCEP_PKISTATUS_FILE);
+
+		if (!is_issuer) {
+			/* X509_get_key_usage(cert[i]) is not in older openssl */
+			ASN1_BIT_STRING *usage = X509_get_ext_d2i(cert[i], NID_key_usage, NULL, NULL);
+			if (usage && (usage->length > 0)) {
+				if (usage->data[0] & KU_DIGITAL_SIGNATURE)
+					*sigc = cert[i];
+				if (usage->data[0] & KU_KEY_ENCIPHERMENT)
+					*encc = cert[i];
+			} else {
+				/* no usability constraints */
+				*sigc = *encc = cert[i];
+			}
 		}
-		fclose(cafile);
+	}
+
+	/* release those we don't use */
+	for (i = 0; i < ccnt; i++) {
+		if (cert[i] != *sigc && cert[i] != *encc)
+			X509_free(cert[i]);
 	}
 }
 
-/* Read local certificate (GetCert and GetCrl) */
-
-void
-read_cert(X509** cert, char* filename) {
-        FILE *file;
-#ifdef WIN32
-	if ((fopen_s(&file, filename, "r")))
-#else
-	if (!(file = fopen(filename, "r")))
-#endif
-	{
-	        fprintf(stderr, "%s: cannot open cert file %s\n", pname, filename);
-		exit (SCEP_PKISTATUS_FILE);
-	}
-	if (!PEM_read_X509(file, cert, NULL, NULL)) {
-	        fprintf(stderr, "%s: error while reading cert %s\n", pname, filename);
-		ERR_print_errors_fp(stderr);
-		exit (SCEP_PKISTATUS_FILE);
-	}
-	fclose(file);
-}
 /*
 void read_cert_Engine(X509** cert, char* id, ENGINE *e, char* filename)
 {
@@ -489,9 +520,11 @@ void read_cert_Engine(X509** cert, char* id, ENGINE *e, char* filename)
 
 /* Read private key */
 
-void
-read_key(EVP_PKEY** key, char* filename) {
-        FILE *file;
+EVP_PKEY *
+read_key(char* filename)
+{
+	FILE *file;
+	EVP_PKEY *res;
 	/* Read private key file */
 #ifdef WIN32
 	if ((fopen_s(&file, filename, "r")))
@@ -502,12 +535,13 @@ read_key(EVP_PKEY** key, char* filename) {
 	    fprintf(stderr, "%s: cannot open private key file %s\n", pname, filename);
 		exit (SCEP_PKISTATUS_FILE);
 	}
-	if (!PEM_read_PrivateKey(file, key, NULL, NULL)) {
+	if (!(res = PEM_read_PrivateKey(file, NULL, NULL, NULL))) {
 	        fprintf(stderr, "%s: error while reading private key %s\n", pname, filename);
 		ERR_print_errors_fp(stderr);
 		exit (SCEP_PKISTATUS_FILE);
 	}
 	fclose(file);
+	return res;
 }
 
 /* Read PKCS#10 request */

@@ -308,16 +308,16 @@ void init_config(FILE *);
 int init_scep(void);
 
 /* Read RSA private key file */
-void read_key(EVP_PKEY** key, char* filename);
+EVP_PKEY *read_key(char* filename);
 
 /* Read RSA private key using hwcrhk */
 void read_key_Engine(EVP_PKEY** key, char* filename, ENGINE *e);
 
 /* Read CA certificate file */
-void read_ca_cert(void);
+void guess_ca_certs(const char* filename, X509 **vercert, X509 **encert);
 
 /* Read local certificate file */
-void read_cert(X509** cert, char* filename);
+X509 *read_cert(const char* filename);
 
 /* Read certificate from engine */
 /*void read_cert_Engine(X509** cert, char* id, ENGINE *e, char* filename);*/

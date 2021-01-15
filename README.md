@@ -290,11 +290,8 @@ $ mkrequest -ip 172.30.0.1 password
 
 ### STEP 3 - Get CA certificate
 
-Configure the URL and CACertFile in configuration file (sscep.conf) and
-run the command
-
 ```bash
-$ ./sscep getca -f sscep.conf
+$ ./sscep getca -u http://example.com/scep -c ca.crt
 ./sscep: requesting CA certificate
 ./sscep: valid response from server
 ./sscep: MD5 fingerprint: 1D:3C:4C:DF:99:73:B8:FB:B4:EE:C4:56:A9:7C:37:A3
@@ -315,7 +312,7 @@ order it founds them in reply and names them with an integer prefix
 (-number) appended to CACertFile.
 
 ```bash
-$ ./sscep getca -f sscep.conf
+$ ./sscep getca -u http://example.com/scep -c ca.crt
 ./sscep: requesting CA certificate
 ./sscep: valid response from server
 ./sscep: found certificate with
@@ -334,11 +331,20 @@ $ ./sscep getca -f sscep.conf
 
 SSCEP prints out issuer, subject, key usage and md5/sha1 fingerprint for
 each certificate it founds. This information might help you to decide what
-certificate to use. Some CAs may give you a three (or more) certificates,
-the root CA(s) plus different RA certificates for encryption and signing.
-If that's your case, you have to define encryption certificate with command
-line option (-e) or with conf file keyword EncCertFile. Probably it is the
-certificate with key usage "Key Encipherment".
+certificate to use as `-c` and (optionally) `-e` in subsequent operations.
+
+Some CAs may give you a three (or more) certificates, the root CA(s) plus
+different RA certificates for encryption and signing. If that's your case,
+you have to define encryption certificate with command line option (-e).
+Probably it is the certificate with key usage "Key Encipherment".
+
+You may also use the base name (e.g. ca.crt) of all certificates and
+rely on an automated certificate selection. The system:
+ 1. Tries to find a certificate that:
+    * Is at the end of the received chain, i.e. do not sign other certificate.
+    * Has key usage "Digital Signature" (for -c) or "Key Encipherment"
+      (for -e), or does not have any key usage defined.
+ 2. If no such key is found, selects the first certificate in the chain.
 
 Currently, SSCEP doesn't verify the CA/RA certificate chain. You can
 do it manually with OpenSSL: 
@@ -355,18 +361,19 @@ with. Keep this in mind when installing the CA cert in /etc/isakmpd/ca.
 
 ### STEP 4 - Make enrollment
 
-You need to supply configuration file keys URL, CACertFile, PrivateKeyFile,
-LocalCertFile and CertReqFile. PrivateKeyFile is the key generated in step 2
-(local.key), CertReqFile is the request (local.csr) and LocalCertFile is 
-where the enrolled certificate will be written once ready.
+You need to supply URL (-u), CACertFile (-c), PrivateKeyFile (-k),
+CertReqFile (-r) and output LocalCertFile (-l). PrivateKeyFile is the key
+generated in step 2 (local.key), CertReqFile is the request (local.csr)
+and LocalCertFile is where the enrolled certificate will be written once ready.
 
-If your CA/RA have different certificates for encryption and signing, you
-must also provide the encryption certificate (EncCertFile). 
+If your CA/RA have different certificates for encryption and signing, and you
+do not want to use the auto-selection mechanism, you must provide also the
+encryption certificate EncCertFile (-e).
 
 Normally, the enrollment looks like this:
 
 ```bash
-$ ./sscep enroll -f sscep.conf
+$ ./sscep enroll -u http://example.com/scep -c ca.crt -k local.key -r local.csr -l local.crt
 ./sscep: sending certificate request
 ./sscep: valid response from server
 ./sscep: pkistatus: PENDING
@@ -427,8 +434,17 @@ And pay attention to CA certificate if your enrollment was done via RA
 server. "openssl verify -CAfile ca.crt local.crt" is your friend here.
 
 
+### STEP 6 - Certificate renewal
 
-### STEP 6 - Check out revocation list (optional)
+If you want to renew the certificate created previously (local.crt), you
+follow the enrollment procedure as described before, but supply the current
+key and certificate as SignKeyFile (-K) and SignCertFile (-O).
+
+```bash
+$ ./sscep enroll -u http://example.com/scep -c ca.crt -K local.key -O local.crt -k new.key -r new.csr -l new.crt
+```
+
+### STEP 7 - Check out revocation list (optional)
 
 You need your enrolled certificate for this step.
 

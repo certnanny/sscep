@@ -172,7 +172,7 @@ main(int argc, char **argv) {
 	FILE			*fp = NULL;
 	BIO			*bp;
 	STACK_OF(X509)		*nextcara = NULL;
-	X509 				*cert=NULL;
+	X509			*cert=NULL;
 	int i;
 	size_t required_option_space;
 	int ca_caps = 0;
@@ -874,7 +874,10 @@ main(int argc, char **argv) {
 			  fprintf(stderr, "%s: missing local cert (-l)\n", pname);
 			  exit (SCEP_PKISTATUS_FILE);
 			}
-			read_cert(&localcert, l_char);
+			if (!(localcert = read_cert(l_char))) {
+				fprintf(stderr, "%s: cannot read local cert (-l) %s\n", pname, l_char);
+				exit(SCEP_PKISTATUS_FILE);
+			}
 
 		case SCEP_OPERATION_ENROLL:
 			/*
@@ -882,7 +885,30 @@ main(int argc, char **argv) {
 			 * request in global variables.
 			 */
 
-		        read_ca_cert();
+			if (!c_flag) {
+				fprintf(stderr, "%s: missing CA cert (-c)\n", pname);
+				exit (SCEP_PKISTATUS_FILE);
+			}
+
+			/* try to read certificate from a file */
+			if (!(cacert = read_cert(c_char))) {
+				/* if that fails, try to guess both CA certificates */
+				guess_ca_certs(c_char, &cacert, &encert);
+
+				if (!cacert) {
+					fprintf(stderr, "%s: cannot read CA cert (-c) file %s\n",
+						pname, c_char);
+					exit (SCEP_PKISTATUS_FILE);
+				}
+			/* if the CA cert was in a single file, read the enc CA cert too */
+			} else if (e_flag) {
+				if (!(encert = read_cert(e_char))) {
+					fprintf(stderr, "%s: cannot read enc CA cert (-e) file %s\n",
+						pname, e_char);
+					exit (SCEP_PKISTATUS_FILE);
+				}
+			} else
+				encert = NULL;
 
 			if (!k_flag) {
 			  fprintf(stderr, "%s: missing private key (-k)\n", pname);
@@ -892,7 +918,7 @@ main(int argc, char **argv) {
 			if(g_flag) {
 				sscep_engine_read_key_new(&rsa, k_char, scep_t.e);
 			} else {
-				read_key(&rsa, k_char);
+				rsa = read_key(k_char);
 			}
 
 
@@ -906,12 +932,15 @@ main(int argc, char **argv) {
 				if(g_flag) {
 					sscep_engine_read_key_old(&renewal_key, K_char, scep_t.e);
 				} else {
-					read_key(&renewal_key, K_char);
+					renewal_key = read_key(K_char);
 				}
 			}
 
 			if (O_flag) {
-				read_cert(&renewal_cert, O_char);
+				if (!(renewal_cert = read_cert(O_char))) {
+					fprintf(stderr, "%s: cannot read renewal cert (-O) %s\n", pname, O_char);
+					exit(SCEP_PKISTATUS_FILE);
+				}
 			}
 
 			if (operation_flag == SCEP_OPERATION_ENROLL) {
@@ -928,8 +957,7 @@ main(int argc, char **argv) {
 			
 			if (! O_flag) {
 				if (v_flag)
-					fprintf(stdout, "%s: generating selfsigned "
-					"certificate\n", pname);
+					fprintf(stdout, "%s: generating selfsigned certificate\n", pname);
 			  new_selfsigned(&scep_t);
 			}
 			else {

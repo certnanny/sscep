@@ -2,6 +2,7 @@ SSCEP Release history
 ========================================
 
 v0.8.1
+* Implemented mechanism to auto-detect CA certificates (-c)
 * Fixed handling of Content-Type headers with a charset defined
 * Fixed Content-Type handling in GetCACaps responses
 * Fixed global variable declaration for building using GCC 10
