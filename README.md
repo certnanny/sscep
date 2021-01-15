@@ -47,23 +47,21 @@ simple).
 
 SSCEP has been tested successfully against the following CA products:
 
-* [OpenXPKI](https://www.openxpki.org/) (getcaps, getca and enroll works)
+* [OpenXPKI](https://www.openxpki.org/) (getcaps, getca, enroll and automatic approval works)
 * OpenSCEP server (getca, enroll and getcrl works)\*
 * Windows2000 server CA + Microsoft SCEP module (works)
 * SSH Certifier (getca and enroll works)
 * iPlanet CMS (getca and enroll works)\*
 * VeriSign Onsite (getca and enroll works)\*\*
 * Entrust VPN Connect (getca and enroll works)\*\*\*
-* OpenCA (getca, enroll, getcrl and automatic approval works)\*\*\*\*
+* [OpenCA](https://www.openca.org/) (getca, enroll, getcrl and automatic approval works)
 
 > (\*) by default, subjectAltName extensions are dropped from certificate
 >
 > (\*\*) only DNS subjectAltName allowed (demo mode)
 >
 > (\*\*\*) demo requires to use /C=US/O=Entrust
->
-> (\*\*\*\*) automatic approval according to newer SCEP drafts requires
-       OpenCA 0.9.2.4 or higher
+
 
 ## HOW TO COMPILE
 
@@ -228,7 +226,7 @@ Here are the available configuration file keys and example values:
 | CAIdentifier | Some CAs require you to define this.  | `mydomain.com` | `-i` |
 | CertReqFile | Certificate request file created with mkrequest. | `./local.csr` | `-r`
 | Debug |         Debug? Answer "yes" or "no". | | `-d` |
-| EncAlgorithm |	PKCS#7 encryption algorithm. Available algorithms are des, 3des, blowfish and aes. NOTE: this could be very misleading, current SCEP draft provides no mechanism to "negotiate" the algorithm - even if you send 3des, reply might be des (same thing applies to SigAlgorithm). | | `-E` |
+| EncAlgorithm |	PKCS#7 encryption algorithm. Available algorithms are des, 3des, blowfish and aes. NOTE: SCEP provides no mechanism to "negotiate" the algorithm - even if you send 3des, reply might be des (same thing applies to SigAlgorithm). | | `-E` |
 | EncCertFile | If your CA/RA uses a different certificate for encyption and signing, define this. CACertFile is used for verifying the signature. | `./enc.crt` | `-e` |
 | SignCertFile | Instead of creating a self-signed certificate from the new key pair use an already existing certficate/key to sign the SCEP request. If the "old" certificate and key is used, the CA can verify that the holder of the private key for an existing certificate re-enrolls for a renewal certificate, allowing for automatic approval of the request. Requires specification of the corresponding signature private key file (-K, SignKeyFile). | `./sig.crt` | `-O` |
 | SignKeyFile |	See SignCertFile. Specifies the corresponding private key. | `./sig.key` | `-K` |
@@ -404,25 +402,33 @@ If the CA is configured for automatic enrollment (and your request includes
 the challenge password), it returns SUCCESS as a first reply. Otherwise, the
 enrollment requires manual signing and authentication (perhaps a phone call).
 
-Newer SCEP draft versions allow to use the existing certificate (issued
-by the CA) to authenticate a renewal request. In this context, the SCEP
-request with the new public key is signed with the old certificate and
-key (instead of using a self-signed certificate created from the new
-key pair).
-To use this feature, use the command line options -O and -K to specify
-the old certificate and private key (SignCertFile and SignCertKey
-in the configuration file).
+
+### STEP 5 - Certificate renewal
+
+The SCEP allows to use the existing certificate (issued by the CA) to
+authenticate a renewal request. In this context, the SCEP request with the
+new public key is signed with the old certificate and key (instead of using
+a self-signed certificate created from the new key pair).
+
+If you want to renew the certificate created previously (local.crt), you
+follow the enrollment procedure as described before, but supply the current
+(old) key and certificate as SignKeyFile (-K) and SignCertFile (-O).
+
+```bash
+$ ./sscep enroll -u http://example.com/scep -c ca.crt -K local.key -O local.crt \
+                 -k new.key -r new.csr -l new.crt
+```
+
 The actual behaviour of the SCEP server depends on the CA policy and
 on the capabilities of the SCEP server (not all servers implement
 this feature, using the existing certificate with an older SCEP server
 may or may not work, depending on implementation).
 
-Note: Newer versions of OpenCA (http://www.openca.info/) support
-an SCEP server that is capable of automatically approving SCEP requests
-signed with the already existing key pair.
+Note: For example, [OpenXPKI](https://www.openxpki.org/) is capable of
+automatically approving SCEP requests signed with the already existing key pair.
 
 
-### STEP 5 - Use certificate
+### STEP 6 - Use certificate
 
 Install local.key, local.crt and ca.crt in the isakmpd default locations and
 you are ready to go! Default locations are
@@ -435,15 +441,6 @@ And pay attention to CA certificate if your enrollment was done via RA
 server. "openssl verify -CAfile ca.crt local.crt" is your friend here.
 
 
-### STEP 6 - Certificate renewal
-
-If you want to renew the certificate created previously (local.crt), you
-follow the enrollment procedure as described before, but supply the current
-key and certificate as SignKeyFile (-K) and SignCertFile (-O).
-
-```bash
-$ ./sscep enroll -u http://example.com/scep -c ca.crt -K local.key -O local.crt -k new.key -r new.csr -l new.crt
-```
 
 ### STEP 7 - Check out revocation list (optional)
 
