@@ -137,7 +137,7 @@ $ autoreconf
 Set PKG_CONFIG_PATH and then the usual will work:
 ```cmd
 $ export PKG_CONFIG_PATH="/usr/local/opt/openssl@1.1/lib/pkgconfig"
-$ ./Configure
+$ ./configure
 $ make
 $ make install
 ```
@@ -174,7 +174,7 @@ General OPTIONS
 
 OPTIONS for OPERATION getca are
   -i <string>       CA identifier string
-  -F <name>         Fingerprint algorithm (md5|sha1)
+  -F <name>         Fingerprint algorithm (md5|sha1|sha224|sha256|sha384|sha512)
 
 OPTIONS for OPERATION enroll are
   -k <file>         Private key file
@@ -201,20 +201,25 @@ OPTIONS for OPERATION getcrl are
   -w <file>         Write CRL in file
 ```
 
-SSCEP also supports configuration via a configuration file (-f).
+SSCEP also supports configuration via a configuration file (`-f`).
 This is the recommended way to configure SSCEP and all the examples
 in below assume that you have done so.
 
-All configuration options are key-value pairs separated with one
-or more space characters:
+All configuration options are key-value pairs separated with the equal sign
+and grouped into sections:
 
-"Key"     [spaces]    "Value"
+```
+[section]
+Key = Value
+```
 
 Quotation marks are optional - they are needed only if the value contains
 space characters (space or tab). Quotation marks inside the value string
 must be escaped using a backslash:
 
-"Key"     [spaces]    "Value \"containing quotation marks\""
+```
+Key = "Value \"containing quotation marks\""
+```
 
 Comment lines (lines starting with '#') and empty lines are discarded.
 
@@ -222,15 +227,15 @@ Here are the available configuration file keys and example values:
 
 | Key	|	Explanation | Example | Command options |
 |-------|-------------------|---------|---------|
-| URL | URL of the SCEP server. | `http://localhost/cgi-bin/pkiclient.exe` | `-u` |
+| URL | URL of the SCEP server. | `http://example.com/scep` | `-u` |
 | CACertFile | Sigle CA certificate file, or mutiple CA certificates suffixed with `-0`, `-1`, ... to write (getca) or to choose from (all other operations). | `./ca.crt` |`-c` |
 | CAIdentifier | Some CAs require you to define this.  | `mydomain.com` | `-i` |
 | CertReqFile | Certificate request file created with mkrequest. | `./local.csr` | `-r`
 | EncAlgorithm | PKCS#7 encryption algorithm. Available algorithms are des, 3des, blowfish, aes/aes128, aes192 and aes256. NOTE: SCEP provides no mechanism to "negotiate" the algorithm - even if you send 3des, reply might be des (same thing applies to SigAlgorithm). | | `-E` |
 | EncCertFile | If your CA/RA uses a different certificate for encyption and signing, define this. CACertFile is used for verifying the signature. | `./enc.crt` | `-e` |
-| SignCertFile | Instead of creating a self-signed certificate from the new key pair use an already existing certficate/key to sign the SCEP request. If the "old" certificate and key is used, the CA can verify that the holder of the private key for an existing certificate re-enrolls for a renewal certificate, allowing for automatic approval of the request. Requires specification of the corresponding signature private key file (-K, SignKeyFile). | `./sig.crt` | `-O` |
+| SignCertFile | Instead of creating a self-signed certificate from the new key pair use an already existing certficate/key to sign the SCEP request. If the "old" certificate and key is used, the CA can verify that the holder of the private key for an existing certificate re-enrolls for a renewal certificate, allowing for automatic approval of the request. Requires specification of the corresponding SignKeyFile (`-K`). | `./sig.crt` | `-O` |
 | SignKeyFile |	See SignCertFile. Specifies the corresponding private key. | `./sig.key` | `-K` |
-| FingerPrint |	Display fingerprint algorithm. Available algorithms are md5 and sha1. Default is md5. || `-F` |
+| FingerPrint | Display fingerprint algorithm. Available algorithms are md5, sha1, sha224, sha256, sha384 and sha512. Default is md5. || `-F` |
 | GetCertFile |  Write certificate asquired via getcert operation. | `./cert.crt` | `-w` |
 | GetCertSerial | Certificate serial number. Define this for getcert. The value is defined as a decimal number. | `12` | `-s` |
 | GetCrlFile | Write CRL to file. | `./crl.crl` | `-w` |
@@ -294,8 +299,12 @@ commonName         = device
 basicConstraints   = critical, CA:FALSE
 keyUsage           = critical, digitalSignature, keyEncipherment
 extendedKeyUsage   = serverAuth, clientAuth
-
+subjectAltName     = @alt_names
 certTemplateName   = ASN1:UTF8String:pc-client
+
+[ alt_names ]
+DNS.1 = www.example.com
+DNS.2 = example.com
 ```
 
 To create a key and a request named local.key and local.csr run:
@@ -347,7 +356,7 @@ $ openssl x509 -in ca.crt -noout -fingerprint
 ```
 
 If the CA sends a certificate chain, sscep writes all certificates in the
-order it founds them in reply and names them with an integer prefix
+order it founds them in reply and names them with an integer suffix
 (-number) appended to CACertFile.
 
 ```bash
@@ -374,15 +383,16 @@ certificate to use as `-c` and (optionally) `-e` in subsequent operations.
 
 Some CAs may give you a three (or more) certificates, the root CA(s) plus
 different RA certificates for encryption and signing. If that's your case,
-you have to define encryption certificate with command line option (-e).
+you have to define encryption certificate with command line option (`-e`).
 Probably it is the certificate with key usage "Key Encipherment".
 
-You may also use the base name (e.g. ca.crt) of all certificates and
-rely on an automated certificate selection. The system:
+You may also use the base name (e.g. `ca.crt`) of all certificates and
+rely on an automated certificate selection. The system loads all available
+certificates (`ca.crt-0`, `ca.crt-1`, ...) and then:
  1. Tries to find a certificate that:
     * Is at the end of the received chain, i.e. do not sign other certificate.
-    * Has key usage "Digital Signature" (for -c) or "Key Encipherment"
-      (for -e), or does not have any key usage defined.
+    * Has key usage "Digital Signature" (for `-c`) or "Key Encipherment"
+      (for `-e`), or does not have any key usage defined.
  2. If no such key is found, selects the first certificate in the chain, which
     is usually the right certificate anyway.
 
@@ -401,14 +411,14 @@ with. Keep this in mind when installing the CA cert in /etc/isakmpd/ca.
 
 ### STEP 4 - Make enrollment
 
-You need to supply URL (-u), CACertFile (-c), PrivateKeyFile (-k),
-CertReqFile (-r) and output LocalCertFile (-l). PrivateKeyFile is the key
+You need to supply URL (`-u`), CACertFile (`-c`), PrivateKeyFile (`-k`),
+CertReqFile (`-r`) and output LocalCertFile (`-l`). PrivateKeyFile is the key
 generated in step 2 (local.key), CertReqFile is the request (local.csr)
 and LocalCertFile is where the enrolled certificate will be written once ready.
 
 If your CA/RA have different certificates for encryption and signing, and you
 do not want to use the auto-selection mechanism, you must provide also the
-encryption certificate EncCertFile (-e).
+encryption certificate EncCertFile (`-e`).
 
 Normally, the enrollment looks like this:
 
@@ -434,10 +444,9 @@ First message sent is PKCSReq, that's where your request goes. Then the CA
 writes request down and sends reply PENDING, indicating that the certificate
 is not signed yet. SSCEP polls periodically for the certificate by sending
 GetCertInitial messages until the CA returns SUCCESS. The polling interval
-can be adjusted with PollInterval, or command line option (-t). You can
-interrupt the process any time and start again using "sscep enroll ..".
-You should use the command line option (-R) when you continue the interrupted
-enrollment.
+can be adjusted with PollInterval (`-t`). You can interrupt the process any
+time and start again using "sscep enroll ..". You should use the command line
+option (`-R`) when you continue (resume) the interrupted enrollment.
 
 If the CA is configured for automatic enrollment (and your request includes
 the challenge password), it returns SUCCESS as a first reply. Otherwise, the
@@ -453,7 +462,7 @@ a self-signed certificate created from the new key pair).
 
 If you want to renew the certificate created previously (local.crt), you
 follow the enrollment procedure as described before, but supply the current
-(old) key and certificate as SignKeyFile (-K) and SignCertFile (-O).
+(old) key and certificate as SignKeyFile (`-K`) and SignCertFile (`-O`).
 
 ```bash
 $ ./sscep enroll -u http://example.com/scep -c ca.crt -K local.key -O local.crt \
@@ -479,7 +488,7 @@ Certificate	/etc/isakmpd/certs/local.crt
 CA certificate	/etc/isakmpd/ca/ca.crt
 
 And pay attention to CA certificate if your enrollment was done via RA
-server. "openssl verify -CAfile ca.crt local.crt" is your friend here.
+server. `openssl verify -CAfile ca.crt local.crt` is your friend here.
 
 
 
@@ -499,7 +508,7 @@ $ ./sscep getcrl -f sscep.conf
 
 I'd like to thank the following people for providing me feedback:
 
-Fiel Cabral
+Fiel Cabral,
 Manuel Gil Perez
 
 

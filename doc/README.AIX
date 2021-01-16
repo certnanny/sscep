@@ -23,3 +23,10 @@ Path: /usr/lib/objrepos
   CertNanny.sscep            a.b.c.d  COMMITTED  Simple SCEP client
 # 
 
+To create a package the mkinstallp is used. This command is
+part of the fileset bos.adt.insttools which is not installed
+by default. You need to install this package to generate lpp
+packages
+
+Furthermore, to run mkinstallp (and therefore "make package")
+you need to be root or a member of the system group.
