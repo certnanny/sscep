@@ -71,8 +71,8 @@ EVP_MD *sig_alg;
 EVP_CIPHER *enc_alg;
 
 static SCEP_CAP scep_caps[SCEP_CAPS] = {
-	{ .cap = SCEP_CAP_AES,      .str = "AES" },
-	{ .cap = SCEP_CAP_3DES,     .str = "DES3" },
+	{ .cap = SCEP_CAP_AES,      .str = "AES" }, /* AES128-CBC */
+	{ .cap = SCEP_CAP_3DES,     .str = "DES3" }, /* DES-CBC */
 	{ .cap = SCEP_CAP_NEXT_CA,  .str = "GetNextCACert" },
 	{ .cap = SCEP_CAP_POST_PKI, .str = "POSTPKIOperation" },
 	{ .cap = SCEP_CAP_RENEWAL,  .str = "Renewal" },
@@ -577,8 +577,15 @@ main(int argc, char **argv) {
 		enc_alg = (EVP_CIPHER *)EVP_des_cbc();
 	} else if (!strncmp(E_char, "3des", 4)) {
 		enc_alg = (EVP_CIPHER *)EVP_des_ede3_cbc();
-	} else if (!strncmp(E_char, "aes", 3)) {
+	} else if (!strncmp(E_char, "aes128", 6)) {
+		enc_alg = (EVP_CIPHER *)EVP_aes_128_cbc();
+	} else if (!strncmp(E_char, "aes192", 6)) {
+		enc_alg = (EVP_CIPHER *)EVP_aes_192_cbc();
+	} else if (!strncmp(E_char, "aes256", 6)) {
 		enc_alg = (EVP_CIPHER *)EVP_aes_256_cbc();
+	} else if (!strncmp(E_char, "aes", 3)) {
+		/* per RFC8894 "AES" represents "AES128-CBC" */
+		enc_alg = (EVP_CIPHER *)EVP_aes_128_cbc();
 	} else {
 		fprintf(stderr, "%s: unsupported algorithm: %s\n",
 			pname, E_char);
@@ -1241,8 +1248,8 @@ usage() {
 	"  -g <engine>       Use the given cryptographic engine\n"
 	"  -h				 Keyforme=ID. \n"//TODO
 	"  -f <file>         Use configuration file\n"
-	"  -c <file>         CA certificate file (write if OPERATION is getca or getnextca)\n"
-	"  -E <name>         PKCS#7 encryption algorithm (des|3des|blowfish|aes)\n"
+	"  -c <file>         CA certificate file or '-n' suffixed files (write if OPERATION is getca)\n"
+	"  -E <name>         PKCS#7 encryption algorithm (des|3des|blowfish|aes[128]|aes192|aes256)\n"
 	"  -S <name>         PKCS#7 signature algorithm (md5|sha1|sha224|sha256|sha384|sha512)\n"
 	"  -v                Verbose output (for debugging the configuration)\n"
 	"  -d                Debug output (more verbose, for debugging the implementation)\n"

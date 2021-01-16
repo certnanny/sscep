@@ -150,7 +150,7 @@ of arguments and command line options.
 ```bash
 $ ./sscep
 
-sscep version 0.8.x
+sscep version 0.9.x
 
 Usage: ./sscep OPERATION [OPTIONS]
 
@@ -166,8 +166,8 @@ General OPTIONS
   -p <host:port>    Use proxy server at host:port
   -g <engine>       Use the given cryptographic engine
   -f <file>         Use configuration file
-  -c <file>         CA certificate file (write if OPERATION is getca)
-  -E <name>         PKCS#7 encryption algorithm (des|3des|blowfish|aes)
+  -c <file>         CA certificate file or '-n' suffixed files (write if OPERATION is getca)
+  -E <name>         PKCS#7 encryption algorithm (des|3des|blowfish|aes[128]|aes192|aes256)
   -S <name>         PKCS#7 signature algorithm (md5|sha1|sha224|sha256|sha384|sha512)
   -v                Verbose output (for debugging the configuration)
   -d                Debug output (more verbose, for debugging the implementation)
@@ -222,11 +222,11 @@ Here are the available configuration file keys and example values:
 
 | Key	|	Explanation | Example | Command options |
 |-------|-------------------|---------|---------|
-| CACertFile  |    This is one is needed with all operations. |`./ca.crt` |`-c` |
+| URL | URL of the SCEP server. | `http://localhost/cgi-bin/pkiclient.exe` | `-u` |
+| CACertFile | Sigle CA certificate file, or mutiple CA certificates suffixed with `-0`, `-1`, ... to write (getca) or to choose from (all other operations). | `./ca.crt` |`-c` |
 | CAIdentifier | Some CAs require you to define this.  | `mydomain.com` | `-i` |
 | CertReqFile | Certificate request file created with mkrequest. | `./local.csr` | `-r`
-| Debug |         Debug? Answer "yes" or "no". | | `-d` |
-| EncAlgorithm |	PKCS#7 encryption algorithm. Available algorithms are des, 3des, blowfish and aes. NOTE: SCEP provides no mechanism to "negotiate" the algorithm - even if you send 3des, reply might be des (same thing applies to SigAlgorithm). | | `-E` |
+| EncAlgorithm | PKCS#7 encryption algorithm. Available algorithms are des, 3des, blowfish, aes/aes128, aes192 and aes256. NOTE: SCEP provides no mechanism to "negotiate" the algorithm - even if you send 3des, reply might be des (same thing applies to SigAlgorithm). | | `-E` |
 | EncCertFile | If your CA/RA uses a different certificate for encyption and signing, define this. CACertFile is used for verifying the signature. | `./enc.crt` | `-e` |
 | SignCertFile | Instead of creating a self-signed certificate from the new key pair use an already existing certficate/key to sign the SCEP request. If the "old" certificate and key is used, the CA can verify that the holder of the private key for an existing certificate re-enrolls for a renewal certificate, allowing for automatic approval of the request. Requires specification of the corresponding signature private key file (-K, SignKeyFile). | `./sig.crt` | `-O` |
 | SignKeyFile |	See SignCertFile. Specifies the corresponding private key. | `./sig.key` | `-K` |
@@ -242,8 +242,8 @@ Here are the available configuration file keys and example values:
 | Proxy | Use HTTP proxy at host:port. | `localhost:8080` | `-p` |
 | SelfSignedFile | Write optionally the selfsigned certificate in file (needed in SCEP transaction). | `./selfsigned.crt` | `-L` |
 | SigAlgorithm | PKCS#7 signature algorithm. Available algorithms are md5, sha1, sha224, sha256, sha384 and sha512. Default is md5. | | `-S` |
-| URL | URL of the SCEP server. | `http://localhost/cgi-bin/pkiclient.exe` | `-u` |
-| Verbose | Verbose? Answer "yes" or "no" | | `-v`|
+| Verbose | Verbose output? Answer "yes" or "no" | | `-v`|
+| Debug | Debug output? Answer "yes" or "no". | | `-d` |
 
 The actual enrollment is done with the following procedure:
 
@@ -262,9 +262,50 @@ unstructuredName naming, some may require a CN with localityName, etc.
 ### STEP 2 - Make certificate request and key
 
 Before the enrollment can take place, sscep needs a private key file
-and the corresponding X.509 certificate request in PKCS#10 format. Edit
-the DN variables in the file mkrequest (it's a shell script) if you need.
-When ready, make the request:
+and the corresponding X.509 certificate request in PKCS#10 format.
+
+This can be created using the mkrequest script, or manually by openssl. Create
+an request.cnf, such as:
+
+```
+oid_section        = new_oids
+
+[ req ]
+default_bits       = 2048
+default_keyfile    = local.key
+encrypt_key        = no
+
+distinguished_name = req_dn
+attributes         = req_attributes
+req_extensions     = req_ext
+
+[ new_oids ]
+certTemplateName   = 1.3.6.1.4.1.311.20.2
+
+[ req_dn ]
+0.domainComponent  = org
+1.domainComponent  = OpenXPKI
+2.domainComponent  = Test Deployment
+commonName         = device
+
+[ req_attributes ]
+
+[ req_ext ]
+basicConstraints   = critical, CA:FALSE
+keyUsage           = critical, digitalSignature, keyEncipherment
+extendedKeyUsage   = serverAuth, clientAuth
+
+certTemplateName   = ASN1:UTF8String:pc-client
+```
+
+To create a key and a request named local.key and local.csr run:
+
+```bash
+$ openssl req -new -config request.cnf -out local.csr
+```
+
+You can automate this process using the mkrequest shell script. Edit the DN
+variables in the mkrequest file if you need. When ready, make the request:
 
 ```bash
 $ mkrequest -ip 172.30.0.1
@@ -275,7 +316,7 @@ e is 65537 (0x10001)
 Using configuration from .4018client.cnf
 ```
 
-This writes key and request named local.key and local.csr (you can change
+This also writes key and request named local.key and local.csr (you can change
 the "local" with variable PREFIX in mkrequest).
 
 If the CA supports automatic enrollment, you may supply the password in
