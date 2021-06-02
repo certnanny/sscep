@@ -185,9 +185,9 @@ extern EVP_PKEY *renewal_key;
 extern X509_CRL *crl;
 
 /* Fingerprint, signing and encryption algorithms */
-extern EVP_MD *fp_alg;
-extern EVP_MD *sig_alg;
-extern EVP_CIPHER *enc_alg;
+extern const EVP_MD *fp_alg;
+extern const EVP_MD *sig_alg;
+extern const EVP_CIPHER *enc_alg;
 
 /* OpenSSL OID handles, defined in sceputils.c */
 extern int nid_messageType;
