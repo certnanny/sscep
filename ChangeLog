@@ -1,6 +1,12 @@
 SSCEP Release history
 ========================================
 
+v0.10.0 (2021-?-?)
+* Compatible with OpenSSL 3.0.0
+* Engines are now disabled by default and need to be enabled by
+  `./configure --enable-engines` or `cmake . -DENABLE_ENGINES=ON`
+* Removed support for OpenSSL < 1.1.0
+
 v0.9.0 (2021-02-08)
 * Added -E options for aes128, aes192 and aes256.
   Per RFC8894, plain aes is equal to aes128. (Before 0.9.0 it was aes256.)

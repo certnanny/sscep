@@ -66,7 +66,7 @@
 #include <openssl/ssl.h>
 /* Global defines */
 
-#define	VERSION	"0.9.0"
+#define        VERSION "0.10.0"
 
 /* SCEP operations */
 #define	SCEP_OPERATION_GETCA	1
@@ -257,7 +257,7 @@ struct scep {
 
 	/* Request */
 	PKCS7 *request_p7;
-	unsigned char *request_payload;
+	char *request_payload;
 	int request_len;
 	PKCS7_ISSUER_AND_SUBJECT *ias_getcertinit;
 	PKCS7_ISSUER_AND_SERIAL *ias_getcert;

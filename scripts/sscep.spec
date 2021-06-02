@@ -4,14 +4,14 @@
 #
 
 Name:         sscep
-Version:      0.9.0
+Version:      0.10.0
 Release:      1
 Summary:      Simple SCEP client
 License:      BSD
 Group:        Productivity/Security
 Source:       %{name}-%{version}.tar.gz
 URL:          https://github.com/certnanny/sscep
-Requires:     openssl >= 1:0.9.7
+Requires:     openssl >= 1:1.1.0
 
 %description
 Simple SCEP (Simple Certificate Enrollment Protocol) client.

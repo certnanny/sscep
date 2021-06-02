@@ -136,12 +136,12 @@ int new_selfsigned(struct scep *s) {
 		exit (SCEP_PKISTATUS_SS);
 	}
 	/* Set duration */
-	if (!(X509_gmtime_adj(X509_get_notBefore(cert), 0))) {
+	if (!(X509_gmtime_adj(X509_getm_notBefore(cert), 0))) {
 		fprintf(stderr, "%s: error setting begin time", pname);
 		ERR_print_errors_fp(stderr);
 		exit (SCEP_PKISTATUS_SS);
 	}
-	if (!(X509_gmtime_adj(X509_get_notAfter(cert),
+	if (!(X509_gmtime_adj(X509_getm_notAfter(cert),
 			SELFSIGNED_EXPIRE_DAYS * 24 * 60))) {
 		fprintf(stderr, "%s: error setting end time", pname);
 		ERR_print_errors_fp(stderr);
@@ -173,12 +173,7 @@ int new_selfsigned(struct scep *s) {
  * Initialize SCEP
  */
 int init_scep() {
-	/* Initialize OpenSSL crypto */
-	OpenSSL_add_all_algorithms();
-	ERR_load_crypto_strings();
-
 	/* Create OpenSSL NIDs */
-
 	nid_messageType = OBJ_create("2.16.840.1.113733.1.9.2", "messageType",
 		"messageType");
 	if (nid_messageType == 0) {
@@ -232,7 +227,7 @@ key_fingerprint(X509_REQ *req) {
 	unsigned char	*data, md[MD5_DIGEST_LENGTH];
 	int		c, len;
 	BIO		*bio;
-	MD5_CTX		ctx;
+	EVP_MD_CTX	*mdctx;
 	
 	/* Assign space for ASCII presentation of the digest */
 	str = (char *)malloc(2 * MD5_DIGEST_LENGTH + 1);
@@ -244,9 +239,11 @@ key_fingerprint(X509_REQ *req) {
 	len = BIO_get_mem_data(bio, &data);
 
 	/* Calculate MD5 hash: */
-	MD5_Init(&ctx);
-	MD5_Update(&ctx, data, len);
-	MD5_Final(md, &ctx);
+	mdctx = EVP_MD_CTX_new();
+	EVP_DigestInit_ex(mdctx, EVP_md5(), NULL);
+	EVP_DigestUpdate(mdctx, data, len);
+	EVP_DigestFinal_ex(mdctx, md, NULL);
+	EVP_MD_CTX_free(mdctx);
 
 	/* Copy as ASCII string and return: */
 	for (c = 0; c < MD5_DIGEST_LENGTH; c++, str += 2) {

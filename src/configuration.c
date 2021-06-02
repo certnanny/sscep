@@ -160,11 +160,12 @@ int scep_conf_init(char *filename, int operation_flag) {
 
 		
         //write g_char, but ONLY if not defined already (command line overwrites config file)
+#ifdef WITH_ENGINES
 		if(!g_flag) {
 			g_flag = 1;
 			g_char = strdup(scep_conf->engine->engine_id);
 		}
-
+#endif
 		//load the special section string
 		engine_special_section = (char *) malloc(sizeof(SCEP_CONFIGURATION_SECTION_ENGINE_TEMPLATE) + sizeof(scep_conf->engine->engine_id));
 		sprintf(engine_special_section, SCEP_CONFIGURATION_SECTION_ENGINE_TEMPLATE, scep_conf->engine->engine_id);

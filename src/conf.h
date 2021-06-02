@@ -4,7 +4,8 @@
  * Copyright (c) Jarkko Turkulainen 2003. All rights reserved.
  * See the file COPYRIGHT for licensing information.
  */
-
+#ifndef CONF_H
+#define CONF_H
 
 /* Network timeout */
 #define	TIMEOUT		120
@@ -27,3 +28,4 @@
 /* Transaction id for GetCert and GetCrl methods */
 #define TRANS_ID_GETCERT	"SSCEP transactionId"
 
+#endif /* ifndef CONF_H */
