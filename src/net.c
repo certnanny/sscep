@@ -30,6 +30,8 @@ void perror_w32 (const char *message)
 
 char *url_encode(char *, size_t);
 void exit_string_overflow(int);
+char *http_request(struct http_reply *http, const char* host_name, const char *port_str,
+                   const char *http_string, size_t rlen);
 
 int
 send_msg(struct http_reply *http, int do_post, char *scep_operation,
@@ -38,25 +40,9 @@ send_msg(struct http_reply *http, int do_post, char *scep_operation,
 {
 	char			http_string[16384];
 	size_t			rlen;
-	int i, sd, rc, used, bytes, http_chunked;
-	char *buf, *mime_type;
-
+	char *mime_type;
 	char			port_str[6]; /* Range-checked to be max. 5-digit number */
-        struct			addrinfo hints;
-        struct			addrinfo* res=0;
-
-	int http_minor;
-	const char *http_msg;
-	size_t msg_size, headers_num, header_size, body_size;
-	struct phr_header headers[100];
-	struct phr_chunked_decoder http_decoder = {0};
-#ifdef WIN32
-	int tv=timeout*1000;
-#else	
-	struct timeval tv;
-	tv.tv_sec = timeout;
-	tv.tv_usec = 0;
-#endif
+	int fail_count, waited_sec;
 
 	rlen = snprintf(http_string, sizeof(http_string),
 		"%s %s%s?operation=%s",
@@ -113,121 +99,21 @@ send_msg(struct http_reply *http, int do_post, char *scep_operation,
 		fprintf(stdout, "%s: scep request:\n%s", pname, http_string);
 	}
 
-	/* resolve name */
 	sprintf(port_str, "%d", host_port);
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = 0;
-	hints.ai_flags = (AI_ADDRCONFIG | AI_V4MAPPED);
-	rc = getaddrinfo(host_name, port_str, &hints, &res);
-	if (rc!=0) {
-		fprintf(stderr, "failed to resolve remote host address %s (err=%d)\n", host_name, rc);
-		return (1);
-	}
 
-	sd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-	if (sd < 0) {
-		perror("cannot open socket ");
-		freeaddrinfo(res);
-		return (1);
-	}
-
-	/* connect to server */
-	/* The two socket options SO_RCVTIMEO and SO_SNDTIMEO do not work with connect
-	   connect has a default timeout of 120 */
-	rc = connect(sd, res->ai_addr, res->ai_addrlen);
-	freeaddrinfo(res);
-	if (rc < 0) {
-		perror("cannot connect");
-		return (1);
-	}
-	setsockopt(sd,SOL_SOCKET, SO_RCVTIMEO,(void *)&tv, sizeof(tv));
-	setsockopt(sd,SOL_SOCKET, SO_SNDTIMEO,(void *)&tv, sizeof(tv));
-
-	/* send data */
-	rc = send(sd, http_string, rlen, 0);
-
-	if (rc < 0) {
-		perror("cannot send data ");
-		close(sd);
-		return (1);
-	}
-	else if(rc != rlen)
-	{
-		fprintf(stderr,"incomplete send\n");
-		close(sd);
-		return (1);
-	}
-	
-	/* Get response */
-	buf = (char *)malloc(1024);
-        used = 0;
-        while ((bytes = recv(sd,&buf[used],1024,0)) > 0) {
-                used += bytes;
-                buf = (char *)realloc(buf, used + 1024);
-	}
-	if (bytes < 0) {
-		perror("error receiving data ");
-		close(sd);
-		return (1);
-	}
-
-	headers_num = sizeof(headers) / sizeof(headers[0]);
-	rc = phr_parse_response(buf, used, &http_minor, &http->status,
-			&http_msg, &msg_size, headers, &headers_num, 0);
-	if (rc < 0) {
-		fprintf(stderr,"cannot parse response\n");
-		close(sd);
-		return (1);
-	}
-	header_size = rc;
-
-	mime_type = NULL;
-	http_chunked = 0;
-	for (i = 0; i < headers_num; i++)
-	{
-		char *ch;
-		/* convert to lowercase as some platforms don't have strcasecmp */
-		for (ch = (char *)headers[i].name; ch < headers[i].name+headers[i].name_len; ch++)
-			*ch = tolower(*ch);
-
-		if (!strncmp("content-type", headers[i].name, headers[i].name_len))
-		{
-			char *ptr;
-
-			mime_type = (char *)headers[i].value;
-			mime_type[headers[i].value_len] = '\0';
-
-			if ((ptr = strchr(mime_type, ';')))
-				*ptr = '\0';
-		}
-		else if (!strncmp("transfer-encoding", headers[i].name, headers[i].name_len) &&
-			!strncmp("chunked", headers[i].value, headers[i].value_len))
-		{
-			http_chunked = 1;
-		}
-	}
-
-	if (v_flag)
-		fprintf(stdout, "%s: server response status code: %d, MIME header: %s\n",
-			pname, http->status, mime_type ? mime_type : "missing");
-
-	http->payload = buf+header_size;
-	body_size = used-header_size;
-
-	if (http_chunked)
-	{
-		rc = phr_decode_chunked(&http_decoder, http->payload, &body_size);
-		if (rc < 0) {
-			fprintf(stderr,"%i cannot decode chunked payload\n", rc);
-			close(sd);
+	fail_count = 0;
+	waited_sec = 0;
+	/* will retry with linear backoff, just like wget does */
+	while (1) {
+		mime_type = http_request(http, host_name, port_str, http_string, rlen);
+		if (mime_type != NULL)
+			break;
+		if (waited_sec >= W_flag)
 			return (1);
-		}
-	}
 
-	http->payload[body_size] = '\0';
-	http->bytes = body_size;
+		sleep(++fail_count);
+		waited_sec += fail_count;
+	}
 
 	/* Set SCEP reply type */
 	switch (operation) {
@@ -261,11 +147,6 @@ send_msg(struct http_reply *http, int do_post, char *scep_operation,
 			break;
 	}
 
-#ifdef WIN32
-	closesocket(sd);
-#else
-	close(sd);
-#endif
 	return (0);
 
 mime_err:
@@ -351,4 +232,153 @@ char * url_encode(char *s, size_t n) {
 	}
 	r[len-1] = '\0';
 	return r;
+}
+
+char *http_request(struct http_reply *http, const char* host_name, const char *port_str,
+                   const char *http_string, size_t rlen)
+{
+	struct addrinfo hints;
+	struct addrinfo *res = NULL;
+	int rc, sd, i;
+
+	char *buf;
+	int used, bytes, http_chunked;
+	int http_minor;
+	const char *http_msg;
+	size_t msg_size, headers_num, header_size, body_size;
+	struct phr_header headers[100];
+	struct phr_chunked_decoder http_decoder = {0};
+	char *mime_type;
+#ifdef WIN32
+	int tv=timeout*1000;
+#else
+	struct timeval tv;
+	tv.tv_sec = timeout;
+	tv.tv_usec = 0;
+#endif
+
+	if (v_flag)
+		fprintf(stdout, "%s: connecting to %s:%s\n", pname, host_name, port_str);
+
+	/* resolve name */
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = 0;
+	hints.ai_flags = (AI_ADDRCONFIG | AI_V4MAPPED);
+	rc = getaddrinfo(host_name, port_str, &hints, &res);
+	if (rc!=0) {
+		fprintf(stderr, "failed to resolve remote host address %s (err=%d)\n", host_name, rc);
+		return NULL;
+	}
+
+	sd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+	if (sd < 0) {
+		perror("cannot open socket ");
+		freeaddrinfo(res);
+		return NULL;
+	}
+
+	/* connect to server */
+	/* The two socket options SO_RCVTIMEO and SO_SNDTIMEO do not work with connect
+	   connect has a default timeout of 120 */
+	rc = connect(sd, res->ai_addr, res->ai_addrlen);
+	freeaddrinfo(res);
+	if (rc < 0) {
+		perror("cannot connect");
+		return NULL;
+	}
+	setsockopt(sd,SOL_SOCKET, SO_RCVTIMEO,(void *)&tv, sizeof(tv));
+	setsockopt(sd,SOL_SOCKET, SO_SNDTIMEO,(void *)&tv, sizeof(tv));
+
+	/* send data */
+	rc = send(sd, http_string, rlen, 0);
+
+	if (rc < 0) {
+		perror("cannot send data ");
+		close(sd);
+		return NULL;
+	}
+	else if(rc != rlen)
+	{
+		fprintf(stderr,"incomplete send\n");
+		close(sd);
+		return NULL;
+	}
+
+	/* Get response */
+	buf = (char *)malloc(1024);
+        used = 0;
+        while ((bytes = recv(sd,&buf[used],1024,0)) > 0) {
+                used += bytes;
+                buf = (char *)realloc(buf, used + 1024);
+	}
+	if (bytes < 0) {
+		perror("error receiving data ");
+		close(sd);
+		return NULL;
+	}
+
+	headers_num = sizeof(headers) / sizeof(headers[0]);
+	rc = phr_parse_response(buf, used, &http_minor, &http->status,
+			&http_msg, &msg_size, headers, &headers_num, 0);
+	if (rc < 0) {
+		fprintf(stderr,"cannot parse response\n");
+		close(sd);
+		return NULL;
+	}
+	header_size = rc;
+
+	mime_type = NULL;
+	http_chunked = 0;
+	for (i = 0; i < headers_num; i++)
+	{
+		char *ch;
+		/* convert to lowercase as some platforms don't have strcasecmp */
+		for (ch = (char *)headers[i].name; ch < headers[i].name+headers[i].name_len; ch++)
+			*ch = tolower(*ch);
+
+		if (!strncmp("content-type", headers[i].name, headers[i].name_len))
+		{
+			char *ptr;
+
+			mime_type = (char *)headers[i].value;
+			mime_type[headers[i].value_len] = '\0';
+
+			if ((ptr = strchr(mime_type, ';')))
+				*ptr = '\0';
+		}
+		else if (!strncmp("transfer-encoding", headers[i].name, headers[i].name_len) &&
+			!strncmp("chunked", headers[i].value, headers[i].value_len))
+		{
+			http_chunked = 1;
+		}
+	}
+
+	if (v_flag)
+		fprintf(stdout, "%s: server response status code: %d, MIME header: %s\n",
+			pname, http->status, mime_type ? mime_type : "missing");
+
+	http->payload = buf+header_size;
+	body_size = used-header_size;
+
+	if (http_chunked)
+	{
+		rc = phr_decode_chunked(&http_decoder, http->payload, &body_size);
+		if (rc < 0) {
+			fprintf(stderr,"%i cannot decode chunked payload\n", rc);
+			close(sd);
+			return NULL;
+		}
+	}
+
+	http->payload[body_size] = '\0';
+	http->bytes = body_size;
+
+#ifdef WIN32
+	closesocket(sd);
+#else
+	close(sd);
+#endif
+	return mime_type;
 }
