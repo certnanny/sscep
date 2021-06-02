@@ -67,6 +67,7 @@ char *url_char;
 int v_flag;
 int w_flag;
 char *w_char;
+int W_flag;
 
 const EVP_MD *fp_alg;
 const EVP_MD *sig_alg;
@@ -306,7 +307,7 @@ main(int argc, char **argv) {
 	}
 	/* Skip first parameter and parse the rest of the command */
 	optind++;
-	while ((c = getopt(argc, argv, "c:C:de:E:f:g:hF:i:k:K:l:L:n:O:p:r:Rs:S:t:T:u:vw:m:HM:")) != -1)
+	while ((c = getopt(argc, argv, "c:C:de:E:f:g:hF:i:k:K:l:L:n:O:p:r:Rs:S:t:T:u:vw:W:m:HM:")) != -1)
                 switch(c) {
 			case 'c':
 				c_flag = 1;
@@ -440,6 +441,9 @@ main(int argc, char **argv) {
 			case 'w':
 				w_flag = 1;
 				w_char = optarg;
+				break;
+			case 'W':
+				W_flag = atoi(optarg);
 				break;
 			default:
 			  printf("argv: %s\n", argv[optind]);
@@ -1279,6 +1283,7 @@ usage() {
 	"  -c <file>         CA certificate file or '-n' suffixed files (write if OPERATION is getca)\n"
 	"  -E <name>         PKCS#7 encryption algorithm (des|3des|blowfish|aes[128]|aes192|aes256)\n"
 	"  -S <name>         PKCS#7 signature algorithm (md5|sha1|sha224|sha256|sha384|sha512)\n"
+	"  -W <secs>         Wait for connectivity, up to <secs> seconds\n"
 	"  -v                Verbose output (for debugging the configuration)\n"
 	"  -d                Debug output (more verbose, for debugging the implementation)\n"
 	"\nOPTIONS for OPERATION getca are\n"

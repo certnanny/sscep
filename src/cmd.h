@@ -134,5 +134,7 @@ extern int v_flag;
 extern int w_flag;
 extern char *w_char;
 
+extern int W_flag;
+
 /* End of command line options */
 

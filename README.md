@@ -174,6 +174,7 @@ General OPTIONS
   -c <file>         CA certificate file or '-n' suffixed files (write if OPERATION is getca)
   -E <name>         PKCS#7 encryption algorithm (des|3des|blowfish|aes[128]|aes192|aes256)
   -S <name>         PKCS#7 signature algorithm (md5|sha1|sha224|sha256|sha384|sha512)
+  -W <secs>         Wait for connectivity, up to <secs> seconds
   -v                Verbose output (for debugging the configuration)
   -d                Debug output (more verbose, for debugging the implementation)
 

@@ -2,11 +2,12 @@ SSCEP Release history
 ========================================
 
 v0.10.0 (2021-?-?)
-* The default protection algorithms (`-E`, `-S` and `-F`) are auto-selected
+* Added auto-selection of default protection algorithms (`-E`, `-S` and `-F`)
   based on getcaps, unless specified explicitly.
-* Compatible with OpenSSL 3.0.0
+* Added parameter `-W` *sec* to wait for network connectivity (default 0).
 * Engines are now disabled by default and need to be enabled by
   `./configure --enable-engines` or `cmake . -DENABLE_ENGINES=ON`
+* Compatible with OpenSSL 3.0.0
 * Removed support for OpenSSL < 1.1.0
 
 v0.9.0 (2021-02-08)
