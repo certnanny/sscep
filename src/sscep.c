@@ -68,9 +68,9 @@ int v_flag;
 int w_flag;
 char *w_char;
 
-EVP_MD *fp_alg;
-EVP_MD *sig_alg;
-EVP_CIPHER *enc_alg;
+const EVP_MD *fp_alg;
+const EVP_MD *sig_alg;
+const EVP_CIPHER *enc_alg;
 
 static SCEP_CAP scep_caps[SCEP_CAPS] = {
 	{ .cap = SCEP_CAP_AES,      .str = "AES" }, /* AES128-CBC */
@@ -108,6 +108,67 @@ static SCEP_CAP scep_caps[SCEP_CAPS] = {
 	(cap & SCEP_CAP_SHA_512)
 #define SUP_CAP_STA(cap) \
 	(cap & SCEP_CAP_STA)
+
+const EVP_CIPHER *get_cipher_alg(const char *arg, int ca_caps)
+{
+	if (!arg) {
+		if (SUP_CAP_AES(ca_caps))
+			return EVP_aes_128_cbc();
+		else if (SUP_CAP_3DES(ca_caps))
+			return EVP_des_ede3_cbc();
+		else
+			return EVP_des_cbc();
+	} else if (!strncmp(arg, "blowfish", 8)) {
+		return EVP_bf_cbc();
+	} else if (!strncmp(arg, "des", 3)) {
+		return EVP_des_cbc();
+	} else if (!strncmp(arg, "3des", 4)) {
+		return EVP_des_ede3_cbc();
+	} else if (!strncmp(arg, "aes128", 6)) {
+		return EVP_aes_128_cbc();
+	} else if (!strncmp(arg, "aes192", 6)) {
+		return EVP_aes_192_cbc();
+	} else if (!strncmp(arg, "aes256", 6)) {
+		return EVP_aes_256_cbc();
+	} else if (!strncmp(arg, "aes", 3)) {
+		/* per RFC8894 "AES" represents "AES128-CBC" */
+		return EVP_aes_128_cbc();
+	} else {
+		return NULL;
+	}
+}
+
+const EVP_MD *get_digest_alg(const char *arg, int ca_caps)
+{
+	if (!arg) {
+		if (SUP_CAP_SHA_512(ca_caps))
+			return EVP_sha512();
+		else if (SUP_CAP_SHA_384(ca_caps))
+			return EVP_sha384();
+		else if (SUP_CAP_SHA_256(ca_caps))
+			return EVP_sha256();
+		else if (SUP_CAP_SHA_224(ca_caps))
+			return EVP_sha224();
+		else if (SUP_CAP_SHA_1(ca_caps))
+			return EVP_sha1();
+		else
+			return EVP_md5();
+	} else if (!strncmp(arg, "md5", 3)) {
+		return EVP_md5();
+	} else if (!strncmp(arg, "sha1", 4)) {
+		return EVP_sha1();
+	} else if (!strncmp(arg, "sha224", 6)) {
+		return EVP_sha224();
+	} else if (!strncmp(arg, "sha256", 6)) {
+		return EVP_sha256();
+	} else if (!strncmp(arg, "sha384", 6)) {
+		return EVP_sha384();
+	} else if (!strncmp(arg, "sha512", 6)) {
+		return EVP_sha512();
+	} else {
+		return NULL;
+	}
+}
 
 static char *
 handle_serial (char * serial)
@@ -573,69 +634,6 @@ main(int argc, char **argv) {
 		fprintf(stdout, "%s: port: %d\n", pname, host_port);
 	}
 
-	/* Check algorithms */
-	if (!E_flag) {
-		enc_alg = (EVP_CIPHER *)EVP_des_cbc();
-	} else if (!strncmp(E_char, "blowfish", 8)) {
-		enc_alg = (EVP_CIPHER *)EVP_bf_cbc();
-	} else if (!strncmp(E_char, "des", 3)) {
-		enc_alg = (EVP_CIPHER *)EVP_des_cbc();
-	} else if (!strncmp(E_char, "3des", 4)) {
-		enc_alg = (EVP_CIPHER *)EVP_des_ede3_cbc();
-	} else if (!strncmp(E_char, "aes128", 6)) {
-		enc_alg = (EVP_CIPHER *)EVP_aes_128_cbc();
-	} else if (!strncmp(E_char, "aes192", 6)) {
-		enc_alg = (EVP_CIPHER *)EVP_aes_192_cbc();
-	} else if (!strncmp(E_char, "aes256", 6)) {
-		enc_alg = (EVP_CIPHER *)EVP_aes_256_cbc();
-	} else if (!strncmp(E_char, "aes", 3)) {
-		/* per RFC8894 "AES" represents "AES128-CBC" */
-		enc_alg = (EVP_CIPHER *)EVP_aes_128_cbc();
-	} else {
-		fprintf(stderr, "%s: unsupported algorithm: %s\n",
-			pname, E_char);
-		exit (SCEP_PKISTATUS_ERROR);
-	}
-	if (!S_flag) {
-		sig_alg = (EVP_MD *)EVP_md5();
-	} else if (!strncmp(S_char, "md5", 3)) {
-		sig_alg = (EVP_MD *)EVP_md5();
-	} else if (!strncmp(S_char, "sha1", 4)) {
-		sig_alg = (EVP_MD *)EVP_sha1();
-	} else if (!strncmp(S_char, "sha224", 6)) {
-		sig_alg = (EVP_MD *)EVP_sha224();
-	} else if (!strncmp(S_char, "sha256", 6)) {
-		sig_alg = (EVP_MD *)EVP_sha256();
-	} else if (!strncmp(S_char, "sha384", 6)) {
-		sig_alg = (EVP_MD *)EVP_sha384();
-	} else if (!strncmp(S_char, "sha512", 6)) {
-		sig_alg = (EVP_MD *)EVP_sha512();
-	} else {
-		fprintf(stderr, "%s: unsupported algorithm: %s\n",
-			pname, S_char);
-		exit (SCEP_PKISTATUS_ERROR);
-	}
-	/* Fingerprint algorithm */
-	if (!F_flag) {
-		fp_alg = (EVP_MD *)EVP_md5();
-	} else if (!strncmp(F_char, "md5", 3)) {
-		fp_alg = (EVP_MD *)EVP_md5();
-	} else if (!strncmp(F_char, "sha1", 4)) {
-		fp_alg = (EVP_MD *)EVP_sha1();
-	} else if (!strncmp(F_char, "sha224", 6)) {
-		fp_alg = (EVP_MD *)EVP_sha224();
-	} else if (!strncmp(F_char, "sha256", 6)) {
-		fp_alg = (EVP_MD *)EVP_sha256();
-	} else if (!strncmp(F_char, "sha384", 6)) {
-		fp_alg = (EVP_MD *)EVP_sha384();
-	} else if (!strncmp(F_char, "sha512", 6)) {
-		fp_alg = (EVP_MD *)EVP_sha512();
-	} else {
-		fprintf(stderr, "%s: unsupported algorithm: %s\n",
-			pname, F_char);
-		exit (SCEP_PKISTATUS_ERROR);
-	}
-
 	if (v_flag)
 		fprintf(stdout, "%s: SCEP_OPERATION_GETCAPS\n",
 			pname);
@@ -648,6 +646,9 @@ main(int argc, char **argv) {
 				"message\n", pname);
 		exit (SCEP_PKISTATUS_NET);
 	}
+
+	if (v_flag)
+		fprintf(stdout, "%s\n", reply.payload);
 
 	if (reply.status == 200 && reply.payload != NULL) {
 		for ( i = 0 ; i < reply.bytes ; ) {
@@ -691,6 +692,24 @@ main(int argc, char **argv) {
 		if (d_flag)
 			fprintf(stdout, "%s: scep caps bitmask: 0x%04x\n",
 					pname, ca_caps);
+	}
+
+	/* Check algorithms */
+	if ((enc_alg = get_cipher_alg(E_char, ca_caps)) == NULL) {
+		fprintf(stderr, "%s: unsupported algorithm: %s\n",
+			pname, E_char);
+		exit (SCEP_PKISTATUS_ERROR);
+	}
+	if ((sig_alg = get_digest_alg(S_char, ca_caps)) == NULL) {
+		fprintf(stderr, "%s: unsupported algorithm: %s\n",
+			pname, S_char);
+		exit (SCEP_PKISTATUS_ERROR);
+	}
+	/* Fingerprint algorithm */
+	if ((fp_alg = get_digest_alg(F_char, ca_caps)) == NULL) {
+		fprintf(stderr, "%s: unsupported algorithm: %s\n",
+			pname, F_char);
+		exit (SCEP_PKISTATUS_ERROR);
 	}
 
 	/*

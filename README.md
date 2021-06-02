@@ -41,9 +41,6 @@ Currently, SSCEP implements:
 * All of the SCEP operations using SCEP query messages
 * HTTP/1.1 queries via IPv4 or IPv6
 * Integration with OpenSSL cryptographic engines
-  * sscep 0.3.0 - 0.6.1 works with openssl 0.9.7 - 1.0.2
-  * sscep 0.7.0 - 0.9.0 works with openssl 0.9.7 - 1.1.1
-  * sscep 0.10.0 works with openssl 1.1.0 - 3.0.0
 
 There's no LDAP support, and probably there will never be (that's why it is
 simple).
@@ -83,6 +80,12 @@ In general, two build systems are supported:
 
 * GNU Autotools (autoconf, automake, libtool)
 * CMake
+
+Prerequisites:
+* OpenSSL crypto library
+  * sscep 0.3.0 - 0.6.1 works with openssl 0.9.7 - 1.0.2
+  * sscep 0.7.0 - 0.9.0 works with openssl 0.9.7 - 1.1.1
+  * sscep 0.10.0 works with openssl 1.1.0 - 3.0.0
 
 ### Unix:
 
@@ -237,7 +240,7 @@ Here are the available configuration file keys and example values:
 | EncCertFile | If your CA/RA uses a different certificate for encyption and signing, define this. CACertFile is used for verifying the signature. | `./enc.crt` | `-e` |
 | SignCertFile | Instead of creating a self-signed certificate from the new key pair use an already existing certficate/key to sign the SCEP request. If the "old" certificate and key is used, the CA can verify that the holder of the private key for an existing certificate re-enrolls for a renewal certificate, allowing for automatic approval of the request. Requires specification of the corresponding SignKeyFile (`-K`). | `./sig.crt` | `-O` |
 | SignKeyFile |	See SignCertFile. Specifies the corresponding private key. | `./sig.key` | `-K` |
-| FingerPrint | Display fingerprint algorithm. Available algorithms are md5, sha1, sha224, sha256, sha384 and sha512. Default is md5. || `-F` |
+| FingerPrint | Display fingerprint algorithm. Available algorithms are md5, sha1, sha224, sha256, sha384 and sha512. Default is the best from getcacaps, or md5. || `-F` |
 | GetCertFile |  Write certificate asquired via getcert operation. | `./cert.crt` | `-w` |
 | GetCertSerial | Certificate serial number. Define this for getcert. The value is defined as a decimal number. | `12` | `-s` |
 | GetCrlFile | Write CRL to file. | `./crl.crl` | `-w` |
@@ -248,7 +251,7 @@ Here are the available configuration file keys and example values:
 | PrivateKeyFile | Private key created with mkrequest. | `./local.key` | `-k` |
 | Proxy | Use HTTP proxy at host:port. | `localhost:8080` | `-p` |
 | SelfSignedFile | Write optionally the selfsigned certificate in file (needed in SCEP transaction). | `./selfsigned.crt` | `-L` |
-| SigAlgorithm | PKCS#7 signature algorithm. Available algorithms are md5, sha1, sha224, sha256, sha384 and sha512. Default is md5. | | `-S` |
+| SigAlgorithm | PKCS#7 signature algorithm. Available algorithms are md5, sha1, sha224, sha256, sha384 and sha512. Default is the best from getcacaps, or md5. | | `-S` |
 | Verbose | Verbose output? Answer "yes" or "no" | | `-v`|
 | Debug | Debug output? Answer "yes" or "no". | | `-d` |
 
