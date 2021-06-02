@@ -41,6 +41,9 @@ Currently, SSCEP implements:
 * All of the SCEP operations using SCEP query messages
 * HTTP/1.1 queries via IPv4 or IPv6
 * Integration with OpenSSL cryptographic engines
+  * sscep 0.3.0 - 0.6.1 works with openssl 0.9.7 - 1.0.2
+  * sscep 0.7.0 - 0.9.0 works with openssl 0.9.7 - 1.1.1
+  * sscep 0.10.0 works with openssl 1.1.0 - 3.0.0
 
 There's no LDAP support, and probably there will never be (that's why it is
 simple).
@@ -127,7 +130,6 @@ $ brew install autoconf automake libtool pkg-config openssl
 
 To generate the configure script when checking out from github source:
 ```cmd
-$ autoheader
 $ glibtoolize
 $ aclocal
 $ automake -a -c -f

@@ -39,9 +39,11 @@ extern char *f_char;
 extern char *F_char;
 extern int F_flag;
 
+#ifdef WITH_ENGINES
 /* enable EnGine support */
 extern char *g_char;
 extern int g_flag;
+#endif
 
 /* enable hwcrhk keys
  * To set this means that the new key (for which you have the

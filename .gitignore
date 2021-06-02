@@ -2,7 +2,6 @@
 /sscep_static
 /sscep_dyn
 /.git_checkout
-/src/config.h*
 /src/*.o
 /sscep-*.tar.gz
 /sscep-*.tar.bz2

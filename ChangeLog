@@ -1,6 +1,12 @@
 SSCEP Release history
 ========================================
 
+v0.10.0 (2021-?-?)
+* Compatible with OpenSSL 3.0.0
+* Engines are now disabled by default and need to be enabled by
+  `./configure --enable-engines` or `cmake . -DENABLE_ENGINES=ON`
+* Removed support for OpenSSL < 1.1.0
+
 v0.9.1 (2021-07-31)
 * Fixed missing Host header (@papperlapapp)
 * Fixed multiple numeric overflows (@ziemleszcz)

@@ -9,8 +9,6 @@ sscep_SOURCES = src/sscep.c \
                 src/getopt.h \
                 src/configuration.c \
                 src/configuration.h \
-                src/engine.c \
-                src/engine.h \
                 src/net.c \
                 src/picohttpparser.c \
                 src/picohttpparser.h \
@@ -20,6 +18,10 @@ sscep_SOURCES = src/sscep.c \
                 src/fileutils.c \
                 src/fileutils_capi.h \
                 src/sceputils.c
+if WITH_ENGINES
+sscep_SOURCES += src/engine.c \
+                 src/engine.h
+endif
 
 dist_doc_DATA = COPYING \
                 README.md

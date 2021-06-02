@@ -26,7 +26,9 @@ char *f_char;
 char *F_char;
 int F_flag;
 char *g_char;
+#ifdef WITH_ENGINES
 int g_flag;
+#endif
 int h_flag;
 int H_flag;
 char *l_char;
@@ -272,10 +274,12 @@ main(int argc, char **argv) {
 				f_flag = 1;
 				f_char = optarg;
 				break;
+#ifdef WITH_ENGINES
 			case 'g':
 				g_flag = 1;
 				g_char = optarg;
 				break;
+#endif
 			case 'h'://TODO change to eg. ID --inform=ID
 				h_flag = 1;
 				break;
@@ -405,11 +409,12 @@ main(int argc, char **argv) {
 		fprintf(stdout, "%s: new transaction\n", pname);
 	new_transaction(&scep_t, operation_flag);
 
+#ifdef WITH_ENGINES
 	/*enable Engine Support */
 	if (g_flag) {
 		scep_t.e = scep_engine_init();
 	}
-	
+#endif
 	/*
 	 * Check argument logic.
 	 */
@@ -922,11 +927,12 @@ main(int argc, char **argv) {
 			  exit (SCEP_PKISTATUS_FILE);
 			}
 			
-			if(g_flag) {
+#ifdef WITH_ENGINES
+			if(g_flag)
 				sscep_engine_read_key_new(&rsa, k_char, scep_t.e);
-			} else {
+			else
+#endif
 				rsa = read_key(k_char);
-			}
 
 
 			if ((K_flag && !O_flag) || (!K_flag && O_flag)) {
@@ -936,11 +942,12 @@ main(int argc, char **argv) {
 
 			if (K_flag) {
 				//TODO auf hwcrhk prfen?
-				if(g_flag) {
+#ifdef WITH_ENGINES
+				if(g_flag)
 					sscep_engine_read_key_old(&renewal_key, K_char, scep_t.e);
-				} else {
+				else
+#endif
 					renewal_key = read_key(K_char);
-				}
 			}
 
 			if (O_flag) {
@@ -1245,8 +1252,10 @@ usage() {
 	"  -u <url>          SCEP server URL\n"
 	"  -p <host:port>    Use proxy server at host:port\n"
 	"  -M <string>       Monitor Information String name=value&name=value ...\n"
+#ifdef WITH_ENGINES
 	"  -g <engine>       Use the given cryptographic engine\n"
-	"  -h				 Keyforme=ID. \n"//TODO
+#endif
+	"  -h                Keyforme=ID. \n"//TODO
 	"  -f <file>         Use configuration file\n"
 	"  -c <file>         CA certificate file or '-n' suffixed files (write if OPERATION is getca)\n"
 	"  -E <name>         PKCS#7 encryption algorithm (des|3des|blowfish|aes[128]|aes192|aes256)\n"

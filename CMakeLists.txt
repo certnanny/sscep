@@ -5,7 +5,11 @@ project(sscep)
 if (WIN32)
     set(OPENSSL_USE_STATIC_LIBS TRUE)
 endif()
+
+set(OPENSSL_MIN_VERSION 1.1.0)
 find_package(OpenSSL REQUIRED)
+
+option(ENABLE_ENGINES "Enable support for OpenSSL ENGINE API")
 
 # For IDE such as Visual Studio we include also the header files
 set(SSCEP_SOURCES
@@ -17,8 +21,6 @@ set(SSCEP_SOURCES
     src/getopt.h
     src/configuration.c
     src/configuration.h
-    src/engine.c
-    src/engine.h
     src/net.c
     src/picohttpparser.c
     src/picohttpparser.h
@@ -29,6 +31,15 @@ set(SSCEP_SOURCES
     src/fileutils_capi.h
     src/sceputils.c
 )
+
+if (ENABLE_ENGINES)
+    set(SSCEP_SOURCES
+        ${SSCEP_SOURCES}
+        src/engine.c
+        src/engine.h
+    )
+    add_definitions(-DWITH_ENGINES)
+endif()
 
 if (MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
