@@ -77,10 +77,18 @@ send_msg(struct http_reply *http, int do_post, char *scep_operation,
 		exit_string_overflow(sizeof(http_string)-rlen);
 	}
 
-	rlen += snprintf(http_string+rlen, sizeof(http_string)-rlen,
-			" HTTP/1.1\r\n"
-			"Host: %s\r\n"
-			"Connection: close\r\n", host_name);
+	if (host_port == 80) {
+		rlen += snprintf(http_string+rlen, sizeof(http_string)-rlen,
+						" HTTP/1.1\r\n"
+						"Host: %s\r\n"
+						"Connection: close\r\n", host_name);
+	} else {
+		/* According to RFC2616, non-default port must be added. */
+		rlen += snprintf(http_string+rlen, sizeof(http_string)-rlen,
+				" HTTP/1.1\r\n"
+				"Host: %s:%d\r\n"
+				"Connection: close\r\n", host_name, host_port);
+	}
 	exit_string_overflow(sizeof(http_string)-rlen);
 
 	if (do_post) {
@@ -291,7 +299,7 @@ char * url_encode(char *s, size_t n) {
 #else
 	strcpy(r, "");
 #endif
-	
+
 	/* Copy data */
 	for (i = 0; i < n; i++) {
 		switch (*(s+i)) {
