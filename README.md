@@ -84,7 +84,7 @@ In general, two build systems are supported:
 Prerequisites:
 * OpenSSL crypto library
   * sscep 0.3.0 - 0.6.1 works with openssl 0.9.7 - 1.0.2
-  * sscep 0.7.0 - 0.9.0 works with openssl 0.9.7 - 1.1.1
+  * sscep 0.7.0 - 0.9.1 works with openssl 0.9.7 - 1.1.1
   * sscep 0.10.0 works with openssl 1.1.0 - 3.0.0
 
 ### Unix:
