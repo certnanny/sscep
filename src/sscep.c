@@ -392,7 +392,7 @@ main(int argc, char **argv) {
 					if(!M_char)
 						error_memory();
 					strcat(M_char, "&");
-					strncat(M_char, optarg, strlen(optarg));
+					strcat(M_char, optarg);
 				}
 				break;
 			case 'n':
