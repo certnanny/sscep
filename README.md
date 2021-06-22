@@ -63,6 +63,18 @@ SSCEP has been tested successfully against the following CA products:
 > (\*\*\*) demo requires to use /C=US/O=Entrust
 
 
+
+## Docker version
+Run a single command using:
+`docker run -it pertoft/sscep-docker:latest sscep getca -c tmp/cacert -u http://yourhost/scep/scep`
+
+or alternative to get an interactive shell:
+
+`docker run -it pertoft/sscep-docker:latest bash`
+
+Alternative you can jump into the container and run scep commands docker run -it pertoft/sscep-docker:latest bash
+
+
 ## HOW TO COMPILE
 
 The program should compile on the following systems:
