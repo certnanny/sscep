@@ -874,7 +874,7 @@ int add_attribute_octet(STACK_OF(X509_ATTRIBUTE) *attrs, int nid, unsigned char 
 int get_signed_attribute(STACK_OF(X509_ATTRIBUTE) *attribs, int nid,int type, char **buffer){
 	int		rc;
 	ASN1_TYPE	*asn1_type;
-	unsigned int	len;
+	int		len;
 
 	/* Find attribute */
 	rc = get_attribute(attribs, nid, &asn1_type);
