@@ -210,7 +210,7 @@ send_msg(struct http_reply *http, int do_post, char *scep_operation,
 
 	if (v_flag)
 		fprintf(stdout, "%s: server response status code: %d, MIME header: %s\n",
-			pname, http->status, mime_type);
+			pname, http->status, mime_type ? mime_type : "missing");
 
 	http->payload = buf+header_size;
 	body_size = used-header_size;
@@ -231,16 +231,16 @@ send_msg(struct http_reply *http, int do_post, char *scep_operation,
 	/* Set SCEP reply type */
 	switch (operation) {
 		case SCEP_OPERATION_GETCA:
-			if (!strcmp(mime_type, MIME_GETCA)) {
+			if (mime_type && !strcmp(mime_type, MIME_GETCA)) {
 				http->type = SCEP_MIME_GETCA;
-			} else if (!strcmp(mime_type, MIME_GETCA_RA) || !strcmp(mime_type, MIME_GETCA_RA_ENTRUST)) {
+			} else if (mime_type && (!strcmp(mime_type, MIME_GETCA_RA) || !strcmp(mime_type, MIME_GETCA_RA_ENTRUST))) {
 				http->type = SCEP_MIME_GETCA_RA;
 			} else {
 				goto mime_err;
 			}
 			break;
 		case SCEP_OPERATION_GETNEXTCA:
-			if (!strcmp(mime_type, MIME_GETNEXTCA)) {
+			if (mime_type && !strcmp(mime_type, MIME_GETNEXTCA)) {
 				http->type = SCEP_MIME_GETNEXTCA;
 			} else {
 				goto mime_err;
@@ -252,10 +252,11 @@ send_msg(struct http_reply *http, int do_post, char *scep_operation,
 			http->type = SCEP_MIME_GETCAPS;
 			break;
 		default:
-			if (strcmp(mime_type, MIME_PKI) != 0) {
+			if (mime_type && !strcmp(mime_type, MIME_PKI)) {
+				http->type = SCEP_MIME_PKI;
+			} else {
 				goto mime_err;
 			}
-			http->type = SCEP_MIME_PKI;
 			break;
 	}
 
