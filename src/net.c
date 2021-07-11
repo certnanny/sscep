@@ -29,7 +29,7 @@ void perror_w32 (const char *message)
 #endif
 
 char *url_encode(char *, size_t);
-void exit_string_overflow(size_t);
+void exit_string_overflow(int);
 
 int
 send_msg(struct http_reply *http, int do_post, char *scep_operation,
@@ -61,20 +61,20 @@ send_msg(struct http_reply *http, int do_post, char *scep_operation,
 	rlen = snprintf(http_string, sizeof(http_string),
 		"%s %s%s?operation=%s",
 		do_post ? "POST" : "GET", p_flag ? "" : "/", dir_name, scep_operation);
-	exit_string_overflow(sizeof(http_string)-rlen);
+	exit_string_overflow(sizeof(http_string) <= rlen);
 
 	if (!do_post && payload_len > 0) {
 		char *encoded = url_encode((char *)payload, payload_len);
 		rlen += snprintf(http_string+rlen, sizeof(http_string)-rlen,
 				"&message=%s", encoded);
 		free(encoded);
-		exit_string_overflow(sizeof(http_string)-rlen);
+		exit_string_overflow(sizeof(http_string) <= rlen);
 	}
 
 	if (M_char != NULL) {
 		rlen += snprintf(http_string+rlen, sizeof(http_string)-rlen,
 				"&%s", M_char);
-		exit_string_overflow(sizeof(http_string)-rlen);
+		exit_string_overflow(sizeof(http_string) <= rlen);
 	}
 
 	if (host_port == 80) {
@@ -89,24 +89,24 @@ send_msg(struct http_reply *http, int do_post, char *scep_operation,
 				"Host: %s:%d\r\n"
 				"Connection: close\r\n", host_name, host_port);
 	}
-	exit_string_overflow(sizeof(http_string)-rlen);
+	exit_string_overflow(sizeof(http_string) <= rlen);
 
 	if (do_post) {
 		rlen += snprintf(http_string+rlen, sizeof(http_string)-rlen,
 				"Content-Length: %zd\r\n", payload_len);
-		exit_string_overflow(sizeof(http_string)-rlen);
+		exit_string_overflow(sizeof(http_string) <= rlen);
 	}
 
 	rlen += snprintf(http_string+rlen, sizeof(http_string)-rlen,
 			"\r\n");
-	exit_string_overflow(sizeof(http_string)-rlen);
+	exit_string_overflow(sizeof(http_string) <= rlen);
 
 	if (do_post) {
 		/* concat post data */
 		memcpy(http_string+rlen, payload, payload_len);
 
 		rlen += payload_len;
-		exit_string_overflow(sizeof(http_string)-rlen);
+		exit_string_overflow(sizeof(http_string) <= rlen);
 	}
 
 	if (d_flag){
@@ -275,8 +275,8 @@ mime_err:
 	return (1);
 }
 
-void exit_string_overflow(size_t size) {
-	if (size <= 0) {
+void exit_string_overflow(int overflow) {
+	if (overflow) {
 		fprintf(stderr, "%s: not enough buffer space "
 				"to construct HTTP request\n", pname);
 		exit (SCEP_PKISTATUS_NET);
