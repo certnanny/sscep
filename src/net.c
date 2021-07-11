@@ -174,13 +174,14 @@ send_msg(struct http_reply *http, int do_post, char *scep_operation,
 	}
 
 	headers_num = sizeof(headers) / sizeof(headers[0]);
-	header_size = phr_parse_response(buf, used, &http_minor, &http->status,
-				&http_msg, &msg_size, headers, &headers_num, 0);
-	if (header_size < 0) {
+	rc = phr_parse_response(buf, used, &http_minor, &http->status,
+			&http_msg, &msg_size, headers, &headers_num, 0);
+	if (rc < 0) {
 		fprintf(stderr,"cannot parse response\n");
 		close(sd);
 		return (1);
 	}
+	header_size = rc;
 
 	mime_type = NULL;
 	http_chunked = 0;
