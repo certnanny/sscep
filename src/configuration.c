@@ -545,7 +545,7 @@ void scep_dump_conf() {
 				printf("Option: %s, Flag: %i, Value: %s\n", names[i], flags[i], chars[i]);
 		}
 	} else {
-		fprintf(stderr, "Length of Arrays does not match! Flags: %li, Chars: %li, Names: %li\n",
+		fprintf(stderr, "Length of Arrays does not match! Flags: %zu, Chars: %zu, Names: %zu\n",
 			sizeof(flags)/sizeof(int),
 			sizeof(chars)/sizeof(char *),
 			sizeof(names)/sizeof(char *)
