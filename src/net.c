@@ -93,7 +93,7 @@ send_msg(struct http_reply *http, int do_post, char *scep_operation,
 
 	if (do_post) {
 		rlen += snprintf(http_string+rlen, sizeof(http_string)-rlen,
-				"Content-Length: %zd\r\n", payload_len);
+				"Content-Length: %zu\r\n", payload_len);
 		exit_string_overflow(sizeof(http_string) <= rlen);
 	}
 
