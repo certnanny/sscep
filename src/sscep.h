@@ -66,7 +66,7 @@
 #include <openssl/ssl.h>
 /* Global defines */
 
-#define	VERSION	"0.9.0"
+#define	VERSION	"0.9.1"
 
 /* SCEP operations */
 #define	SCEP_OPERATION_GETCA	1
