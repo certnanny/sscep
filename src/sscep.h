@@ -219,6 +219,9 @@ struct http_reply {
 	/* Status */
 	int status;
 
+	/* MIME type */
+	char *mime_type;
+
 	/* Payload */
 	char *payload;
 
