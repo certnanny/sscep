@@ -30,8 +30,8 @@ void perror_w32 (const char *message)
 
 char *url_encode(char *, size_t);
 void exit_string_overflow(int);
-char *http_request(struct http_reply *http, const char* host_name, const char *port_str,
-                   const char *http_string, size_t rlen);
+int http_request(struct http_reply *http, const char* host_name, const char *port_str,
+                 const char *http_string, size_t rlen);
 
 int
 send_msg(struct http_reply *http, int do_post, char *scep_operation,
@@ -40,9 +40,8 @@ send_msg(struct http_reply *http, int do_post, char *scep_operation,
 {
 	char			http_string[16384];
 	size_t			rlen;
-	char *mime_type;
 	char			port_str[6]; /* Range-checked to be max. 5-digit number */
-	int fail_count, waited_sec;
+	int ret, fail_count, waited_sec;
 
 	rlen = snprintf(http_string, sizeof(http_string),
 		"%s %s%s?operation=%s",
@@ -105,10 +104,10 @@ send_msg(struct http_reply *http, int do_post, char *scep_operation,
 	waited_sec = 0;
 	/* will retry with linear backoff, just like wget does */
 	while (1) {
-		mime_type = http_request(http, host_name, port_str, http_string, rlen);
-		if (mime_type != NULL)
+		ret = http_request(http, host_name, port_str, http_string, rlen);
+		if (ret == 0)
 			break;
-		if (waited_sec >= W_flag)
+		if (ret == 2 || waited_sec >= W_flag)
 			return (1);
 
 		++fail_count;
@@ -124,16 +123,16 @@ send_msg(struct http_reply *http, int do_post, char *scep_operation,
 	/* Set SCEP reply type */
 	switch (operation) {
 		case SCEP_OPERATION_GETCA:
-			if (mime_type && !strcmp(mime_type, MIME_GETCA)) {
+			if (http->mime_type && !strcmp(http->mime_type, MIME_GETCA)) {
 				http->type = SCEP_MIME_GETCA;
-			} else if (mime_type && (!strcmp(mime_type, MIME_GETCA_RA) || !strcmp(mime_type, MIME_GETCA_RA_ENTRUST))) {
+			} else if (http->mime_type && (!strcmp(http->mime_type, MIME_GETCA_RA) || !strcmp(http->mime_type, MIME_GETCA_RA_ENTRUST))) {
 				http->type = SCEP_MIME_GETCA_RA;
 			} else {
 				goto mime_err;
 			}
 			break;
 		case SCEP_OPERATION_GETNEXTCA:
-			if (mime_type && !strcmp(mime_type, MIME_GETNEXTCA)) {
+			if (http->mime_type && !strcmp(http->mime_type, MIME_GETNEXTCA)) {
 				http->type = SCEP_MIME_GETNEXTCA;
 			} else {
 				goto mime_err;
@@ -145,7 +144,7 @@ send_msg(struct http_reply *http, int do_post, char *scep_operation,
 			http->type = SCEP_MIME_GETCAPS;
 			break;
 		default:
-			if (mime_type && !strcmp(mime_type, MIME_PKI)) {
+			if (http->mime_type && !strcmp(http->mime_type, MIME_PKI)) {
 				http->type = SCEP_MIME_PKI;
 			} else {
 				goto mime_err;
@@ -240,7 +239,8 @@ char * url_encode(char *s, size_t n) {
 	return r;
 }
 
-char *http_request(struct http_reply *http, const char* host_name, const char *port_str,
+/* returns 0 if successful, 1 on network error, 2 on parse error */
+int http_request(struct http_reply *http, const char* host_name, const char *port_str,
                    const char *http_string, size_t rlen)
 {
 	struct addrinfo hints;
@@ -275,14 +275,14 @@ char *http_request(struct http_reply *http, const char* host_name, const char *p
 	rc = getaddrinfo(host_name, port_str, &hints, &res);
 	if (rc!=0) {
 		fprintf(stderr, "failed to resolve remote host address %s (err=%d)\n", host_name, rc);
-		return NULL;
+		return (1);
 	}
 
 	sd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 	if (sd < 0) {
 		perror("cannot open socket ");
 		freeaddrinfo(res);
-		return NULL;
+		return (1);
 	}
 
 	/* connect to server */
@@ -292,7 +292,7 @@ char *http_request(struct http_reply *http, const char* host_name, const char *p
 	freeaddrinfo(res);
 	if (rc < 0) {
 		perror("cannot connect");
-		return NULL;
+		return (1);
 	}
 	setsockopt(sd,SOL_SOCKET, SO_RCVTIMEO,(void *)&tv, sizeof(tv));
 	setsockopt(sd,SOL_SOCKET, SO_SNDTIMEO,(void *)&tv, sizeof(tv));
@@ -303,13 +303,13 @@ char *http_request(struct http_reply *http, const char* host_name, const char *p
 	if (rc < 0) {
 		perror("cannot send data ");
 		close(sd);
-		return NULL;
+		return (1);
 	}
 	else if(rc != rlen)
 	{
 		fprintf(stderr,"incomplete send\n");
 		close(sd);
-		return NULL;
+		return (1);
 	}
 
 	/* Get response */
@@ -322,7 +322,7 @@ char *http_request(struct http_reply *http, const char* host_name, const char *p
 	if (bytes < 0) {
 		perror("error receiving data ");
 		close(sd);
-		return NULL;
+		return (1);
 	}
 
 	headers_num = sizeof(headers) / sizeof(headers[0]);
@@ -331,7 +331,7 @@ char *http_request(struct http_reply *http, const char* host_name, const char *p
 	if (rc < 0) {
 		fprintf(stderr,"cannot parse response\n");
 		close(sd);
-		return NULL;
+		return (2);
 	}
 	header_size = rc;
 
@@ -365,6 +365,7 @@ char *http_request(struct http_reply *http, const char* host_name, const char *p
 		fprintf(stdout, "%s: server response status code: %d, MIME header: %s\n",
 			pname, http->status, mime_type ? mime_type : "missing");
 
+	http->mime_type = mime_type;
 	http->payload = buf+header_size;
 	body_size = used-header_size;
 
@@ -374,7 +375,7 @@ char *http_request(struct http_reply *http, const char* host_name, const char *p
 		if (rc < 0) {
 			fprintf(stderr,"%i cannot decode chunked payload\n", rc);
 			close(sd);
-			return NULL;
+			return (2);
 		}
 	}
 
@@ -386,5 +387,5 @@ char *http_request(struct http_reply *http, const char* host_name, const char *p
 #else
 	close(sd);
 #endif
-	return mime_type;
+	return (0);
 }
