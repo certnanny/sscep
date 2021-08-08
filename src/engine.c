@@ -1,6 +1,6 @@
 #include "engine.h"
 
-ENGINE *scep_engine_init() {
+ENGINE *scep_engine_init(void) {
 	ENGINE *e = NULL;
 
 		ENGINE_load_builtin_engines();
@@ -113,7 +113,7 @@ ENGINE *scep_engine_init() {
 		return e;
 }
 
-ENGINE *scep_engine_load_dynamic() {
+ENGINE *scep_engine_load_dynamic(void) {
 	ENGINE *e;
 	//it seems OpenSSL did not already have it. In this case we will try to load it dynamically
 	e = ENGINE_by_id("dynamic");
