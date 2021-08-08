@@ -111,8 +111,14 @@ send_msg(struct http_reply *http, int do_post, char *scep_operation,
 		if (waited_sec >= W_flag)
 			return (1);
 
-		sleep(++fail_count);
-		waited_sec += fail_count;
+		++fail_count;
+		if ((waited_sec + fail_count) <= W_flag) {
+			sleep(fail_count);
+			waited_sec += fail_count;
+		} else {
+			sleep(W_flag - waited_sec);
+			waited_sec = W_flag;
+		}
 	}
 
 	/* Set SCEP reply type */
