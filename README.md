@@ -89,7 +89,7 @@ Prerequisites:
 
 ### Unix:
 
-To compile run: 
+To compile run:
 `$ make`
 
 To generate the configure script when checking out from github source:
@@ -155,7 +155,7 @@ of arguments and command line options.
 ```bash
 $ ./sscep
 
-sscep version 0.9.x
+sscep version 0.10.x
 
 Usage: ./sscep OPERATION [OPTIONS]
 
