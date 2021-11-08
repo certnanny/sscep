@@ -198,12 +198,15 @@ OPTIONS for OPERATION enroll are
 OPTIONS for OPERATION getcert are
   -k <file>         Signature private key file
   -l <file>         Signature local certificate file
+  -O <file>         Issuer Certificate of the certificate to query (requires -s)
   -s <number>       Certificate serial number (decimal)
   -w <file>         Write certificate in file
 
 OPTIONS for OPERATION getcrl are
   -k <file>         Signature private key file
   -l <file>         Signature local certificate file
+  -O <file>         Certificate to get the CRL for (reads issuer and serial)
+  -s <number>       Certificate serial number (decimal)
   -w <file>         Write CRL in file
 ```
 
@@ -236,7 +239,7 @@ Here are the available configuration file keys and example values:
 | URL | URL of the SCEP server. | `http://example.com/scep` | `-u` |
 | CACertFile | Sigle CA certificate file, or mutiple CA certificates suffixed with `-0`, `-1`, ... to write (getca) or to choose from (all other operations). | `./ca.crt` |`-c` |
 | CAIdentifier | Some CAs require you to define this.  | `mydomain.com` | `-i` |
-| CertReqFile | Certificate request file created with mkrequest. | `./local.csr` | `-r`
+| CertReqFile | Certificate request file created with mkrequest. | `./local.csr` | `-r` |
 | EncAlgorithm | PKCS#7 encryption algorithm. Available algorithms are des, 3des, blowfish, aes/aes128, aes192 and aes256. NOTE: SCEP provides no mechanism to "negotiate" the algorithm - even if you send 3des, reply might be des (same thing applies to SigAlgorithm). | | `-E` |
 | EncCertFile | If your CA/RA uses a different certificate for encyption and signing, define this. CACertFile is used for verifying the signature. | `./enc.crt` | `-e` |
 | SignCertFile | Instead of creating a self-signed certificate from the new key pair use an already existing certficate/key to sign the SCEP request. If the "old" certificate and key is used, the CA can verify that the holder of the private key for an existing certificate re-enrolls for a renewal certificate, allowing for automatic approval of the request. Requires specification of the corresponding SignKeyFile (`-K`). | `./sig.crt` | `-O` |

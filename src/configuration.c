@@ -458,7 +458,13 @@ int scep_conf_load_operation_getcert(CONF *conf) {
 		if(!(w_char = strdup(var)))
 			error_memory();
 	}
-	
+
+	if((var = NCONF_get_string(conf, SCEP_CONFIGURATION_SECTION_ENROLL, SCEP_CONFIGURATION_PARAM_SIGNCERTFILE)) && !O_flag) {
+		O_flag = 1;
+		if(!(O_char = strdup(var)))
+			error_memory();
+	}
+
 	return 0;
 }
 
@@ -476,9 +482,21 @@ int scep_conf_load_operation_getcrl(CONF *conf) {
 			error_memory();
 	}
 
+	if((var = NCONF_get_string(conf, SCEP_CONFIGURATION_SECTION_GETCERT, SCEP_CONFIGURATION_PARAM_GETCERTSERIAL)) && !s_flag) {
+		s_flag = 1;
+		if(!(s_char = strdup(var)))
+			error_memory();
+	}
+
 	if((var = NCONF_get_string(conf, SCEP_CONFIGURATION_SECTION_GETCRL, SCEP_CONFIGURATION_PARAM_GETCRLFILE)) && !w_flag) {
 		w_flag = 1;
 		if(!(w_char = strdup(var)))
+			error_memory();
+	}
+
+	if((var = NCONF_get_string(conf, SCEP_CONFIGURATION_SECTION_ENROLL, SCEP_CONFIGURATION_PARAM_SIGNCERTFILE)) && !O_flag) {
+		O_flag = 1;
+		if(!(O_char = strdup(var)))
 			error_memory();
 	}
 
@@ -506,14 +524,14 @@ void scep_dump_conf() {
 		"-c / CACertFile",
 		"-i / CAIdentifier",
 		"-r / CertReqFile",
-		"-d / Debug", 
+		"-d / Debug",
 		"-e / EncCertFile",
-		"-E / EncAlgorithm", 
+		"-E / EncAlgorithm",
 		"-F / FingerPrint",
-		"-w / GetCertFile od. GetCrlFile",
+		"-w / GetCertFile or GetCrlFile",
 		"-s / GetCertSerial",
 		"-l / LocalCertFile",
-		"-O / SignCertFile",
+		"-O / SignCertFile or IssuerCertFile",
 		"-n / MaxPollCount",
 		"-T / MaxPollTime",
 		"-k / PrivateKeyFile",
@@ -526,7 +544,7 @@ void scep_dump_conf() {
 		"-v / Verbose",
 		"-R / Resume"
 	};
-	
+
 	T_char = (char *) malloc(sizeof(char) * 20);
 	n_char = (char *) malloc(sizeof(char) * 20);
 	t_char = (char *) malloc(sizeof(char) * 20);

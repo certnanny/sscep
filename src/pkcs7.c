@@ -167,7 +167,7 @@ int pkcs7_wrap(struct scep *s, int enc_base64) {
 			if ((rc = i2d_PKCS7_ISSUER_AND_SERIAL_bio(databio,
 						s->ias_getcrl)) <= 0) {
 				fprintf(stderr, "%s: error writing "
-					"GetCert data in bio\n", pname);
+					"GetCRL data in bio\n", pname);
 				ERR_print_errors_fp(stderr);
 				exit (SCEP_PKISTATUS_P7);
 			}

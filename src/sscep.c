@@ -958,7 +958,7 @@ main(int argc, char **argv) {
 				rsa = read_key(k_char);
 
 
-			if ((K_flag && !O_flag) || (!K_flag && O_flag)) {
+			if ((K_flag && !O_flag) || (O_flag && !K_flag && operation_flag == SCEP_OPERATION_ENROLL)) {
 			  fprintf(stderr, "%s: -O also requires -K (and vice-versa)\n", pname);
 			  exit (SCEP_PKISTATUS_FILE);
 			}
@@ -980,22 +980,19 @@ main(int argc, char **argv) {
 				}
 			}
 
-			if (operation_flag == SCEP_OPERATION_ENROLL) {
-				read_request();
-				scep_t.transaction_id = key_fingerprint(request);			
-				if (v_flag) {
-					printf("%s:  Read request with transaction id: %s\n", pname, scep_t.transaction_id);
-				}
-			}
-
-			
 			if (operation_flag != SCEP_OPERATION_ENROLL)
 				goto not_enroll;
-			
+
+			read_request();
+			scep_t.transaction_id = key_fingerprint(request);
+			if (v_flag) {
+				printf("%s:  Read request with transaction id: %s\n", pname, scep_t.transaction_id);
+			}
+
 			if (! O_flag) {
 				if (v_flag)
 					fprintf(stdout, "%s: generating selfsigned certificate\n", pname);
-			  new_selfsigned(&scep_t);
+					new_selfsigned(&scep_t);
 			}
 			else {
 			  /* Use existing certificate */
@@ -1034,6 +1031,10 @@ main(int argc, char **argv) {
 				exit (SCEP_PKISTATUS_ERROR);
 			}
 not_enroll:
+			/* This following lines up to the O_flag assume that the
+			RA certificate IS the CA certificate which is not valid
+			in most cases nowadays when using a "real" CA software
+			*/
 			if (!(scep_t.ias_getcertinit->issuer =
 					 X509_get_subject_name(cacert))) {
 				fprintf(stderr, "%s: error getting issuer "
@@ -1053,6 +1054,25 @@ not_enroll:
 				ERR_print_errors_fp(stderr);
 				exit (SCEP_PKISTATUS_ERROR);
 			}
+
+			/* Use an extra certificate to read the issuer/serial
+			information when calling getcert/getcrl */
+			if ( O_flag) {
+				if (operation_flag == SCEP_OPERATION_GETCRL) {
+					scep_t.ias_getcrl->serial =
+						X509_get_serialNumber(renewal_cert);
+					scep_t.ias_getcrl->issuer =
+						X509_get_issuer_name(renewal_cert);
+				} else {
+					if (! s_flag ) {
+						fprintf(stderr, "%s: -O also requires -s for getcert\n", pname);
+						exit (SCEP_PKISTATUS_FILE);
+					}
+					scep_t.ias_getcert->issuer =
+						X509_get_subject_name(renewal_cert);
+				}
+			}
+
 			/* User supplied serial number */
 			if (s_flag) {
 				BIGNUM *bn = NULL;
@@ -1062,8 +1082,26 @@ not_enroll:
 					fprintf(stderr, "%s: error converting serial\n", pname);
 					ERR_print_errors_fp(stderr);
 					exit (SCEP_PKISTATUS_SS);
-				 }
-				 scep_t.ias_getcert->serial = ai;
+				}
+				scep_t.ias_getcert->serial = ai;
+				scep_t.ias_getcrl->serial = ai;
+			}
+			if (v_flag) {
+				char buffer[1024];
+				memset(buffer, 0, 1024);
+				if (operation_flag == SCEP_OPERATION_GETCRL) {
+					BIGNUM *bnser = ASN1_INTEGER_to_BN(scep_t.ias_getcrl->serial, NULL);
+					char *serialChar = BN_bn2dec(bnser);
+					fprintf(stdout, "%s: requesting crl for serial number %s and issuer %s\n",
+						pname, serialChar,
+						X509_NAME_oneline(scep_t.ias_getcrl->issuer, buffer, sizeof(buffer)));
+				} else {
+					BIGNUM *bnser = ASN1_INTEGER_to_BN(scep_t.ias_getcert->serial, NULL);
+					char *serialChar = BN_bn2dec(bnser);
+					fprintf(stdout, "%s: requesting certificate with serial number %s and issuer %s\n",
+						pname, serialChar,
+						X509_NAME_oneline(scep_t.ias_getcert->issuer, buffer, sizeof(buffer)));
+				}
 			}
 		break;
 
@@ -1309,11 +1347,14 @@ usage() {
 	"\nOPTIONS for OPERATION getcert are\n"
 	"  -k <file>         Signature private key file\n"
 	"  -l <file>         Signature local certificate file\n"
-	"  -s <number>       Certificate serial number\n"
+	"  -O <file>         Issuer Certificate of the certificate to query (requires -s)\n"
+	"  -s <number>       Certificate serial number (decimal)\n"
 	"  -w <file>         Write certificate in file\n"
 	"\nOPTIONS for OPERATION getcrl are\n"
 	"  -k <file>         Signature private key file\n"
 	"  -l <file>         Signature local certificate file\n"
+	"  -O <file>         Certificate to get the CRL for (reads issuer and serial)\n"
+	"  -s <number>       Certificate serial number (decimal)\n"
 	"  -w <file>         Write CRL in file\n\n", pname);
 	exit(0);
 }
