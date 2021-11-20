@@ -958,7 +958,7 @@ main(int argc, char **argv) {
 				rsa = read_key(k_char);
 
 
-			if ((K_flag && !O_flag) || (O_flag && !K_flag && operation_flag == SCEP_OPERATION_ENROLL)) {
+			if ((K_flag && !O_flag) || (O_flag && !K_flag && (operation_flag == SCEP_OPERATION_ENROLL))) {
 			  fprintf(stderr, "%s: -O also requires -K (and vice-versa)\n", pname);
 			  exit (SCEP_PKISTATUS_FILE);
 			}
@@ -1063,7 +1063,7 @@ not_enroll:
 						X509_get_serialNumber(renewal_cert);
 					scep_t.ias_getcrl->issuer =
 						X509_get_issuer_name(renewal_cert);
-				} else {
+				} else if (operation_flag != SCEP_OPERATION_ENROLL) {
 					if (! s_flag ) {
 						fprintf(stderr, "%s: -O also requires -s for getcert\n", pname);
 						exit (SCEP_PKISTATUS_FILE);
