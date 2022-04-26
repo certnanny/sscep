@@ -202,8 +202,12 @@ int pkcs7_wrap(struct scep *s, int enc_base64) {
 		ERR_print_errors_fp(stderr);
 		exit (SCEP_PKISTATUS_P7);
 	}
-	/* Use different CA cert for encryption if requested */
-	if (e_flag) {
+	/*
+	 * Use different CA cert for encryption if requested.
+	 * encert will be non-NULL if the -e option was specified on the command
+	 * line, or if the certificates were auto-selected.
+	 */
+	if (encert != NULL) {
 		if (sk_X509_push(recipients, encert) <= 0) {
 			fprintf(stderr, "%s: error adding recipient encryption "
 					"certificate\n", pname);
