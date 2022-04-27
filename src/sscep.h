@@ -179,6 +179,7 @@ extern X509 *cacert;
 extern X509 *encert;
 extern X509 *localcert;
 extern X509 *renewal_cert;
+extern X509 *issuer_cert;
 extern X509_REQ *request;
 extern EVP_PKEY *rsa;
 extern EVP_PKEY *renewal_key;
@@ -317,7 +318,8 @@ EVP_PKEY *read_key(char* filename);
 void read_key_Engine(EVP_PKEY** key, char* filename, ENGINE *e);
 
 /* Read CA certificate file */
-void guess_ca_certs(const char* filename, X509 **vercert, X509 **encert);
+void guess_ca_certs(const char* filename, X509_NAME *issuer_name,
+					X509 **vercert, X509 **encert, X509 **issuer_cert);
 
 /* Read local certificate file */
 X509 *read_cert(const char* filename);

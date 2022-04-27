@@ -928,7 +928,8 @@ main(int argc, char **argv) {
 			/* try to read certificate from a file */
 			if (!(cacert = read_cert(c_char))) {
 				/* if that fails, try to guess both CA certificates */
-				guess_ca_certs(c_char, &cacert, &encert);
+				X509_NAME *issuer_name = (operation_flag == SCEP_OPERATION_GETCRL) ? X509_get_issuer_name(localcert) : NULL;
+				guess_ca_certs(c_char, issuer_name, &cacert, &encert, &issuer_cert);
 
 				if (!cacert) {
 					fprintf(stderr, "%s: cannot read CA cert (-c) file %s\n",
@@ -1053,6 +1054,18 @@ not_enroll:
 					"for GetCertInitial\n", pname);
 				ERR_print_errors_fp(stderr);
 				exit (SCEP_PKISTATUS_ERROR);
+			}
+
+			/*
+			 * For GETCRL operations and auto-selected certificates, issuer_cert
+			 * may not be NULL. In that case, use it for the serial and issuer.
+			 * This may still be overridden if the user uses the '-O' option.
+			 */
+			if (issuer_cert != NULL) {
+				scep_t.ias_getcrl->serial =
+					X509_get_serialNumber(issuer_cert);
+				scep_t.ias_getcrl->issuer =
+					X509_get_issuer_name(issuer_cert);
 			}
 
 			/* Use an extra certificate to read the issuer/serial
