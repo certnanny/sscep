@@ -17,6 +17,7 @@ X509 *cacert;
 X509 *encert;
 X509 *localcert;
 X509 *renewal_cert;
+X509 *issuer_cert;
 X509_REQ *request;
 EVP_PKEY *rsa;
 EVP_PKEY *renewal_key;
@@ -406,7 +407,8 @@ read_cert(const char *filename)
 /* Read CA cert and optionally, encyption CA cert */
 
 void
-guess_ca_certs(const char* filename, X509 **sigc, X509 **encc)
+guess_ca_certs(const char* filename, X509_NAME *issuer_name,
+			   X509 **sigc, X509 **encc, X509 **issuer_cert)
 {
 	int ccnt, i, j;
 	X509 *cert[20];
@@ -439,6 +441,9 @@ guess_ca_certs(const char* filename, X509 **sigc, X509 **encc)
 			}
 		}
 
+		if (issuer_name != NULL && !X509_NAME_cmp(issuer_name, myname))
+			*issuer_cert = cert[i];
+
 		if (!is_issuer) {
 			/* X509_get_key_usage(cert[i]) is not in older openssl */
 			ASN1_BIT_STRING *usage = X509_get_ext_d2i(cert[i], NID_key_usage, NULL, NULL);
@@ -456,7 +461,7 @@ guess_ca_certs(const char* filename, X509 **sigc, X509 **encc)
 
 	/* release those we don't use */
 	for (i = 0; i < ccnt; i++) {
-		if (cert[i] != *sigc && cert[i] != *encc)
+		if (cert[i] != *sigc && cert[i] != *encc && cert[i] != *issuer_cert)
 			X509_free(cert[i]);
 	}
 
@@ -470,6 +475,10 @@ guess_ca_certs(const char* filename, X509 **sigc, X509 **encc)
 		if (*encc)
 			printf("%s: using RA encryption certificate: %s\n", pname,
 				X509_NAME_oneline(X509_get_subject_name(*encc),
+						buffer, sizeof(buffer)));
+		if (*issuer_cert)
+			printf("%s: using issuer certificate: %s\n", pname,
+				X509_NAME_oneline(X509_get_subject_name(*issuer_cert),
 						buffer, sizeof(buffer)));
 	}
 
