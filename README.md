@@ -82,10 +82,16 @@ In general, two build systems are supported:
 * CMake
 
 Prerequisites:
-* OpenSSL crypto library
+* `pkg-config`
+* OpenSSL `libcrypto` library
   * sscep 0.3.0 - 0.6.1 works with openssl 0.9.7 - 1.0.2
   * sscep 0.7.0 - 0.9.1 works with openssl 0.9.7 - 1.1.1
   * sscep 0.10.0 works with openssl 1.1.0 - 3.0.0
+
+On Ubuntu you may use:
+```bash
+sudo apt-get install autoconf automake libtool pkg-config libssl-dev
+```
 
 ### Unix:
 
