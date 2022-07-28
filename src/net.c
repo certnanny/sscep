@@ -244,7 +244,7 @@ int http_request(struct http_reply *http, const char* host_name, const char *por
                    const char *http_string, size_t rlen)
 {
 	struct addrinfo hints;
-	struct addrinfo *res = NULL;
+	struct addrinfo *res, *resolve_array;
 	int rc, sd, i;
 
 	char *buf;
@@ -272,28 +272,43 @@ int http_request(struct http_reply *http, const char* host_name, const char *por
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = 0;
 	hints.ai_flags = (AI_ADDRCONFIG | AI_V4MAPPED);
-	rc = getaddrinfo(host_name, port_str, &hints, &res);
+	rc = getaddrinfo(host_name, port_str, &hints, &resolve_array);
 	if (rc!=0) {
 		fprintf(stderr, "failed to resolve remote host address %s (err=%d)\n", host_name, rc);
 		return (1);
 	}
 
-	sd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-	if (sd < 0) {
-		perror("cannot open socket ");
-		freeaddrinfo(res);
-		return (1);
+	/* getaddrinfo() returns a list of address structures.
+		Try each address until we successfully connect.
+		If socket (or connect) fails, we close the socket
+		and try the next address. */
+	for (res = resolve_array;
+		res != NULL;
+		res = resolve_array->ai_next) {
+		sd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+		if (sd < 0) {
+			continue;
+		}
+
+		/* connect to server */
+		/* The two socket options SO_RCVTIMEO and SO_SNDTIMEO do not work with connect
+		connect has a default timeout of 120 */
+		rc = connect(sd, res->ai_addr, res->ai_addrlen);
+		if (rc < 0) {
+			close(sd);
+			continue;
+		}
+
+		/* connected, exit loop */
+		break;
 	}
 
-	/* connect to server */
-	/* The two socket options SO_RCVTIMEO and SO_SNDTIMEO do not work with connect
-	   connect has a default timeout of 120 */
-	rc = connect(sd, res->ai_addr, res->ai_addrlen);
-	freeaddrinfo(res);
-	if (rc < 0) {
+	freeaddrinfo(resolve_array);
+	if (!res ) {
 		perror("cannot connect");
 		return (1);
 	}
+
 	setsockopt(sd,SOL_SOCKET, SO_RCVTIMEO,(void *)&tv, sizeof(tv));
 	setsockopt(sd,SOL_SOCKET, SO_SNDTIMEO,(void *)&tv, sizeof(tv));
 
