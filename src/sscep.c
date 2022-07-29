@@ -612,7 +612,7 @@ main(int argc, char **argv) {
 				p++;
 			}
 		} else {
-			if (!cnt && !c) {
+			if (!cnt && !p_flag && !c) {
 				dir_name = p;
 				cnt = 1;
 			}
