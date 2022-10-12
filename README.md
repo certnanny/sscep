@@ -10,7 +10,7 @@
 
 SSCEP is a client-only implementation of the SCEP (Cisco System's Simple
 Certificate Enrollment Protocol). SSCEP is designed for OpenBSD's isakmpd,
-but it will propably work with any Unix system with a recent compiler and
+but it will probably work with any Unix system with a recent compiler and
 OpenSSL toolkit libraries installed.
 
 
@@ -243,7 +243,7 @@ Here are the available configuration file keys and example values:
 | Key	|	Explanation | Example | Command options |
 |-------|-------------------|---------|---------|
 | URL | URL of the SCEP server. | `http://example.com/scep` | `-u` |
-| CACertFile | Sigle CA certificate file, or mutiple CA certificates suffixed with `-0`, `-1`, ... to write (getca) or to choose from (all other operations). | `./ca.crt` |`-c` |
+| CACertFile | Single CA certificate file, or multiple CA certificates suffixed with `-0`, `-1`, ... to write (getca) or to choose from (all other operations). | `./ca.crt` |`-c` |
 | CAIdentifier | Some CAs require you to define this.  | `mydomain.com` | `-i` |
 | CertReqFile | Certificate request file created with mkrequest. | `./local.csr` | `-r` |
 | EncAlgorithm | PKCS#7 encryption algorithm. Available algorithms are des, 3des, blowfish, aes/aes128, aes192 and aes256. NOTE: SCEP provides no mechanism to "negotiate" the algorithm - even if you send 3des, reply might be des (same thing applies to SigAlgorithm). | | `-E` |
