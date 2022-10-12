@@ -110,7 +110,7 @@ $ make
 $ make install
 ```
 
-To build a RPM package from the tarball do
+To build an RPM package from the tarball do
 ```cmd
 cp sscep-*.tar.gz ~/rpmbuild/SOURCES
 rpmbuild -ba scripts/sscep.spec
@@ -401,11 +401,11 @@ different RA certificates for encryption and signing. If that's your case,
 you have to define encryption certificate with command line option (`-e`).
 Probably it is the certificate with key usage "Key Encipherment".
 
-You may also use the base name (e.g. `ca.crt`) of all certificates and
+You may also use the base name (e.g., `ca.crt`) of all certificates and
 rely on an automated certificate selection. The system loads all available
 certificates (`ca.crt-0`, `ca.crt-1`, ...) and then:
  1. Tries to find a certificate that:
-    * Is at the end of the received chain, i.e. do not sign other certificate.
+    * Is at the end of the received chain, i.e., do not sign other certificate.
     * Has key usage "Digital Signature" (for `-c`) or "Key Encipherment"
       (for `-e`), or does not have any key usage defined.
  2. If no such key is found, selects the first certificate in the chain, which
