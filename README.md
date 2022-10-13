@@ -10,7 +10,7 @@
 
 SSCEP is a client-only implementation of the SCEP (Cisco System's Simple
 Certificate Enrollment Protocol). SSCEP is designed for OpenBSD's isakmpd,
-but it will propably work with any Unix system with a recent compiler and
+but it will probably work with any Unix system with a recent compiler and
 OpenSSL toolkit libraries installed.
 
 
@@ -110,7 +110,7 @@ $ make
 $ make install
 ```
 
-To build a RPM package from the tarball do
+To build an RPM package from the tarball do
 ```cmd
 cp sscep-*.tar.gz ~/rpmbuild/SOURCES
 rpmbuild -ba scripts/sscep.spec
@@ -243,7 +243,7 @@ Here are the available configuration file keys and example values:
 | Key	|	Explanation | Example | Command options |
 |-------|-------------------|---------|---------|
 | URL | URL of the SCEP server. | `http://example.com/scep` | `-u` |
-| CACertFile | Sigle CA certificate file, or mutiple CA certificates suffixed with `-0`, `-1`, ... to write (getca) or to choose from (all other operations). | `./ca.crt` |`-c` |
+| CACertFile | Single CA certificate file, or multiple CA certificates suffixed with `-0`, `-1`, ... to write (getca) or to choose from (all other operations). | `./ca.crt` |`-c` |
 | CAIdentifier | Some CAs require you to define this.  | `mydomain.com` | `-i` |
 | CertReqFile | Certificate request file created with mkrequest. | `./local.csr` | `-r` |
 | EncAlgorithm | PKCS#7 encryption algorithm. Available algorithms are des, 3des, blowfish, aes/aes128, aes192 and aes256. NOTE: SCEP provides no mechanism to "negotiate" the algorithm - even if you send 3des, reply might be des (same thing applies to SigAlgorithm). | | `-E` |
@@ -401,11 +401,11 @@ different RA certificates for encryption and signing. If that's your case,
 you have to define encryption certificate with command line option (`-e`).
 Probably it is the certificate with key usage "Key Encipherment".
 
-You may also use the base name (e.g. `ca.crt`) of all certificates and
+You may also use the base name (e.g., `ca.crt`) of all certificates and
 rely on an automated certificate selection. The system loads all available
 certificates (`ca.crt-0`, `ca.crt-1`, ...) and then:
  1. Tries to find a certificate that:
-    * Is at the end of the received chain, i.e. do not sign other certificate.
+    * Is at the end of the received chain, i.e., do not sign other certificate.
     * Has key usage "Digital Signature" (for `-c`) or "Key Encipherment"
       (for `-e`), or does not have any key usage defined.
  2. If no such key is found, selects the first certificate in the chain, which
