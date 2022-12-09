@@ -31,6 +31,16 @@
 #include <stddef.h>
 #include <string.h>
 
+#define GETOPT_INTERFACE_VERSION 2
+#if !defined _LIBC && defined __GLIBC__ && __GLIBC__ >= 2
+# include <gnu-versions.h>
+# if _GNU_GETOPT_INTERFACE_VERSION == GETOPT_INTERFACE_VERSION
+#  define ELIDE_CODE
+# endif
+#endif
+
+#ifndef ELIDE_CODE
+
 char* optarg;
 int optopt;
 /* The variable optind [...] shall be initialized to 1 by the system. */
@@ -226,3 +236,5 @@ int getopt_long(int argc, char* const argv[], const char* optstring,
   ++optind;
   return retval;
 }
+
+#endif	/* Not ELIDE_CODE.  */
