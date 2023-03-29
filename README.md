@@ -3,7 +3,7 @@
 
 > Copyright (c) Jarkko Turkulainen 2003. All rights reserved.
 >
-> See the file COPYRIGHT for licensing information.
+> See the file COPYING for licensing information.
 
 
 ## WHAT IS SSCEP?
