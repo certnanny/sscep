@@ -179,7 +179,7 @@ ENGINE *scep_engine_load_dynamic(void) {
 
 //idea from: http://blog.burghardt.pl/2010/03/ncipher-hsm-with-openssl/
 void sscep_engine_read_key(EVP_PKEY **key, char *id, ENGINE *e) {
-	*key = ENGINE_load_private_key(e, id, NULL, NULL);
+	*key = ENGINE_load_private_key(e, id, UI_get_default_method(), NULL);
 	//ERR_print_errors_fp(stderr);
 
 	if(*key == 0) {
