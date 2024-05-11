@@ -34,7 +34,7 @@ AC_TYPE_SIZE_T
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
-AC_CHECK_FUNCS([alarm gethostbyname memset socket strchr strdup strstr])
+AC_CHECK_FUNCS([alarm gethostbyname getopt memset socket strchr strdup strstr])
 
 AC_CONFIG_FILES([Makefile])
 AC_SUBST([LIBTOOL_DEPS])
