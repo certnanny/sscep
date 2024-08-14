@@ -8,6 +8,11 @@
 
 #include "sscep.h"
 
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <openssl/ui.h>
+
 char *pname;
 int timeout;
 
@@ -68,6 +73,7 @@ int v_flag;
 int w_flag;
 char *w_char;
 int W_flag;
+char *P_char;
 
 const EVP_MD *fp_alg;
 const EVP_MD *sig_alg;
@@ -223,6 +229,74 @@ handle_serial (char * serial)
 	return serial;
 } /* handle_serial */
 
+static int sscep_read_cmd(UI *ui, UI_STRING *uis)
+{
+	int fd = -1, docl = -1;
+	const char *result = P_char;
+	char buf[128], *p;
+
+	switch (UI_get_string_type(uis)) {
+		case UIT_BOOLEAN:
+		case UIT_PROMPT:
+		case UIT_VERIFY:
+			break;
+		case UIT_NONE:
+		case UIT_INFO:
+		case UIT_ERROR:
+			return 1;
+	}
+	if (!strncmp(result, "pass:", 5)) {
+		result += 5;
+	} else if (!strncmp(result, "env:", 4)) {
+		result = getenv(result +4);
+		if (!result) {
+			fprintf(stderr, "Environment variable '%s' was empty\n", P_char+4);
+			return 0;
+		}
+	} else if (!strncmp(result, "fd:", 3)) {
+		if (result[3] < '0' || result[3] > '9') {
+			fprintf(stderr, "password fd must be between 0 and 9\n");
+			return 0;
+		}
+		fd = result[3] - '0';
+	} else if (!strcmp(result, "stdin")) {
+		fd = 0;
+	} else if (!strncmp(result, "file:", 5)) {
+		docl = fd = open(result +5, O_RDONLY);
+		if (fd == -1) {
+			perror(result +5);
+			return 0;
+		}
+	}
+	if (fd >= 0) {
+		ssize_t r = read(fd, buf, sizeof buf-1);
+		if (r < 0) {
+			perror(result +5);
+			if (docl >= 0)
+				close(docl);
+			return 0;
+		}
+		buf[r] = 0;
+		p = memchr(buf, '\n', r);
+		if (p)
+			*p = 0;
+		result = buf;
+		if (docl >= 0)
+			close(docl);
+	}
+	return UI_set_result(ui, uis, result) >= 0 ? 1 : 0;
+}
+
+static void setup_UI()
+{
+	if (!P_char)
+		return;
+	UI_METHOD *ui = UI_create_method("sscep UI");
+	UI_method_set_reader(ui, sscep_read_cmd);
+
+	UI_set_default_method(ui);
+}
+
 int
 main(int argc, char **argv) {
 	//ENGINE *e = NULL;
@@ -307,7 +381,7 @@ main(int argc, char **argv) {
 	}
 	/* Skip first parameter and parse the rest of the command */
 	optind++;
-	while ((c = getopt(argc, argv, "c:C:de:E:f:g:hF:i:k:K:l:L:n:O:p:r:Rs:S:t:T:u:vw:W:m:HM:")) != -1)
+	while ((c = getopt(argc, argv, "c:C:de:E:f:g:hF:i:k:K:l:L:n:O:p:P:r:Rs:S:t:T:u:vw:W:m:HM:")) != -1)
                 switch(c) {
 			case 'c':
 				c_flag = 1;
@@ -445,6 +519,9 @@ main(int argc, char **argv) {
 			case 'W':
 				W_flag = atoi(optarg);
 				break;
+			case 'P':
+				P_char = optarg;
+				break;
 			default:
 			  printf("argv: %s\n", argv[optind]);
 				usage();
@@ -466,6 +543,7 @@ main(int argc, char **argv) {
 		fprintf(stdout, "%s: starting sscep, version %s\n",
 			pname, VERSION);
 
+	setup_UI();
 	/*
 	* Create a new SCEP transaction and self-signed
 	* certificate based on cert request
@@ -1350,6 +1428,7 @@ usage() {
 	"  -r <file>         Certificate request file\n"
 	"  -K <file>         Signature private key file, use with -O\n"
 	"  -O <file>         Signature certificate (used instead of self-signed)\n"
+	"  -P <pwdesc>       Provide password for batch mode\n"
 	"  -l <file>         Write enrolled certificate in file\n"
 	"  -e <file>         Use different CA cert for encryption\n"
 	"  -L <file>         Write selfsigned certificate in file\n"
@@ -1361,14 +1440,22 @@ usage() {
 	"  -k <file>         Signature private key file\n"
 	"  -l <file>         Signature local certificate file\n"
 	"  -O <file>         Issuer Certificate of the certificate to query (requires -s)\n"
+	"  -P <pwdesc>       Provide password for batch mode\n"
 	"  -s <number>       Certificate serial number (decimal)\n"
 	"  -w <file>         Write certificate in file\n"
 	"\nOPTIONS for OPERATION getcrl are\n"
 	"  -k <file>         Signature private key file\n"
 	"  -l <file>         Signature local certificate file\n"
 	"  -O <file>         Certificate to get the CRL for (reads issuer and serial)\n"
+	"  -P <pwdesc>       Provide password for batch mode\n"
 	"  -s <number>       Certificate serial number (decimal)\n"
-	"  -w <file>         Write CRL in file\n\n", pname);
+	"  -w <file>         Write CRL in file\n"
+	"\n\n"
+	"The parameter 'pwdesc' for the -P option is handled according to\n"
+	"https://www.openssl.org/docs/man3.0/man1/openssl-passphrase-options.html\n"
+	"    - 'pass:<password>' to provide it on the commandline (dangerous) or\n"
+	"    - 'stdin' or 'fd:<n>' or 'file:<filename>' to provide it via file or descriptor\n"
+	"    - 'env:<VAR>' take the password from the environment variable VAR.\n\n", pname);
 	exit(0);
 }
 
