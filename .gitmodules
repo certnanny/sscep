@@ -1,0 +1,3 @@
+[submodule "sscep-docker"]
+	path = sscep-docker
+	url = https://github.com/pertoft/sscep-docker
