@@ -20,7 +20,7 @@
 #define	MAX_POLL_COUNT	256
 
 /* CA identifier */
-#define	CA_IDENTIFIER	"CAIdentifier"
+#define	CA_IDENTIFIER	""
 
 /* Self signed certificate expiration */
 #define SELFSIGNED_EXPIRE_DAYS	365
