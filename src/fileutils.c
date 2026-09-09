@@ -447,10 +447,10 @@ guess_ca_certs(const char* filename, X509_NAME *issuer_name,
 		if (!is_issuer) {
 			/* X509_get_key_usage(cert[i]) is not in older openssl */
 			ASN1_BIT_STRING *usage = X509_get_ext_d2i(cert[i], NID_key_usage, NULL, NULL);
-			if (usage && (usage->length > 0)) {
-				if (usage->data[0] & KU_DIGITAL_SIGNATURE)
+			if (usage && (ASN1_STRING_length(usage) > 0)) {
+				if (ASN1_STRING_get0_data(usage)[0] & KU_DIGITAL_SIGNATURE)
 					*sigc = cert[i];
-				if (usage->data[0] & KU_KEY_ENCIPHERMENT)
+				if (ASN1_STRING_get0_data(usage)[0] & KU_KEY_ENCIPHERMENT)
 					*encc = cert[i];
 			} else {
 				/* no usability constraints */
